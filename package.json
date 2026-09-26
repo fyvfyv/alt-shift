@@ -19,6 +19,8 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build",
     "record:fixture": "node --env-file=.env.local --import tsx scripts/record-fixture.ts"
   },
   "dependencies": {
@@ -31,6 +33,7 @@
     "@axe-core/playwright": "^4.13.0",
     "@biomejs/biome": "^2.5.14",
     "@playwright/test": "^1.63.0",
+    "@storybook/react-vite": "^10.6.0",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
@@ -41,6 +44,7 @@
     "@vitejs/plugin-react": "^6.1.1",
     "@vitest/coverage-v8": "^5.0.2",
     "jsdom": "^30.1.1",
+    "storybook": "^10.6.0",
     "tsx": "^4.23.15",
     "typescript": "~6.0.2",
     "vite": "^8.3.1",
