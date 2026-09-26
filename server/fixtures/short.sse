@@ -1,0 +1,652 @@
+: keepalive
+
+event: delta
+data: {"text":"Dear"}
+
+event: delta
+data: {"text":" North"}
+
+event: delta
+data: {"text":"wind"}
+
+event: delta
+data: {"text":" team"}
+
+event: delta
+data: {"text":",\n\n"}
+
+event: delta
+data: {"text":"I"}
+
+event: delta
+data: {"text":" am"}
+
+event: delta
+data: {"text":" writing"}
+
+event: delta
+data: {"text":" to"}
+
+event: delta
+data: {"text":" express"}
+
+event: delta
+data: {"text":" my"}
+
+event: delta
+data: {"text":" interest"}
+
+event: delta
+data: {"text":" in"}
+
+event: delta
+data: {"text":" the"}
+
+event: delta
+data: {"text":" Front"}
+
+event: delta
+data: {"text":"end"}
+
+event: delta
+data: {"text":" Engineer"}
+
+event: delta
+data: {"text":" position"}
+
+event: delta
+data: {"text":" at"}
+
+event: delta
+data: {"text":" North"}
+
+event: delta
+data: {"text":"wind"}
+
+event: delta
+data: {"text":"."}
+
+event: delta
+data: {"text":" With"}
+
+event: delta
+data: {"text":" my"}
+
+event: delta
+data: {"text":" background"}
+
+event: delta
+data: {"text":" in"}
+
+event: delta
+data: {"text":" building"}
+
+event: delta
+data: {"text":" design"}
+
+event: delta
+data: {"text":" systems"}
+
+event: delta
+data: {"text":" for"}
+
+event: delta
+data: {"text":" four"}
+
+event: delta
+data: {"text":" years"}
+
+event: delta
+data: {"text":","}
+
+event: delta
+data: {"text":" I"}
+
+event: delta
+data: {"text":" am"}
+
+event: delta
+data: {"text":" excited"}
+
+event: delta
+data: {"text":" about"}
+
+event: delta
+data: {"text":" the"}
+
+event: delta
+data: {"text":" opportunity"}
+
+event: delta
+data: {"text":" to"}
+
+event: delta
+data: {"text":" contribute"}
+
+event: delta
+data: {"text":" to"}
+
+event: delta
+data: {"text":" your"}
+
+event: delta
+data: {"text":" team"}
+
+event: delta
+data: {"text":"."}
+
+event: delta
+data: {"text":" My"}
+
+event: delta
+data: {"text":" expertise"}
+
+event: delta
+data: {"text":" in"}
+
+event: delta
+data: {"text":" React"}
+
+event: delta
+data: {"text":" and"}
+
+event: delta
+data: {"text":" Type"}
+
+event: delta
+data: {"text":"Script"}
+
+event: delta
+data: {"text":" enables"}
+
+event: delta
+data: {"text":" me"}
+
+event: delta
+data: {"text":" to"}
+
+event: delta
+data: {"text":" create"}
+
+event: delta
+data: {"text":" efficient"}
+
+event: delta
+data: {"text":" and"}
+
+event: delta
+data: {"text":" maintain"}
+
+event: delta
+data: {"text":"able"}
+
+event: delta
+data: {"text":" code"}
+
+event: delta
+data: {"text":" that"}
+
+event: delta
+data: {"text":" aligns"}
+
+event: delta
+data: {"text":" well"}
+
+event: delta
+data: {"text":" with"}
+
+event: delta
+data: {"text":" your"}
+
+event: delta
+data: {"text":" needs"}
+
+event: delta
+data: {"text":".\n\n"}
+
+event: delta
+data: {"text":"I"}
+
+event: delta
+data: {"text":" am"}
+
+event: delta
+data: {"text":" particularly"}
+
+event: delta
+data: {"text":" passionate"}
+
+event: delta
+data: {"text":" about"}
+
+event: delta
+data: {"text":" developing"}
+
+event: delta
+data: {"text":" fast"}
+
+event: delta
+data: {"text":" and"}
+
+event: delta
+data: {"text":" accessible"}
+
+event: delta
+data: {"text":" interfaces"}
+
+event: delta
+data: {"text":"."}
+
+event: delta
+data: {"text":" Throughout"}
+
+event: delta
+data: {"text":" my"}
+
+event: delta
+data: {"text":" career"}
+
+event: delta
+data: {"text":","}
+
+event: delta
+data: {"text":" I"}
+
+event: delta
+data: {"text":" have"}
+
+event: delta
+data: {"text":" focused"}
+
+event: delta
+data: {"text":" on"}
+
+event: delta
+data: {"text":" ensuring"}
+
+event: delta
+data: {"text":" that"}
+
+event: delta
+data: {"text":" the"}
+
+event: delta
+data: {"text":" applications"}
+
+event: delta
+data: {"text":" I"}
+
+event: delta
+data: {"text":" build"}
+
+event: delta
+data: {"text":" provide"}
+
+event: delta
+data: {"text":" a"}
+
+event: delta
+data: {"text":" seamless"}
+
+event: delta
+data: {"text":" experience"}
+
+event: delta
+data: {"text":" for"}
+
+event: delta
+data: {"text":" all"}
+
+event: delta
+data: {"text":" users"}
+
+event: delta
+data: {"text":"."}
+
+event: delta
+data: {"text":" Accessibility"}
+
+event: delta
+data: {"text":" is"}
+
+event: delta
+data: {"text":" a"}
+
+event: delta
+data: {"text":" priority"}
+
+event: delta
+data: {"text":" for"}
+
+event: delta
+data: {"text":" me"}
+
+event: delta
+data: {"text":","}
+
+event: delta
+data: {"text":" and"}
+
+event: delta
+data: {"text":" I"}
+
+event: delta
+data: {"text":" actively"}
+
+event: delta
+data: {"text":" incorporate"}
+
+event: delta
+data: {"text":" best"}
+
+event: delta
+data: {"text":" practices"}
+
+event: delta
+data: {"text":" to"}
+
+event: delta
+data: {"text":" create"}
+
+event: delta
+data: {"text":" inclusive"}
+
+event: delta
+data: {"text":" designs"}
+
+event: delta
+data: {"text":".\n\n"}
+
+event: delta
+data: {"text":"My"}
+
+event: delta
+data: {"text":" experience"}
+
+event: delta
+data: {"text":" has"}
+
+event: delta
+data: {"text":" equipped"}
+
+event: delta
+data: {"text":" me"}
+
+event: delta
+data: {"text":" with"}
+
+event: delta
+data: {"text":" a"}
+
+event: delta
+data: {"text":" keen"}
+
+event: delta
+data: {"text":" eye"}
+
+event: delta
+data: {"text":" for"}
+
+event: delta
+data: {"text":" detail"}
+
+event: delta
+data: {"text":" and"}
+
+event: delta
+data: {"text":" a"}
+
+event: delta
+data: {"text":" strong"}
+
+event: delta
+data: {"text":" understanding"}
+
+event: delta
+data: {"text":" of"}
+
+event: delta
+data: {"text":" user"}
+
+event: delta
+data: {"text":" experience"}
+
+event: delta
+data: {"text":" principles"}
+
+event: delta
+data: {"text":"."}
+
+event: delta
+data: {"text":" I"}
+
+event: delta
+data: {"text":" thrive"}
+
+event: delta
+data: {"text":" in"}
+
+event: delta
+data: {"text":" collaborative"}
+
+event: delta
+data: {"text":" environments"}
+
+event: delta
+data: {"text":" and"}
+
+event: delta
+data: {"text":" enjoy"}
+
+event: delta
+data: {"text":" working"}
+
+event: delta
+data: {"text":" closely"}
+
+event: delta
+data: {"text":" with"}
+
+event: delta
+data: {"text":" designers"}
+
+event: delta
+data: {"text":" and"}
+
+event: delta
+data: {"text":" other"}
+
+event: delta
+data: {"text":" engineers"}
+
+event: delta
+data: {"text":" to"}
+
+event: delta
+data: {"text":" iterate"}
+
+event: delta
+data: {"text":" and"}
+
+event: delta
+data: {"text":" enhance"}
+
+event: delta
+data: {"text":" the"}
+
+event: delta
+data: {"text":" overall"}
+
+event: delta
+data: {"text":" user"}
+
+event: delta
+data: {"text":" experience"}
+
+event: delta
+data: {"text":".\n\n"}
+
+event: delta
+data: {"text":"I"}
+
+event: delta
+data: {"text":" am"}
+
+event: delta
+data: {"text":" eager"}
+
+event: delta
+data: {"text":" to"}
+
+event: delta
+data: {"text":" bring"}
+
+event: delta
+data: {"text":" my"}
+
+event: delta
+data: {"text":" skills"}
+
+event: delta
+data: {"text":" and"}
+
+event: delta
+data: {"text":" passion"}
+
+event: delta
+data: {"text":" for"}
+
+event: delta
+data: {"text":" frontend"}
+
+event: delta
+data: {"text":" development"}
+
+event: delta
+data: {"text":" to"}
+
+event: delta
+data: {"text":" North"}
+
+event: delta
+data: {"text":"wind"}
+
+event: delta
+data: {"text":" and"}
+
+event: delta
+data: {"text":" contribute"}
+
+event: delta
+data: {"text":" to"}
+
+event: delta
+data: {"text":" your"}
+
+event: delta
+data: {"text":" mission"}
+
+event: delta
+data: {"text":" of"}
+
+event: delta
+data: {"text":" delivering"}
+
+event: delta
+data: {"text":" exceptional"}
+
+event: delta
+data: {"text":" products"}
+
+event: delta
+data: {"text":"."}
+
+event: delta
+data: {"text":" Thank"}
+
+event: delta
+data: {"text":" you"}
+
+event: delta
+data: {"text":" for"}
+
+event: delta
+data: {"text":" considering"}
+
+event: delta
+data: {"text":" my"}
+
+event: delta
+data: {"text":" application"}
+
+event: delta
+data: {"text":"."}
+
+event: delta
+data: {"text":" I"}
+
+event: delta
+data: {"text":" look"}
+
+event: delta
+data: {"text":" forward"}
+
+event: delta
+data: {"text":" to"}
+
+event: delta
+data: {"text":" the"}
+
+event: delta
+data: {"text":" possibility"}
+
+event: delta
+data: {"text":" of"}
+
+event: delta
+data: {"text":" discussing"}
+
+event: delta
+data: {"text":" how"}
+
+event: delta
+data: {"text":" I"}
+
+event: delta
+data: {"text":" can"}
+
+event: delta
+data: {"text":" be"}
+
+event: delta
+data: {"text":" a"}
+
+event: delta
+data: {"text":" valuable"}
+
+event: delta
+data: {"text":" addition"}
+
+event: delta
+data: {"text":" to"}
+
+event: delta
+data: {"text":" your"}
+
+event: delta
+data: {"text":" team"}
+
+event: delta
+data: {"text":".\n\n"}
+
+event: delta
+data: {"text":"S"}
+
+event: delta
+data: {"text":"incerely"}
+
+event: delta
+data: {"text":","}
+
+data: [DONE]
+

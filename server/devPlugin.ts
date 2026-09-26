@@ -1,0 +1,70 @@
+// Mounts the /api/generate handler on the Vite dev server, so `pnpm dev` runs the same proxy
+// code as the Vercel function without `vercel dev`. The handler is loaded through Vite's SSR
+// module graph: edits to server code apply without a restart, and vite.config stays import-light.
+
+import type { ServerResponse } from 'node:http';
+import { type Connect, loadEnv, type Plugin } from 'vite';
+
+type Handler = (request: Request) => Promise<Response>;
+type GenerateModule = typeof import('./generate');
+type ProvidersModule = typeof import('./providers');
+
+export function generateMiddleware(handler: Handler) {
+  return async (req: Connect.IncomingMessage, res: ServerResponse): Promise<void> => {
+    const controller = new AbortController();
+    // Not req.on('close'): since Node 16 it fires once the request body is read, not on disconnect.
+    res.on('close', () => {
+      if (!res.writableFinished) controller.abort();
+    });
+
+    const chunks: Buffer[] = [];
+    for await (const chunk of req) chunks.push(chunk);
+    const headers = new Headers();
+    for (const [name, value] of Object.entries(req.headers)) {
+      if (typeof value === 'string') headers.set(name, value);
+    }
+    const hasBody = req.method !== 'GET' && req.method !== 'HEAD';
+    const request = new Request(`http://${req.headers.host}${req.originalUrl ?? req.url}`, {
+      method: req.method,
+      headers,
+      body: hasBody ? Buffer.concat(chunks) : undefined,
+      signal: controller.signal,
+    });
+
+    try {
+      const response = await handler(request);
+      res.writeHead(response.status, Object.fromEntries(response.headers));
+      if (response.body) {
+        for await (const chunk of response.body) res.write(chunk);
+      }
+      res.end();
+    } catch (error) {
+      if (!controller.signal.aborted) console.error('[generate]', error);
+      // No chunked terminator: the browser's read() rejects, exactly like a dropped upstream.
+      res.destroy();
+    }
+  };
+}
+
+export function generateApiPlugin(): Plugin {
+  return {
+    name: 'alt-shift:generate-api',
+    apply: 'serve',
+    config(_config, { mode }) {
+      // Server-only env (the token) never gets a VITE_ prefix; values already in the shell win.
+      Object.assign(process.env, loadEnv(mode, process.cwd(), ''));
+    },
+    async configureServer(server) {
+      const load = <T>(path: string) => server.ssrLoadModule(path) as Promise<T>;
+      const { resolveProvider } = await load<ProvidersModule>('/server/providers/index.ts');
+      server.config.logger.info(`  /api/generate → ${resolveProvider(process.env)} provider`);
+      server.middlewares.use(
+        '/api/generate',
+        generateMiddleware(async (request) => {
+          const { POST } = await load<GenerateModule>('/server/generate.ts');
+          return POST(request);
+        }),
+      );
+    },
+  };
+}

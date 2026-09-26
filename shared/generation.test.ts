@@ -100,5 +100,9 @@ describe('validateGenerateRequest', () => {
       code: 'invalid_request',
       field: 'jobTitle',
     });
+    expect(validateGenerateRequest({ ...valid, details: ['a'] })).toMatchObject({
+      ok: false,
+      field: 'details',
+    });
   });
 });

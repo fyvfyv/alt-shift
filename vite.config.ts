@@ -1,9 +1,10 @@
 import react from '@vitejs/plugin-react';
 import svgr from 'vite-plugin-svgr';
 import { defineConfig } from 'vitest/config';
+import { generateApiPlugin } from './server/devPlugin.ts';
 
 export default defineConfig({
-  plugins: [react(), svgr()],
+  plugins: [react(), svgr(), generateApiPlugin()],
   test: {
     clearMocks: true,
     projects: [
@@ -13,6 +14,8 @@ export default defineConfig({
         test: {
           name: 'node',
           environment: 'node',
+          unstubEnvs: true,
+          unstubGlobals: true,
           include: ['server/**/*.test.ts', 'shared/**/*.test.ts', 'scripts/**/*.test.ts'],
         },
       },

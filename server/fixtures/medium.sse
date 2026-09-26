@@ -1,0 +1,778 @@
+: keepalive
+
+event: delta
+data: {"text":"Dear"}
+
+event: delta
+data: {"text":" L"}
+
+event: delta
+data: {"text":"umen"}
+
+event: delta
+data: {"text":" Health"}
+
+event: delta
+data: {"text":" team"}
+
+event: delta
+data: {"text":",\n\n"}
+
+event: delta
+data: {"text":"I"}
+
+event: delta
+data: {"text":" am"}
+
+event: delta
+data: {"text":" excited"}
+
+event: delta
+data: {"text":" to"}
+
+event: delta
+data: {"text":" apply"}
+
+event: delta
+data: {"text":" for"}
+
+event: delta
+data: {"text":" the"}
+
+event: delta
+data: {"text":" Product"}
+
+event: delta
+data: {"text":" Designer"}
+
+event: delta
+data: {"text":" position"}
+
+event: delta
+data: {"text":" at"}
+
+event: delta
+data: {"text":" L"}
+
+event: delta
+data: {"text":"umen"}
+
+event: delta
+data: {"text":" Health"}
+
+event: delta
+data: {"text":"."}
+
+event: delta
+data: {"text":" With"}
+
+event: delta
+data: {"text":" five"}
+
+event: delta
+data: {"text":" years"}
+
+event: delta
+data: {"text":" of"}
+
+event: delta
+data: {"text":" experience"}
+
+event: delta
+data: {"text":" designing"}
+
+event: delta
+data: {"text":" patient"}
+
+event: delta
+data: {"text":"-facing"}
+
+event: delta
+data: {"text":" products"}
+
+event: delta
+data: {"text":" at"}
+
+event: delta
+data: {"text":" a"}
+
+event: delta
+data: {"text":" tele"}
+
+event: delta
+data: {"text":"health"}
+
+event: delta
+data: {"text":" startup"}
+
+event: delta
+data: {"text":","}
+
+event: delta
+data: {"text":" I"}
+
+event: delta
+data: {"text":" have"}
+
+event: delta
+data: {"text":" hon"}
+
+event: delta
+data: {"text":"ed"}
+
+event: delta
+data: {"text":" my"}
+
+event: delta
+data: {"text":" skills"}
+
+event: delta
+data: {"text":" in"}
+
+event: delta
+data: {"text":" F"}
+
+event: delta
+data: {"text":"igma"}
+
+event: delta
+data: {"text":","}
+
+event: delta
+data: {"text":" user"}
+
+event: delta
+data: {"text":" research"}
+
+event: delta
+data: {"text":","}
+
+event: delta
+data: {"text":" prot"}
+
+event: delta
+data: {"text":"otyping"}
+
+event: delta
+data: {"text":","}
+
+event: delta
+data: {"text":" and"}
+
+event: delta
+data: {"text":" developing"}
+
+event: delta
+data: {"text":" design"}
+
+event: delta
+data: {"text":" systems"}
+
+event: delta
+data: {"text":" that"}
+
+event: delta
+data: {"text":" resonate"}
+
+event: delta
+data: {"text":" with"}
+
+event: delta
+data: {"text":" users"}
+
+event: delta
+data: {"text":" and"}
+
+event: delta
+data: {"text":" meet"}
+
+event: delta
+data: {"text":" business"}
+
+event: delta
+data: {"text":" objectives"}
+
+event: delta
+data: {"text":".\n\n"}
+
+event: delta
+data: {"text":"In"}
+
+event: delta
+data: {"text":" my"}
+
+event: delta
+data: {"text":" previous"}
+
+event: delta
+data: {"text":" role"}
+
+event: delta
+data: {"text":","}
+
+event: delta
+data: {"text":" I"}
+
+event: delta
+data: {"text":" led"}
+
+event: delta
+data: {"text":" the"}
+
+event: delta
+data: {"text":" redesign"}
+
+event: delta
+data: {"text":" of"}
+
+event: delta
+data: {"text":" our"}
+
+event: delta
+data: {"text":" appointment"}
+
+event: delta
+data: {"text":" booking"}
+
+event: delta
+data: {"text":" flow"}
+
+event: delta
+data: {"text":","}
+
+event: delta
+data: {"text":" successfully"}
+
+event: delta
+data: {"text":" reducing"}
+
+event: delta
+data: {"text":" drop"}
+
+event: delta
+data: {"text":"-off"}
+
+event: delta
+data: {"text":" rates"}
+
+event: delta
+data: {"text":" by"}
+
+event: delta
+data: {"text":" a"}
+
+event: delta
+data: {"text":" third"}
+
+event: delta
+data: {"text":"."}
+
+event: delta
+data: {"text":" This"}
+
+event: delta
+data: {"text":" experience"}
+
+event: delta
+data: {"text":" taught"}
+
+event: delta
+data: {"text":" me"}
+
+event: delta
+data: {"text":" the"}
+
+event: delta
+data: {"text":" importance"}
+
+event: delta
+data: {"text":" of"}
+
+event: delta
+data: {"text":" user"}
+
+event: delta
+data: {"text":"-centered"}
+
+event: delta
+data: {"text":" design"}
+
+event: delta
+data: {"text":" and"}
+
+event: delta
+data: {"text":" the"}
+
+event: delta
+data: {"text":" impact"}
+
+event: delta
+data: {"text":" of"}
+
+event: delta
+data: {"text":" a"}
+
+event: delta
+data: {"text":" seamless"}
+
+event: delta
+data: {"text":" user"}
+
+event: delta
+data: {"text":" experience"}
+
+event: delta
+data: {"text":" on"}
+
+event: delta
+data: {"text":" patient"}
+
+event: delta
+data: {"text":" engagement"}
+
+event: delta
+data: {"text":"."}
+
+event: delta
+data: {"text":" Additionally"}
+
+event: delta
+data: {"text":","}
+
+event: delta
+data: {"text":" I"}
+
+event: delta
+data: {"text":" established"}
+
+event: delta
+data: {"text":" a"}
+
+event: delta
+data: {"text":" comprehensive"}
+
+event: delta
+data: {"text":" component"}
+
+event: delta
+data: {"text":" library"}
+
+event: delta
+data: {"text":" that"}
+
+event: delta
+data: {"text":" was"}
+
+event: delta
+data: {"text":" utilized"}
+
+event: delta
+data: {"text":" by"}
+
+event: delta
+data: {"text":" three"}
+
+event: delta
+data: {"text":" different"}
+
+event: delta
+data: {"text":" product"}
+
+event: delta
+data: {"text":" teams"}
+
+event: delta
+data: {"text":","}
+
+event: delta
+data: {"text":" fostering"}
+
+event: delta
+data: {"text":" consistency"}
+
+event: delta
+data: {"text":" and"}
+
+event: delta
+data: {"text":" efficiency"}
+
+event: delta
+data: {"text":" in"}
+
+event: delta
+data: {"text":" our"}
+
+event: delta
+data: {"text":" design"}
+
+event: delta
+data: {"text":" processes"}
+
+event: delta
+data: {"text":".\n\n"}
+
+event: delta
+data: {"text":"I"}
+
+event: delta
+data: {"text":" prioritize"}
+
+event: delta
+data: {"text":" user"}
+
+event: delta
+data: {"text":" research"}
+
+event: delta
+data: {"text":" and"}
+
+event: delta
+data: {"text":" actively"}
+
+event: delta
+data: {"text":" run"}
+
+event: delta
+data: {"text":" weekly"}
+
+event: delta
+data: {"text":" usability"}
+
+event: delta
+data: {"text":" sessions"}
+
+event: delta
+data: {"text":" with"}
+
+event: delta
+data: {"text":" both"}
+
+event: delta
+data: {"text":" patients"}
+
+event: delta
+data: {"text":" and"}
+
+event: delta
+data: {"text":" clinicians"}
+
+event: delta
+data: {"text":"."}
+
+event: delta
+data: {"text":" This"}
+
+event: delta
+data: {"text":" practice"}
+
+event: delta
+data: {"text":" not"}
+
+event: delta
+data: {"text":" only"}
+
+event: delta
+data: {"text":" informs"}
+
+event: delta
+data: {"text":" my"}
+
+event: delta
+data: {"text":" design"}
+
+event: delta
+data: {"text":" decisions"}
+
+event: delta
+data: {"text":" but"}
+
+event: delta
+data: {"text":" also"}
+
+event: delta
+data: {"text":" allows"}
+
+event: delta
+data: {"text":" me"}
+
+event: delta
+data: {"text":" to"}
+
+event: delta
+data: {"text":" create"}
+
+event: delta
+data: {"text":" priorit"}
+
+event: delta
+data: {"text":"ised"}
+
+event: delta
+data: {"text":" back"}
+
+event: delta
+data: {"text":"logs"}
+
+event: delta
+data: {"text":" that"}
+
+event: delta
+data: {"text":" directly"}
+
+event: delta
+data: {"text":" address"}
+
+event: delta
+data: {"text":" user"}
+
+event: delta
+data: {"text":" needs"}
+
+event: delta
+data: {"text":" and"}
+
+event: delta
+data: {"text":" pain"}
+
+event: delta
+data: {"text":" points"}
+
+event: delta
+data: {"text":"."}
+
+event: delta
+data: {"text":" I"}
+
+event: delta
+data: {"text":" am"}
+
+event: delta
+data: {"text":" particularly"}
+
+event: delta
+data: {"text":" impressed"}
+
+event: delta
+data: {"text":" by"}
+
+event: delta
+data: {"text":" L"}
+
+event: delta
+data: {"text":"umen"}
+
+event: delta
+data: {"text":" Health"}
+
+event: delta
+data: {"text":"’s"}
+
+event: delta
+data: {"text":" commitment"}
+
+event: delta
+data: {"text":" to"}
+
+event: delta
+data: {"text":" shaping"}
+
+event: delta
+data: {"text":" the"}
+
+event: delta
+data: {"text":" roadmap"}
+
+event: delta
+data: {"text":" through"}
+
+event: delta
+data: {"text":" research"}
+
+event: delta
+data: {"text":" and"}
+
+event: delta
+data: {"text":" would"}
+
+event: delta
+data: {"text":" love"}
+
+event: delta
+data: {"text":" to"}
+
+event: delta
+data: {"text":" contribute"}
+
+event: delta
+data: {"text":" to"}
+
+event: delta
+data: {"text":" that"}
+
+event: delta
+data: {"text":" mission"}
+
+event: delta
+data: {"text":".\n\n"}
+
+event: delta
+data: {"text":"I"}
+
+event: delta
+data: {"text":" am"}
+
+event: delta
+data: {"text":" eager"}
+
+event: delta
+data: {"text":" to"}
+
+event: delta
+data: {"text":" bring"}
+
+event: delta
+data: {"text":" my"}
+
+event: delta
+data: {"text":" expertise"}
+
+event: delta
+data: {"text":" in"}
+
+event: delta
+data: {"text":" user"}
+
+event: delta
+data: {"text":"-centric"}
+
+event: delta
+data: {"text":" design"}
+
+event: delta
+data: {"text":" and"}
+
+event: delta
+data: {"text":" collaborative"}
+
+event: delta
+data: {"text":" development"}
+
+event: delta
+data: {"text":" to"}
+
+event: delta
+data: {"text":" the"}
+
+event: delta
+data: {"text":" innovative"}
+
+event: delta
+data: {"text":" team"}
+
+event: delta
+data: {"text":" at"}
+
+event: delta
+data: {"text":" L"}
+
+event: delta
+data: {"text":"umen"}
+
+event: delta
+data: {"text":" Health"}
+
+event: delta
+data: {"text":"."}
+
+event: delta
+data: {"text":" I"}
+
+event: delta
+data: {"text":" believe"}
+
+event: delta
+data: {"text":" that"}
+
+event: delta
+data: {"text":" my"}
+
+event: delta
+data: {"text":" background"}
+
+event: delta
+data: {"text":" in"}
+
+event: delta
+data: {"text":" tele"}
+
+event: delta
+data: {"text":"health"}
+
+event: delta
+data: {"text":" aligns"}
+
+event: delta
+data: {"text":" well"}
+
+event: delta
+data: {"text":" with"}
+
+event: delta
+data: {"text":" your"}
+
+event: delta
+data: {"text":" goals"}
+
+event: delta
+data: {"text":","}
+
+event: delta
+data: {"text":" and"}
+
+event: delta
+data: {"text":" I"}
+
+event: delta
+data: {"text":" am"}
+
+event: delta
+data: {"text":" excited"}
+
+event: delta
+data: {"text":" about"}
+
+event: delta
+data: {"text":" the"}
+
+event: delta
+data: {"text":" opportunity"}
+
+event: delta
+data: {"text":" to"}
+
+event: delta
+data: {"text":" make"}
+
+event: delta
+data: {"text":" a"}
+
+event: delta
+data: {"text":" meaningful"}
+
+event: delta
+data: {"text":" impact"}
+
+event: delta
+data: {"text":".\n\n"}
+
+event: delta
+data: {"text":"S"}
+
+event: delta
+data: {"text":"incerely"}
+
+event: delta
+data: {"text":","}
+
+data: [DONE]
+
