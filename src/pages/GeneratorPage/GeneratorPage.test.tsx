@@ -78,7 +78,7 @@ describe('GeneratorPage', () => {
       await user.click(field.details());
       await user.paste('a'.repeat(1201));
 
-      expect(screen.getByText('1201/1200')).toBeInTheDocument();
+      expect(field.details()).toHaveAccessibleDescription('1201/1200');
       expect(field.details()).toHaveAttribute('aria-invalid', 'true');
       expect(generateButton()).toBeDisabled();
     });
@@ -339,7 +339,7 @@ describe('GeneratorPage', () => {
 
       fake.lastRun().fail({ kind });
 
-      expect(await screen.findByText(title)).toBeInTheDocument();
+      expect(await screen.findByRole('alert')).toHaveTextContent(title);
       expect(generateButton()).toBeEnabled();
       await user.click(screen.getByRole('button', { name: 'Retry' }));
       expect(fake.runs).toHaveLength(2);

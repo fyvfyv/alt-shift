@@ -35,6 +35,7 @@
   /* borders */
   --color-border: #d0d5dd;
   --color-border-subtle: #eaecf0; /* title divider */
+  --color-border-hover: #98a2b3; /* text controls */
   --color-border-focus: #73e2a3;
   --color-border-error: #fda29b;
 

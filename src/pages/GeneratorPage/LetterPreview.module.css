@@ -44,6 +44,11 @@
   color: var(--color-text-error);
 }
 
+.error {
+  display: grid;
+  gap: var(--space-4);
+}
+
 .errorTitle {
   color: var(--color-text-primary);
 }

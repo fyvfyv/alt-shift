@@ -50,8 +50,11 @@ function Content({
     const { title, body } = errorMessage(state.error, retryCountdown);
     return (
       <>
-        <p className={`${styles.errorTitle} ${typography.lgStrong}`}>{title}</p>
-        <p className={`${styles.errorBody} ${typography.md}`}>{body}</p>
+        {/* Retry stays outside the alert so the announcement is just the message. */}
+        <div className={styles.error} role="alert">
+          <p className={`${styles.errorTitle} ${typography.lgStrong}`}>{title}</p>
+          <p className={`${styles.errorBody} ${typography.md}`}>{body}</p>
+        </div>
         <Button variant="secondary" size="md" disabled={retryDisabled} onClick={onRetry}>
           {retryCountdown > 0 ? copy.preview.retryIn(retryCountdown) : copy.preview.retry}
         </Button>

@@ -6,6 +6,7 @@ export function CharCounter({ id, count, limit }: { id: string; count: number; l
   return (
     <p
       id={id}
+      role="status"
       className={`${controls.message} ${typography.sm}`}
       data-error={count > limit || undefined}
     >

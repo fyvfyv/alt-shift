@@ -49,6 +49,12 @@
   border-color: var(--color-brand-accent);
 }
 
+/* Pressed returns to the resting green, darker than hover. */
+.button[data-variant="primary"]:active:not(:disabled) {
+  background: var(--color-brand);
+  border-color: var(--color-brand);
+}
+
 .button[data-variant="primary"]:disabled:not([aria-busy="true"]) {
   color: var(--color-text-disabled);
   background: var(--color-control-disabled);

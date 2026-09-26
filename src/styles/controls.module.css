@@ -23,6 +23,16 @@
   opacity: 1;
 }
 
+/* Hover never overrides the focus or error border. */
+.control:hover:not(:focus, :disabled, [aria-invalid="true"]) {
+  border-color: var(--color-border-hover);
+}
+
+.control:disabled {
+  color: var(--color-text-quaternary);
+  background: var(--color-surface-subtle);
+}
+
 /* Text controls show the ring on any focus, mouse included, as in the filled + focus mockup. */
 .control:focus {
   outline: none;
