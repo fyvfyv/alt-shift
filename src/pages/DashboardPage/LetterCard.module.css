@@ -1,0 +1,34 @@
+/* Fixed height in every layout: the body is a preview, the fade says there is more. */
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 240px;
+  padding: var(--space-6);
+  overflow: hidden;
+  background: var(--color-surface-subtle);
+  border-radius: var(--radius-lg);
+}
+
+.body {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Covers the last 32px of the body and the top 8px of the footer's padding. */
+.fade {
+  position: absolute;
+  inset-inline: var(--space-6);
+  bottom: 56px;
+  height: 40px;
+  pointer-events: none;
+  background: var(--gradient-card-fade);
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: var(--space-4);
+}

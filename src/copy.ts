@@ -17,7 +17,6 @@ export const copy = {
 
   generator: {
     title: 'New application',
-    letterTitle: (jobTitle: string, company: string) => `${jobTitle}, ${company}`,
     fields: {
       jobTitle: { label: 'Job title', placeholder: 'Product manager' },
       company: { label: 'Company', placeholder: 'Apple' },
@@ -55,6 +54,7 @@ export const copy = {
   },
 
   letter: {
+    title: (jobTitle: string, company: string) => `${jobTitle}, ${company}`,
     copy: 'Copy to clipboard',
     copied: 'Copied',
     delete: 'Delete',

@@ -43,7 +43,7 @@ export function GeneratorForm({
       }}
     >
       <PageTitle placeholder={!hasTitle}>
-        {hasTitle ? copy.generator.letterTitle(jobTitle, company) : copy.generator.title}
+        {hasTitle ? copy.letter.title(jobTitle, company) : copy.generator.title}
       </PageTitle>
       <div className={styles.row}>
         <TextField
