@@ -1,0 +1,24 @@
+/*
+ * One variable file (Fixel, MacPaw, OFL 1.1) serves both families. The
+ * font-stretch descriptor declares the width each face supports, and the
+ * browser clamps the wdth axis to it: 87.5% is Fixel's "Text" cut, 100% its
+ * "Display" cut. Without the descriptor every browser renders wdth 100, so
+ * body copy would come out in the Display width.
+ */
+@font-face {
+  font-family: "Fixel Text";
+  src: url("../assets/fonts/FixelVariable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-stretch: 87.5%;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Fixel Display";
+  src: url("../assets/fonts/FixelVariable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-stretch: 100%;
+  font-style: normal;
+  font-display: swap;
+}
