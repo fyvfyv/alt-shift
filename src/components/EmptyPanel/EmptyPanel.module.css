@@ -1,0 +1,12 @@
+.panel {
+  display: grid;
+  gap: var(--space-4);
+  place-content: center;
+  justify-items: center;
+  min-height: 240px;
+  padding: var(--space-6);
+  color: var(--color-text-quaternary);
+  text-align: center;
+  background: var(--color-surface-subtle);
+  border-radius: var(--radius-lg);
+}

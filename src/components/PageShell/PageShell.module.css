@@ -1,0 +1,24 @@
+/*
+ * Gutters grow with the viewport until the content reaches its 1120px design width, then stay at
+ * 160. Percent padding resolves against the body, so a classic scrollbar never eats into the
+ * content the way 100vw would.
+ */
+.shell {
+  padding-block: var(--space-8) var(--space-30);
+  padding-inline: clamp(var(--space-4), calc((100% - 1120px) / 2), var(--space-40));
+}
+
+.page {
+  container: page / inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  max-width: 1120px;
+  margin-inline: auto;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}

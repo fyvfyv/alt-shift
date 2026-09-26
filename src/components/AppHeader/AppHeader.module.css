@@ -1,0 +1,13 @@
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-6);
+  min-height: 48px;
+}
+
+.cluster {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+}

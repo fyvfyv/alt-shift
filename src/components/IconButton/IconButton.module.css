@@ -1,0 +1,6 @@
+/* Colors and states come from the secondary Button; this only squares the box. */
+.iconButton {
+  width: 40px;
+  height: 40px;
+  padding: 9px;
+}

@@ -67,8 +67,9 @@
   }
 
   /* biome-ignore-start lint/complexity/noImportantStyles: from inside a layer only !important outranks unlayered component animations */
+  /* Loading indicators opt out with data-motion="essential" and bring their own reduced variant. */
   @media (prefers-reduced-motion: reduce) {
-    *,
+    *:not([data-motion="essential"]),
     *::before,
     *::after {
       animation-duration: 0.01ms !important;

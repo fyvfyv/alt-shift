@@ -1,0 +1,22 @@
+/* Divider under the title: Figma padding minus the 1px border it sits on. */
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding-bottom: 11px;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.row[data-size="lg"] {
+  padding-bottom: 15px;
+}
+
+.title {
+  min-width: 0;
+  color: var(--color-text-primary);
+}
+
+.title[data-placeholder] {
+  color: var(--color-text-placeholder);
+}

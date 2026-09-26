@@ -1,0 +1,29 @@
+import type { ReactNode } from 'react';
+import typography from '../../styles/typography.module.css';
+import styles from './PageTitle.module.css';
+
+type PageTitleProps = {
+  children: ReactNode;
+  // `md` on the generator, `lg` on the dashboard.
+  size?: 'md' | 'lg';
+  // Muted color while the title stands in for content the user hasn't entered yet.
+  placeholder?: boolean;
+  action?: ReactNode;
+};
+
+// The h1 takes programmatic focus on route change (usePageMeta), never Tab focus.
+export function PageTitle({ children, size = 'md', placeholder = false, action }: PageTitleProps) {
+  const role = size === 'lg' ? typography.displayLg : typography.displayMd;
+  return (
+    <div className={styles.row} data-size={size}>
+      <h1
+        className={`${styles.title} ${role}`}
+        data-placeholder={placeholder || undefined}
+        tabIndex={-1}
+      >
+        {children}
+      </h1>
+      {action}
+    </div>
+  );
+}

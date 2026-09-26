@@ -1,0 +1,10 @@
+.logo {
+  display: block;
+  flex: none;
+  border-radius: var(--radius-sm);
+}
+
+.logo:focus-visible {
+  outline: none;
+  box-shadow: var(--ring-focus);
+}

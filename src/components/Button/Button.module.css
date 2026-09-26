@@ -1,0 +1,96 @@
+/* Figma strokes sit inside the box, so every bordered size uses Figma padding minus the 1px border. */
+.button {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  white-space: nowrap;
+  text-decoration: none;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-xs);
+  transition:
+    background-color 120ms ease-out,
+    border-color 120ms ease-out,
+    color 120ms ease-out;
+}
+
+.button:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-xs), var(--ring-focus);
+}
+
+.button[data-full-width] {
+  width: 100%;
+}
+
+/* min-height, not height: the loading state swaps the label for a spinner without a 4px jump. */
+.button[data-size="xl"] {
+  gap: var(--space-3);
+  min-height: 60px;
+  padding: 15px 27px;
+}
+
+.button[data-size="md"] {
+  gap: var(--space-2);
+  min-height: 44px;
+  padding: 9px 17px;
+}
+
+.button[data-variant="primary"] {
+  color: var(--color-text-on-brand);
+  background: var(--color-brand);
+  border-color: var(--color-brand);
+}
+
+.button[data-variant="primary"]:hover:not(:disabled) {
+  background: var(--color-brand-accent);
+  border-color: var(--color-brand-accent);
+}
+
+.button[data-variant="primary"]:disabled:not([aria-busy="true"]) {
+  color: var(--color-text-disabled);
+  background: var(--color-control-disabled);
+  border-color: var(--color-control-disabled);
+}
+
+.button[data-variant="secondary"] {
+  color: var(--color-text-secondary);
+  background: var(--color-surface);
+  border-color: var(--color-border);
+}
+
+.button[data-variant="secondary"]:hover:not(:disabled) {
+  background: var(--color-surface-subtle);
+}
+
+.button[data-variant="secondary"]:active:not(:disabled) {
+  background: var(--color-border-subtle);
+}
+
+.button[data-variant="secondary"]:disabled:not([aria-busy="true"]) {
+  color: var(--color-text-disabled);
+  border-color: var(--color-border-subtle);
+}
+
+/* Bare text + icon. The radius exists only to shape the focus ring. */
+.button[data-variant="tertiary"] {
+  gap: var(--space-2);
+  color: var(--color-text-tertiary);
+  border: 0;
+  border-radius: var(--radius-sm);
+  box-shadow: none;
+}
+
+.button[data-variant="tertiary"]:focus-visible {
+  box-shadow: var(--ring-focus);
+}
+
+.button[data-variant="tertiary"]:hover:not(:disabled) {
+  color: var(--color-text-secondary);
+}
+
+.button[data-variant="tertiary"]:disabled {
+  color: var(--color-text-disabled);
+}
