@@ -1,5 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, type Page, test } from '@playwright/test';
+import { fillGeneratorForm } from './generator';
 import { lettersOf, seedLetters } from './seed';
 
 async function expectNoSeriousViolations(page: Page) {
@@ -26,9 +27,7 @@ test('generator, empty', async ({ page }) => {
 test('generator, completed letter', async ({ page }) => {
   test.slow();
   await page.goto('/new');
-  await page.getByLabel('Job title').fill('Product Designer');
-  await page.getByLabel('Company').fill('Acme');
-  await page.getByLabel('I am good at...').fill('Design systems, prototyping');
+  await fillGeneratorForm(page);
   await page.getByRole('button', { name: 'Generate Now' }).click();
   await expect(page.getByRole('button', { name: 'Copy to clipboard' })).toBeVisible({
     timeout: 30_000,
