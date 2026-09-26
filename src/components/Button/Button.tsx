@@ -29,7 +29,7 @@ type AsButton = OwnProps &
 // Navigation that looks like a button is still a link: same classes, rendered as <a>.
 type AsLink = OwnProps & Omit<ComponentProps<typeof Link>, keyof OwnProps> & { loading?: never };
 
-export type ButtonProps = AsButton | AsLink;
+type ButtonProps = AsButton | AsLink;
 
 export function Button(props: ButtonProps) {
   const {
@@ -66,13 +66,13 @@ export function Button(props: ButtonProps) {
 
   if (rest.to !== undefined) {
     return (
-      <Link {...(rest as Omit<AsLink, keyof OwnProps>)} {...shared}>
+      <Link {...rest} {...shared}>
         {content}
       </Link>
     );
   }
 
-  const { type = 'button', disabled, ...buttonProps } = rest as Omit<AsButton, keyof OwnProps>;
+  const { type = 'button', disabled, ...buttonProps } = rest;
   return (
     <button
       {...buttonProps}

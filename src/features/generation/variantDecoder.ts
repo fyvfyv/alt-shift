@@ -6,7 +6,7 @@ export type VariantEvent = { type: 'delta'; text: string } | { type: 'done' };
 
 export function decode(message: SseMessage): VariantEvent | null {
   if (message.data === '[DONE]') return { type: 'done' };
-  if (message.event !== 'delta' && message.event !== 'message') return null;
+  if (message.event !== 'delta') return null;
 
   let payload: unknown;
   try {

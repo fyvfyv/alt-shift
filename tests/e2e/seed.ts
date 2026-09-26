@@ -12,11 +12,8 @@ export function lettersOf(count: number): Letter[] {
   }));
 }
 
-/**
- * Writes letters to localStorage and reloads so the app hydrates from them. Call it after the
- * first `goto`. Not `addInitScript`: that re-runs on every navigation and would overwrite
- * whatever the test has since changed (a generated letter, a delete).
- */
+// Not addInitScript: that re-runs on every navigation and would overwrite whatever the test has
+// since changed. Needs a page already open on the origin, so call it after the first goto.
 export async function seedLetters(page: Page, letters: Letter[]): Promise<void> {
   await page.evaluate(
     (envelope) => window.localStorage.setItem('alt-shift.letters', envelope),

@@ -4,16 +4,14 @@ import type { GenerateRequest } from '../../../shared/generation';
 // Per tab: the form survives a reload, but two tabs never overwrite each other's drafts.
 const KEY = 'alt-shift.draft';
 
-export type Draft = GenerateRequest;
+const emptyDraft: GenerateRequest = { jobTitle: '', company: '', skills: '', details: '' };
 
-const emptyDraft: Draft = { jobTitle: '', company: '', skills: '', details: '' };
-
-function readDraft(): Draft {
+function readDraft(): GenerateRequest {
   try {
     const parsed: unknown = JSON.parse(sessionStorage.getItem(KEY) ?? 'null');
     if (typeof parsed !== 'object' || parsed === null) return emptyDraft;
-    const stored = parsed as Record<keyof Draft, unknown>;
-    const field = (name: keyof Draft) => {
+    const stored = parsed as Record<keyof GenerateRequest, unknown>;
+    const field = (name: keyof GenerateRequest) => {
       const value = stored[name];
       return typeof value === 'string' ? value : '';
     };
@@ -29,7 +27,7 @@ function readDraft(): Draft {
 }
 
 // The draft is a convenience: when storage is unavailable the form simply isn't restored.
-function writeDraft(draft: Draft): void {
+function writeDraft(draft: GenerateRequest): void {
   try {
     if (Object.values(draft).every((value) => value === '')) sessionStorage.removeItem(KEY);
     else sessionStorage.setItem(KEY, JSON.stringify(draft));
@@ -39,10 +37,9 @@ function writeDraft(draft: Draft): void {
 export function useDraft() {
   const [draft, setDraft] = useState(readDraft);
 
-  // Four short strings: writing on every change is cheap and nothing is lost on unmount.
   useEffect(() => writeDraft(draft), [draft]);
 
-  const update = useCallback((patch: Partial<Draft>) => {
+  const update = useCallback((patch: Partial<GenerateRequest>) => {
     setDraft((current) => ({ ...current, ...patch }));
   }, []);
 

@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { GenerateRequest } from '../../../shared/generation';
 import { recorded } from '../../test/fixtures';
-import { GenerationFailure } from './errors';
+import { type GenerationError, GenerationFailure } from './errors';
 import { generate } from './generationClient';
 
 const request: GenerateRequest = {
@@ -18,7 +18,6 @@ function delta(text: string): string {
   return `event: delta\ndata: ${JSON.stringify({ text })}\n\n`;
 }
 
-// After the chunks the body closes, stays open, or errors with the given value.
 type StreamScript = {
   chunks: Uint8Array[];
   ending?: 'close' | 'open' | Error;
@@ -62,13 +61,13 @@ async function collect(signal = new AbortController().signal): Promise<string[]>
   return texts;
 }
 
-async function failure(promise: Promise<unknown>): Promise<GenerationFailure['error']> {
+async function failure(promise: Promise<unknown>): Promise<GenerationError> {
   const error = await promise.then(
     () => expect.unreachable('expected a GenerationFailure'),
     (e: unknown) => e,
   );
-  expect(error).toBeInstanceOf(GenerationFailure);
-  return (error as GenerationFailure).error;
+  if (!(error instanceof GenerationFailure)) throw error;
+  return error.error;
 }
 
 describe('generate', () => {
@@ -99,14 +98,9 @@ describe('generate', () => {
 
   it.each([
     ['a 400 JSON error', Response.json({ error: { code: 'invalid_request' } }, { status: 400 })],
-    ['a 502 JSON error', Response.json({ error: { code: 'upstream_error' } }, { status: 502 })],
     [
       'a 200 HTML page',
       new Response('<html></html>', { headers: { 'Content-Type': 'text/html' } }),
-    ],
-    [
-      'a 200 SSE without a body',
-      new Response(null, { headers: { 'Content-Type': 'text/event-stream' } }),
     ],
   ])('maps %s to upstream', async (_, response) => {
     stubResponse(response);

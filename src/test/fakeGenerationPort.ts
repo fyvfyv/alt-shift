@@ -7,7 +7,7 @@ type Step =
   | { type: 'end' }
   | { type: 'fail'; error: GenerationError };
 
-export type FakeRun = {
+type FakeRun = {
   request: GenerateRequest;
   signal: AbortSignal;
   emit(...texts: string[]): void;

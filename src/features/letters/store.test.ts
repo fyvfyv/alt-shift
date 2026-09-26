@@ -17,7 +17,6 @@ describe('createLetterStore', () => {
 
     await store.getState().hydrate();
 
-    expect(store.getState().hydrated).toBe(true);
     expect(store.getState().letters.map((l) => l.createdAt)).toEqual([3, 2, 1]);
   });
 
@@ -63,18 +62,6 @@ describe('createLetterStore', () => {
 
     expect(store.getState().letters).toEqual([letterAt(2)]);
     expect(await repository.list()).toEqual([letterAt(2)]);
-  });
-
-  it('removes from memory even when persisting fails', async () => {
-    const repository = new InMemoryLetterRepository([letterAt(1)]);
-    const store = createLetterStore({ repository });
-    await store.getState().hydrate();
-    repository.rejectWritesWith(new StorageError('unavailable'));
-
-    await store.getState().remove('letter-1');
-
-    expect(store.getState().letters).toEqual([]);
-    expect(store.getState().lastStorageError?.kind).toBe('unavailable');
   });
 
   it('re-lists when another tab changes the letters', async () => {

@@ -6,7 +6,6 @@ import styles from './TextField.module.css';
 
 type TextFieldProps = Omit<ComponentProps<'input'>, 'id' | 'className'> & {
   label: string;
-  // Shown under the input; its presence marks the input invalid.
   error?: string;
 };
 

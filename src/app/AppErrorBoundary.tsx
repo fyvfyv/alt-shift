@@ -1,4 +1,4 @@
-import { Component, type ErrorInfo, type ReactNode } from 'react';
+import { Component, type ReactNode } from 'react';
 import { Button } from '../components/Button/Button';
 import { EmptyPanel } from '../components/EmptyPanel/EmptyPanel';
 import { PageShell } from '../components/PageShell/PageShell';
@@ -11,10 +11,6 @@ export class AppErrorBoundary extends Component<{ children: ReactNode }, State> 
 
   static getDerivedStateFromError(): State {
     return { crashed: true };
-  }
-
-  componentDidCatch(error: unknown, info: ErrorInfo) {
-    console.error(error, info.componentStack);
   }
 
   render() {

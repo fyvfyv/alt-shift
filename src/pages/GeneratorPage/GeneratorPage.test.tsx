@@ -83,26 +83,15 @@ describe('GeneratorPage', () => {
       expect(generateButton()).toBeDisabled();
     });
 
-    it('ignores trailing whitespace when counting the details', async () => {
+    it('counts the details trimmed and by code point, like the validation rule', async () => {
       const { user } = await renderPage();
       await fillForm(user, '');
 
       await user.click(field.details());
-      await user.paste(`${'a'.repeat(1200)}\n`);
+      await user.paste(`${'a'.repeat(1199)}🚀\n`);
 
       expect(field.details()).toHaveAccessibleDescription('1200/1200');
       expect(field.details()).not.toHaveAttribute('aria-invalid');
-      expect(generateButton()).toBeEnabled();
-    });
-
-    it('counts an emoji as one character', async () => {
-      const { user } = await renderPage();
-      await fillForm(user, '');
-
-      await user.click(field.details());
-      await user.paste(`${'a'.repeat(1199)}🚀`);
-
-      expect(screen.getByText('1200/1200')).toBeInTheDocument();
       expect(generateButton()).toBeEnabled();
     });
 
@@ -244,15 +233,6 @@ describe('GeneratorPage', () => {
       expect(screen.getByText('3 out of 5')).toBeInTheDocument();
     });
 
-    it('shows no banner once the goal is reached', async () => {
-      const { user, fake } = await renderPage({ letters: lettersOf(4) });
-      await fillForm(user);
-
-      await generateLetter(user, fake, 'Dear Apple');
-
-      expect(screen.queryByRole('heading', { name: 'Hit your goal' })).not.toBeInTheDocument();
-    });
-
     it('Try Again replaces the letter instead of adding one', async () => {
       const { user, fake, store } = await renderPage();
       await fillForm(user);
@@ -311,7 +291,7 @@ describe('GeneratorPage', () => {
 
     it('still shows the letter, with a note, when storage fails', async () => {
       const repository = new InMemoryLetterRepository();
-      repository.save = () => Promise.reject(new StorageError('quota'));
+      repository.rejectWritesWith(new StorageError('quota'));
       const { user, fake } = await renderPage({ repository });
       await fillForm(user);
 

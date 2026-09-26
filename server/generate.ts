@@ -1,5 +1,4 @@
-// The /api/generate proxy: validates the form fields, builds the prompt server-side and streams
-// the provider's response back byte for byte. Shared by the Vercel function and the dev server.
+// Builds the prompt here, not in the browser, so the token can't be spent on arbitrary prompts.
 
 import { validateGenerateRequest } from '../shared/generation.js';
 import { jsonError } from './jsonError.js';

@@ -1,4 +1,4 @@
-/* One class per text role. Display roles track at -2% (-0.96px at 48, -0.72px at 36), the rest at 0. */
+/* Display roles track at -2% (Figma: -0.96px at 48, -0.72px at 36). */
 .displayLg {
   font-family: var(--font-display);
   font-size: 3rem; /* 48px */

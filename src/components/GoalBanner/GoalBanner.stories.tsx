@@ -22,10 +22,4 @@ type Story = StoryObj<typeof meta>;
 
 export const NoLetters: Story = {};
 
-export const OneLetter: Story = { args: { count: 1 } };
-
-export const TwoLetters: Story = { args: { count: 2 } };
-
-export const ThreeLetters: Story = { args: { count: 3 } };
-
-export const FourLetters: Story = { args: { count: 4 } };
+export const AlmostThere: Story = { args: { count: 4 } };

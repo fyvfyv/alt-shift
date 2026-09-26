@@ -2,11 +2,11 @@
 // Usage: pnpm record:fixture <short|medium|long>   (reads GENERATION_API_TOKEN from .env.local)
 
 import { writeFile } from 'node:fs/promises';
-import { buildPrompt } from '../server/prompt';
-import type { GenerateRequest } from '../shared/generation';
+import { buildPrompt } from '../server/prompt.js';
+import { DEFAULT_API_URL } from '../server/providers/variant.js';
+import type { GenerateRequest } from '../shared/generation.js';
 
-const API_URL =
-  process.env.GENERATION_API_URL ?? 'https://test-assignment-api.variant.net/v1/generate';
+const API_URL = process.env.GENERATION_API_URL ?? DEFAULT_API_URL;
 
 // `details` lengths (~80 / ~400 / ~1000 chars) land in the mock's short / medium / long buckets.
 const SAMPLES: Record<string, GenerateRequest> = {

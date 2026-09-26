@@ -33,13 +33,12 @@ export function createSseParser() {
   }
 
   return {
-    // Returns the messages completed by this chunk. An event the stream never terminates with a
-    // blank line is never returned, as the spec requires.
+    // An event never terminated by a blank line is never dispatched, as the spec requires.
     feed(chunk: string): SseMessage[] {
       let text = chunk;
       if (atStreamStart && text !== '') {
         atStreamStart = false;
-        if (text.startsWith('﻿')) text = text.slice(1);
+        if (text.startsWith('\uFEFF')) text = text.slice(1);
       }
       if (pendingCr && text !== '') {
         pendingCr = false;

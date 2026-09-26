@@ -1,12 +1,12 @@
 import { copy } from '../../copy';
-import { displayCount, GOAL } from '../../features/letters/model';
+import { GOAL } from '../../features/letters/model';
 import typography from '../../styles/typography.module.css';
 import { CheckBadge } from '../CheckBadge/CheckBadge';
 import { ProgressDots } from '../ProgressDots/ProgressDots';
 import styles from './ProgressCounter.module.css';
 
 export function ProgressCounter({ count }: { count: number }) {
-  const shown = displayCount(count);
+  const shown = Math.min(count, GOAL);
   return (
     <div
       className={styles.counter}

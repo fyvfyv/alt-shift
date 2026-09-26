@@ -7,8 +7,8 @@ import { type Connect, loadEnv, type Plugin } from 'vite';
 import type { ApiErrorBody } from '../shared/generation.js';
 
 type Handler = (request: Request) => Promise<Response>;
-type GenerateModule = typeof import('./generate');
-type ProvidersModule = typeof import('./providers');
+type GenerateModule = typeof import('./generate.js');
+type ProvidersModule = typeof import('./providers/index.js');
 
 export function generateMiddleware(handler: Handler) {
   return async (req: Connect.IncomingMessage, res: ServerResponse): Promise<void> => {

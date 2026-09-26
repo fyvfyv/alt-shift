@@ -12,7 +12,7 @@ const fixtures = {
   long: { sse: long, expected: longExpected },
 };
 
-export type RecordedFixture = { sse: string; deltaCount: number; text: string };
+type RecordedFixture = { sse: string; deltaCount: number; text: string };
 
 export function recorded(name: keyof typeof fixtures): RecordedFixture {
   const { sse, expected } = fixtures[name];

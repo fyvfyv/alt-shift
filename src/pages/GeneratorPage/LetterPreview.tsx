@@ -12,11 +12,9 @@ import styles from './LetterPreview.module.css';
 type LetterPreviewProps = {
   ref?: Ref<HTMLDivElement>;
   state: PreviewState;
-  // Seconds left before a rate-limited request may be retried.
   retryCountdown: number;
   retryDisabled: boolean;
   onRetry: () => void;
-  // The finished letter could not be written to storage.
   storageFailed: boolean;
 };
 

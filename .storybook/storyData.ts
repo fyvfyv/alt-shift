@@ -16,7 +16,7 @@ export function sampleLetters(count: number): Letter[] {
   }));
 }
 
-// Streams the sample letter word by word, and stops as the real client does when aborted.
+// Honours abort like the real client, so cancel paths behave in stories.
 export function createStoryPort(delayMs: number): GenerationPort {
   return async function* (_request, signal) {
     for (const word of sampleText.split(/(?<=\s)/)) {

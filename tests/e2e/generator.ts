@@ -1,7 +1,5 @@
 import type { Page } from '@playwright/test';
 
-type MockScenario = 'disconnect' | 'rate-limit' | 'upstream-error' | 'invalid-token';
-
 export async function fillGeneratorForm(page: Page, details = ''): Promise<void> {
   await page.getByLabel('Job title').fill('Product Designer');
   await page.getByLabel('Company').fill('Acme');
@@ -10,7 +8,10 @@ export async function fillGeneratorForm(page: Page, details = ''): Promise<void>
 }
 
 // The mock provider picks its fault from this header; the app never sends it itself.
-export async function routeMockScenario(page: Page, scenario: MockScenario): Promise<void> {
+export async function routeMockScenario(
+  page: Page,
+  scenario: 'disconnect' | 'rate-limit',
+): Promise<void> {
   await page.route('**/api/generate', (route) =>
     route.continue({ headers: { ...route.request().headers(), 'x-mock-scenario': scenario } }),
   );

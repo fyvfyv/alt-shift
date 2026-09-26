@@ -10,7 +10,6 @@ export class InMemoryLetterRepository implements LetterRepository {
     this.#letters = [...seed];
   }
 
-  // Makes every later `save` and `remove` reject with `error`; `null` restores success.
   rejectWritesWith(error: StorageError | null): void {
     this.#writeError = error;
   }

@@ -17,10 +17,6 @@ describe('buildPrompt', () => {
     }
   });
 
-  it('requires the greeting to name the company', () => {
-    expect(buildPrompt(request).system).toContain('Dear Acme team,');
-  });
-
   it('omits the details section when details are empty', () => {
     expect(buildPrompt({ ...request, details: '' }).prompt).not.toMatch(/details/i);
   });

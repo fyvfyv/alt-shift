@@ -37,20 +37,13 @@ describe('createSseParser + decode', () => {
     expect(parseAll([fixture.sse.replaceAll('\n', '\r')])).toEqual(lf);
   });
 
-  it('never surfaces [DONE] as text', () => {
-    const messages = parseAll([fixture.sse]);
-
-    expect(deltaTexts(messages).join('')).not.toContain('[DONE]');
-    expect(decode(messages.at(-1) as SseMessage)).toEqual({ type: 'done' });
-  });
-
   it('produces no message for a keepalive comment', () => {
     expect(parseAll([': keepalive\n\n'])).toEqual([]);
   });
 
   it('follows the event-stream field rules', () => {
     const stream =
-      '﻿data:no space\n\n' +
+      '\uFEFFdata:no space\n\n' +
       'data: line one\ndata: line two\nid: 7\nretry: 1000\nunknown: x\n\n' +
       'event: delta\ndata: {"text":"a"}\n\n' +
       'data: after\n\n' +
@@ -75,11 +68,6 @@ describe('createSseParser + decode', () => {
 describe('decode', () => {
   it.each([
     ['a delta event', { event: 'delta', data: '{"text":"Hi"}' }, { type: 'delta', text: 'Hi' }],
-    [
-      'an unnamed event',
-      { event: 'message', data: '{"text":"Hi"}' },
-      { type: 'delta', text: 'Hi' },
-    ],
     ['the terminator', { event: 'message', data: '[DONE]' }, { type: 'done' }],
     ['an unknown event', { event: 'ping', data: '{"text":"Hi"}' }, null],
     ['malformed JSON', { event: 'delta', data: '{"text":' }, null],

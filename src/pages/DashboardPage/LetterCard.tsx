@@ -12,7 +12,6 @@ type LetterCardProps = {
   deleteRef?: Ref<HTMLButtonElement>;
 };
 
-// The card shows the opening of the letter; Copy always takes the full text.
 export function LetterCard({ letter, onDelete, deleteRef }: LetterCardProps) {
   return (
     <article

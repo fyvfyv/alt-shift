@@ -1,5 +1,4 @@
-// The request contract between the generator form and the /api/generate proxy.
-// Both sides validate with the same function, so the form never submits what the server rejects.
+// Shared by the form and the /api/generate proxy, so the form never submits what the server rejects.
 
 export type GenerateRequest = {
   jobTitle: string;
@@ -19,9 +18,7 @@ export type ErrorCode =
 
 export type ApiErrorBody = { error: { code: ErrorCode; message: string } };
 
-export type ValidationResult =
-  | { ok: true; value: GenerateRequest }
-  | { ok: false; code: 'invalid_request'; message: string; field?: keyof GenerateRequest };
+type ValidationResult = { ok: true; value: GenerateRequest } | { ok: false; message: string };
 
 // Code points, not UTF-16 units: an emoji counts as one character, matching what the user sees.
 export function countChars(value: string): number {
@@ -32,8 +29,8 @@ export function countChars(value: string): number {
 
 const SINGLE_LINE_FIELDS = ['jobTitle', 'company', 'skills'] as const;
 
-function invalid(message: string, field?: keyof GenerateRequest): ValidationResult {
-  return { ok: false, code: 'invalid_request', message, ...(field && { field }) };
+function invalid(message: string): ValidationResult {
+  return { ok: false, message };
 }
 
 export function validateGenerateRequest(input: unknown): ValidationResult {
@@ -46,21 +43,21 @@ export function validateGenerateRequest(input: unknown): ValidationResult {
   for (const field of SINGLE_LINE_FIELDS) {
     const raw = body[field];
     if (typeof raw !== 'string' || raw.trim() === '') {
-      return invalid(`${field} is required.`, field);
+      return invalid(`${field} is required.`);
     }
     value[field] = raw.trim();
     if (countChars(value[field]) > LIMITS.singleLine) {
-      return invalid(`${field} must be at most ${LIMITS.singleLine} characters.`, field);
+      return invalid(`${field} must be at most ${LIMITS.singleLine} characters.`);
     }
   }
 
   const details = body.details ?? '';
   if (typeof details !== 'string') {
-    return invalid('details must be a string.', 'details');
+    return invalid('details must be a string.');
   }
   value.details = details.trim();
   if (countChars(value.details) > LIMITS.details) {
-    return invalid(`details must be at most ${LIMITS.details} characters.`, 'details');
+    return invalid(`details must be at most ${LIMITS.details} characters.`);
   }
 
   return { ok: true, value };

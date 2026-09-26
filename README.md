@@ -46,7 +46,8 @@ API.
 | `storybook` / `build-storybook` | Component and page catalogue |
 | `record:fixture <short\|medium\|long>` | Records a real API response into `server/fixtures/` (needs `.env.local`; costs one request) |
 
-CI (`.github/workflows/ci.yml`) runs typecheck, lint, coverage, build and e2e on pushes to `main` and on pull requests.
+CI (`.github/workflows/ci.yml`) runs typecheck, lint, coverage, build and e2e on pushes to `main`
+and on pull requests.
 
 ## Architecture
 
@@ -101,8 +102,8 @@ What the live API does differently from its published spec:
 How the client decides the stream ended: `[DONE]`, or a clean close after at least one delta,
 means **completed**. If the connection breaks after text has arrived, it's **cut short**: the
 text stays and Try Again is offered. If nothing arrives at all, it's a failure. A 429 shows a
-countdown from `Retry-After`. The parser, decoder and client are tested against the recorded fixtures, including the same
-transcript split at every byte.
+countdown from `Retry-After`. The parser, decoder and client are tested against the recorded
+fixtures, including the same transcript split at every byte.
 
 If the Generation API changes its wire format, `src/features/generation/variantDecoder.ts` is the
 one place that knows the payload shape. The endpoint and auth live in
@@ -142,4 +143,8 @@ See [docs/specs/design-decisions.md](docs/specs/design-decisions.md).
 
 ## Fonts & licenses
 
-Fixel by MacPaw, SIL Open Font License 1.1 ([src/assets/fonts/OFL.txt](src/assets/fonts/OFL.txt)). `src/assets/fonts/FixelVariable.woff2` is `fonts/variable/FixelVariable.ttf` from [MacPaw/Fixel@514fd02](https://github.com/MacPaw/Fixel/tree/514fd02ea7d70668ed3dd09fb2674ba6f70d61ee), converted with `uvx --from 'fonttools[woff]' fonttools ttLib.woff2 compress`. One file serves both families: Fixel Text (width axis 87.5) and Fixel Display (width 100).
+Fixel by MacPaw, SIL Open Font License 1.1 ([src/assets/fonts/OFL.txt](src/assets/fonts/OFL.txt)).
+`src/assets/fonts/FixelVariable.woff2` is `fonts/variable/FixelVariable.ttf` from
+[MacPaw/Fixel@514fd02](https://github.com/MacPaw/Fixel/tree/514fd02ea7d70668ed3dd09fb2674ba6f70d61ee),
+converted with `uvx --from 'fonttools[woff]' fonttools ttLib.woff2 compress`. One file serves both
+families: Fixel Text (width axis 87.5) and Fixel Display (width 100).

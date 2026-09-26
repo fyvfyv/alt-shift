@@ -4,7 +4,6 @@ import styles from './PageTitle.module.css';
 
 type PageTitleProps = {
   children: ReactNode;
-  // `md` on the generator, `lg` on the dashboard.
   size?: 'md' | 'lg';
   // Muted color while the title stands in for content the user hasn't entered yet.
   placeholder?: boolean;

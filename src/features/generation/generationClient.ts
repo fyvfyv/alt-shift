@@ -3,8 +3,7 @@ import { GenerationFailure } from './errors';
 import { createSseParser } from './sseParser';
 import { decode } from './variantDecoder';
 
-// Yields the letter text as it streams. Throws only a GenerationFailure, or rethrows the
-// AbortError when `signal` aborts the run.
+// Throws only a GenerationFailure, or the AbortError when `signal` aborts.
 export type GenerationPort = (req: GenerateRequest, signal: AbortSignal) => AsyncIterable<string>;
 
 const DEFAULT_RETRY_AFTER_SECONDS = 30;

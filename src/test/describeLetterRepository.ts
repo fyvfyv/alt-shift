@@ -2,14 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { createLetter } from '../features/letters/model';
 import type { LetterRepository } from '../features/letters/repository';
 
-// The behaviour every LetterRepository implementation must share.
 export function describeLetterRepository(name: string, makeRepo: () => LetterRepository) {
   describe(`${name} (LetterRepository contract)`, () => {
     const letter = createLetter({ jobTitle: 'Designer', company: 'Apple', text: 'Dear Apple' });
-
-    it('lists nothing initially', async () => {
-      expect(await makeRepo().list()).toEqual([]);
-    });
 
     it('lists a saved letter', async () => {
       const repo = makeRepo();

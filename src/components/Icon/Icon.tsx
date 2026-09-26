@@ -1,4 +1,3 @@
-import type { FunctionComponent, SVGProps } from 'react';
 import Copy03 from '../../assets/icons/copy-03.svg?react';
 import Home02 from '../../assets/icons/home-02.svg?react';
 import Loading02 from '../../assets/icons/loading-02.svg?react';
@@ -15,19 +14,18 @@ const icons = {
   plus: Plus,
   'repeat-03': Repeat03,
   'trash-01': Trash01,
-} satisfies Record<string, FunctionComponent<SVGProps<SVGSVGElement>>>;
+};
 
 export type IconName = keyof typeof icons;
 export type IconSize = 20 | 24;
 
 type IconProps = {
   name: IconName;
-  size?: IconSize;
-  className?: string;
+  size: IconSize;
 };
 
-// Decorative by default: every icon sits next to a label or inside a control with an aria-label.
-export function Icon({ name, size = 20, className }: IconProps) {
+// Decorative: every icon sits next to a label or inside a control with an aria-label.
+export function Icon({ name, size }: IconProps) {
   const Svg = icons[name];
-  return <Svg width={size} height={size} className={className} aria-hidden focusable={false} />;
+  return <Svg width={size} height={size} aria-hidden focusable={false} />;
 }

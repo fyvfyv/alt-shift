@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import styles from './LoadingOrb.module.css';
 
 // Matches the CSS transition on `.orb[data-exiting]`.
-export const ORB_EXIT_MS = 250;
+const ORB_EXIT_MS = 250;
 
 export function LoadingOrb({ exiting = false }: { exiting?: boolean }) {
   return (

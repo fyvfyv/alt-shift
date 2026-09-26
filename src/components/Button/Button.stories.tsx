@@ -14,7 +14,6 @@ export const Primary: Story = {};
 const variants: ButtonVariant[] = ['primary', 'secondary', 'tertiary'];
 const sizes: ButtonSize[] = ['xl', 'md'];
 
-// Button-only states, so this story ignores the link args.
 export const Matrix: Story = {
   render: ({ children }) => (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, auto)', gap: 16 }}>

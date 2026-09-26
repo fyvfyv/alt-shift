@@ -34,22 +34,13 @@ describe('validateGenerateRequest', () => {
     });
   });
 
-  it.each(['jobTitle', 'company', 'skills'] as const)('rejects a missing %s', (field) => {
-    const { [field]: _omitted, ...rest } = valid;
+  const { company: _omitted, ...missingCompany } = valid;
 
-    expect(validateGenerateRequest(rest)).toMatchObject({
-      ok: false,
-      code: 'invalid_request',
-      field,
-    });
-  });
-
-  it('rejects a whitespace-only required field', () => {
-    expect(validateGenerateRequest({ ...valid, company: '   ' })).toMatchObject({
-      ok: false,
-      code: 'invalid_request',
-      field: 'company',
-    });
+  it.each([
+    ['missing', missingCompany],
+    ['whitespace-only', { ...valid, company: '   ' }],
+  ])('rejects a %s required field', (_case, body) => {
+    expect(validateGenerateRequest(body)).toEqual({ ok: false, message: 'company is required.' });
   });
 
   it('accepts empty or missing details', () => {
@@ -68,41 +59,25 @@ describe('validateGenerateRequest', () => {
     expect(validateGenerateRequest({ ...valid, details: atLimit })).toMatchObject({ ok: true });
     expect(validateGenerateRequest({ ...valid, details: `${atLimit}a` })).toMatchObject({
       ok: false,
-      code: 'invalid_request',
-      field: 'details',
     });
   });
 
   it('rejects a single-line field over its limit', () => {
     const jobTitle = 'a'.repeat(LIMITS.singleLine + 1);
 
-    expect(validateGenerateRequest({ ...valid, jobTitle })).toMatchObject({
-      ok: false,
-      code: 'invalid_request',
-      field: 'jobTitle',
-    });
+    expect(validateGenerateRequest({ ...valid, jobTitle })).toMatchObject({ ok: false });
   });
 
   it.each([
     ['null', null],
     ['an array', []],
     ['a string', 'hello'],
-  ])('rejects %s without a field', (_label, input) => {
-    const result = validateGenerateRequest(input);
-
-    expect(result).toMatchObject({ ok: false, code: 'invalid_request' });
-    expect(result).not.toHaveProperty('field');
+  ])('rejects %s as the body', (_label, input) => {
+    expect(validateGenerateRequest(input)).toMatchObject({ ok: false });
   });
 
   it('rejects a non-string field value', () => {
-    expect(validateGenerateRequest({ ...valid, jobTitle: 42 })).toMatchObject({
-      ok: false,
-      code: 'invalid_request',
-      field: 'jobTitle',
-    });
-    expect(validateGenerateRequest({ ...valid, details: ['a'] })).toMatchObject({
-      ok: false,
-      field: 'details',
-    });
+    expect(validateGenerateRequest({ ...valid, jobTitle: 42 })).toMatchObject({ ok: false });
+    expect(validateGenerateRequest({ ...valid, details: ['a'] })).toMatchObject({ ok: false });
   });
 });

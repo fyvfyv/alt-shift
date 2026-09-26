@@ -16,8 +16,6 @@ export const InProgress: Story = { args: { count: 3 } };
 
 export const GoalReached: Story = { args: { count: 5 } };
 
-export const PastGoal: Story = { args: { count: 6 } };
-
 export const AllCounts: Story = {
   render: () => (
     <div style={{ display: 'grid', gap: 16 }}>

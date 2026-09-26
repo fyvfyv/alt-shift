@@ -22,7 +22,6 @@
   }
 }
 
-/* The orb and the error messages sit in the middle of the panel. */
 .panel[data-layout="center"] {
   display: grid;
   place-content: center;

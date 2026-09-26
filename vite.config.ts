@@ -6,7 +6,6 @@ import { generateApiPlugin } from './server/devPlugin.ts';
 export default defineConfig({
   plugins: [react(), svgr(), generateApiPlugin()],
   test: {
-    clearMocks: true,
     projects: [
       {
         // Plain node: the React and dev-server plugins stay out of server-side tests.
@@ -32,7 +31,7 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       include: ['server/**', 'shared/**', 'src/features/**'],
-      exclude: ['server/devPlugin.ts', 'server/fixtures/**', '**/*.test.*'],
+      exclude: ['server/devPlugin.ts', 'server/fixtures/**'],
       thresholds: {
         lines: 90,
         'src/features/generation/generationClient.ts': { branches: 95 },

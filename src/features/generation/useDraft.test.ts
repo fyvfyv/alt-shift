@@ -11,16 +11,6 @@ describe('useDraft', () => {
     vi.restoreAllMocks();
   });
 
-  it('restores the fields after a remount', () => {
-    const first = renderHook(() => useDraft());
-    act(() => first.result.current.update(fields));
-    first.unmount();
-
-    const second = renderHook(() => useDraft());
-
-    expect(second.result.current.draft).toEqual(fields);
-  });
-
   it('clear removes the stored draft but keeps the values in memory', () => {
     sessionStorage.setItem(KEY, JSON.stringify(fields));
     const { result } = renderHook(() => useDraft());

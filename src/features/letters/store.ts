@@ -5,7 +5,6 @@ import { type LetterRepository, StorageError } from './repository';
 export type LetterState = {
   // Newest first; the store owns the ordering.
   letters: Letter[];
-  hydrated: boolean;
   lastStorageError: StorageError | null;
   hydrate(): Promise<void>;
   add(letter: Letter): Promise<void>;
@@ -37,15 +36,12 @@ export function createLetterStore({ repository }: { repository: LetterRepository
 
     return {
       letters: [],
-      hydrated: false,
       lastStorageError: null,
 
       async hydrate() {
-        if (get().hydrated) return;
         await relist();
         // The store lives as long as the page, so the subscription is never torn down.
         repository.subscribe?.(() => void relist());
-        set({ hydrated: true });
       },
 
       add(letter) {

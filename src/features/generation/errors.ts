@@ -13,7 +13,3 @@ export class GenerationFailure extends Error {
     this.error = error;
   }
 }
-
-export function isGenerationFailure(e: unknown): e is GenerationFailure {
-  return e instanceof GenerationFailure;
-}

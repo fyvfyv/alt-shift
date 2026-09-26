@@ -3,7 +3,6 @@ import styles from './ProgressDots.module.css';
 type ProgressDotsProps = {
   count: number;
   total: number;
-  // `dots` in the header, `bars` in the goal banner.
   variant?: 'dots' | 'bars';
 };
 

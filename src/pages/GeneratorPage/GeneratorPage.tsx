@@ -68,10 +68,6 @@ export function GeneratorPage() {
     );
   }
 
-  function handleSubmit() {
-    if (tryAgain || canGenerate) void run();
-  }
-
   function handleChange(patch: Partial<GenerateRequest>) {
     update(patch);
     setEditedSinceRun(true);
@@ -120,7 +116,7 @@ export function GeneratorPage() {
         <GeneratorForm
           values={draft}
           onChange={handleChange}
-          onSubmit={handleSubmit}
+          onSubmit={() => void run()}
           readOnly={busy}
           cta={cta}
           jobTitleRef={jobTitleRef}

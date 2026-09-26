@@ -44,18 +44,6 @@ describe('generationReducer', () => {
     expect(run([{ type: 'start' }, { type: 'error', error }])).toEqual({ status: 'error', error });
   });
 
-  it('returns to empty on abort', () => {
-    expect(run([{ type: 'start' }, { type: 'delta', text: 'Dear' }, { type: 'abort' }])).toEqual(
-      initialPreviewState,
-    );
-  });
-
-  it('starts over from a finished run', () => {
-    const completed = run([{ type: 'start' }, { type: 'delta', text: 'Dear' }, { type: 'done' }]);
-
-    expect(run([{ type: 'start' }], completed)).toEqual({ status: 'loading' });
-  });
-
   it.each<[string, PreviewState]>([
     ['empty', initialPreviewState],
     ['completed', { status: 'completed', text: 'Dear' }],

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
-// Seconds left of a `seconds`-long countdown, restarting whenever `key` changes (a new 429 with
-// the same Retry-After still restarts it). Ticks against the clock, so a throttled tab stays right.
+// Restarts whenever `key` changes, so a second 429 with the same Retry-After restarts it.
+// Ticks against the clock, so a throttled tab stays right.
 export function useCountdown(seconds: number, key: unknown): number {
   const [left, setLeft] = useState(seconds);
   const [startedFor, setStartedFor] = useState(key);

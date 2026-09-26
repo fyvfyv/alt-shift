@@ -65,7 +65,7 @@ describe('mockProvider', () => {
     expect(deltas).toBeLessThan(deltaCount);
   });
 
-  it('enqueues nothing after the signal aborts', async () => {
+  it('rejects the next read with AbortError once the signal aborts', async () => {
     const controller = new AbortController();
     const reader = await start('', undefined, controller.signal);
     expect((await reader.read()).value).toBe(': keepalive\n\n');

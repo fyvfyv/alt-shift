@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useReducer, useRef } from 'react';
 import type { GenerateRequest } from '../../../shared/generation';
-import { isGenerationFailure } from './errors';
+import { GenerationFailure } from './errors';
 import { useGenerationPort } from './GenerationProvider';
 import { generationReducer, initialPreviewState } from './generationReducer';
 
-// Runs one generation at a time. Deltas are batched into one render per animation frame; a new
-// run, `abort()` or unmounting cancels the one in flight.
+// Deltas are batched into one render per animation frame; a new run, `abort()` or unmounting
+// cancels the one in flight.
 export function useGeneration() {
   const port = useGenerationPort();
   const [state, dispatch] = useReducer(generationReducer, initialPreviewState);
@@ -45,7 +45,6 @@ export function useGeneration() {
       try {
         for await (const delta of port(request, run.signal)) {
           if (run.signal.aborted) return;
-          if (delta === '') continue;
           text += delta;
           pendingText.current += delta;
           frame.current ??= requestAnimationFrame(flush);
@@ -54,7 +53,10 @@ export function useGeneration() {
         if (run.signal.aborted) return;
         // Whatever the last frame hasn't shown yet belongs before the error.
         flush();
-        dispatch({ type: 'error', error: isGenerationFailure(e) ? e.error : { kind: 'upstream' } });
+        dispatch({
+          type: 'error',
+          error: e instanceof GenerationFailure ? e.error : { kind: 'upstream' },
+        });
         return;
       }
       if (run.signal.aborted) return;
@@ -66,13 +68,11 @@ export function useGeneration() {
     [port, cancelRun, flush],
   );
 
-  // Stops the run in flight and empties the preview.
   const abort = useCallback(() => {
     cancelRun();
     dispatch({ type: 'abort' });
   }, [cancelRun]);
 
-  // Leaving the page drops the run; nothing of it is kept.
   useEffect(() => cancelRun, [cancelRun]);
 
   return { state, generate, abort };
