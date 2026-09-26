@@ -1,6 +1,6 @@
 import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { InMemoryLetterRepository } from '../../features/letters/inMemoryRepository';
 import { createLetter, type Letter } from '../../features/letters/model';
 import { StorageError } from '../../features/letters/repository';
@@ -53,7 +53,10 @@ async function generateLetter(user: User, fake: ReturnType<typeof createFakePort
 }
 
 describe('GeneratorPage', () => {
-  afterEach(() => sessionStorage.clear());
+  afterEach(() => {
+    sessionStorage.clear();
+    vi.restoreAllMocks();
+  });
 
   describe('form', () => {
     it('keeps Generate Now disabled until the required fields are filled', async () => {
@@ -152,6 +155,28 @@ describe('GeneratorPage', () => {
       fake.lastRun().end();
       expect(await screen.findByRole('button', { name: 'Copy to clipboard' })).toBeInTheDocument();
       expect(screen.getByText('Dear Apple team,')).toBeInTheDocument();
+    });
+
+    it('in the stacked layout scrolls the preview into view when generation starts', async () => {
+      const scroll = vi.spyOn(Element.prototype, 'scrollIntoView');
+      const { user, container } = await renderPage();
+      await fillForm(user);
+
+      await user.click(generateButton());
+
+      expect(scroll).toHaveBeenCalledWith({ block: 'start' });
+      expect(scroll.mock.contexts[0]).toBe(container.querySelector('[aria-live="polite"]'));
+    });
+
+    it('in the two-column layout leaves the scroll position alone', async () => {
+      vi.spyOn(HTMLElement.prototype, 'offsetWidth', 'get').mockReturnValue(1120);
+      const scroll = vi.spyOn(Element.prototype, 'scrollIntoView');
+      const { user } = await renderPage();
+      await fillForm(user);
+
+      await user.click(generateButton());
+
+      expect(scroll).not.toHaveBeenCalled();
     });
 
     it('sends the form fields to the port', async () => {

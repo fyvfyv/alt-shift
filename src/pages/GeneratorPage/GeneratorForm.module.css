@@ -12,3 +12,16 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-4);
 }
+
+/* Stacked, the form no longer has a preview to line up with, so it takes only what it needs. */
+@container page (width < 1120px) {
+  .form {
+    min-height: 0;
+  }
+}
+
+@media (width < 480px) {
+  .row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

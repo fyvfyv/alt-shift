@@ -17,6 +17,9 @@ import { LetterPreview } from './LetterPreview';
 
 const emptyFields: GenerateRequest = { jobTitle: '', company: '', skills: '', details: '' };
 
+// Mirrors the `@container page (width < 1120px)` rule that stacks the preview under the form.
+const STACKED_BELOW = 1120;
+
 export function GeneratorPage() {
   usePageMeta(copy.generator.title);
   const { draft, update, clear } = useDraft();
@@ -26,6 +29,8 @@ export function GeneratorPage() {
   const count = useGeneratedCount();
   const online = useOnline();
   const jobTitleRef = useRef<HTMLInputElement>(null);
+  const bodyRef = useRef<HTMLDivElement>(null);
+  const previewRef = useRef<HTMLDivElement>(null);
 
   // One visit produces one candidate letter: Try Again regenerates it in place (same id), while
   // Generate Now after an edit starts a new one.
@@ -49,6 +54,11 @@ export function GeneratorPage() {
     if (newLetter || letterId.current === null) letterId.current = crypto.randomUUID();
     const id = letterId.current;
     setEditedSinceRun(false);
+    // Stacked, the preview starts below the fold: bring it up so the stream is visible.
+    const body = bodyRef.current;
+    if (body && body.offsetWidth < STACKED_BELOW) {
+      previewRef.current?.scrollIntoView({ block: 'start' });
+    }
 
     const text = await generate(request.value);
     if (text === undefined) return;
@@ -101,7 +111,7 @@ export function GeneratorPage() {
 
   return (
     <PageShell>
-      <div className={styles.body}>
+      <div ref={bodyRef} className={styles.body}>
         <GeneratorForm
           values={draft}
           onChange={handleChange}
@@ -111,6 +121,7 @@ export function GeneratorPage() {
           jobTitleRef={jobTitleRef}
         />
         <LetterPreview
+          ref={previewRef}
           state={state}
           retryCountdown={retryCountdown}
           retryDisabled={blocked}

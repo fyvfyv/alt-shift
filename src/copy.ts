@@ -6,7 +6,8 @@ export const copy = {
   header: {
     logoLabel: 'Alt+Shift home',
     homeLabel: 'Dashboard',
-    progress: (count: number, goal: number) => `${count}/${goal} applications generated`,
+    progress: (count: number, goal: number) => `${count}/${goal}`,
+    progressSuffix: 'applications generated',
     progressLabel: (count: number, goal: number) => `${count} of ${goal} applications generated`,
   },
 

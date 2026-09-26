@@ -5,3 +5,10 @@
   gap: var(--space-8);
   align-items: stretch;
 }
+
+/* Below the design width the preview drops under the form instead of squeezing both columns. */
+@container page (width < 1120px) {
+  .body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

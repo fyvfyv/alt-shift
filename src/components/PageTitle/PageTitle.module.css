@@ -27,3 +27,18 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/*
+ * On a phone the ellipsis would hide most of the title, and a 48px title next to its action
+ * would break mid-word; wrapping costs less than either.
+ */
+@media (width < 480px) {
+  .row[data-size="lg"] {
+    flex-wrap: wrap;
+  }
+
+  .row[data-size="md"] .title {
+    overflow-wrap: anywhere;
+    white-space: normal;
+  }
+}

@@ -9,6 +9,12 @@
   border-radius: var(--radius-lg);
 }
 
+@media (width < 768px) {
+  .banner {
+    padding: var(--space-8) var(--space-4);
+  }
+}
+
 .content {
   display: flex;
   flex-direction: column;

@@ -4,7 +4,7 @@ import { afterEach } from 'vitest';
 
 afterEach(cleanup);
 
-// jsdom implements neither; components call both.
+// jsdom implements none of these; components call them.
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
   value: (query: string): MediaQueryList => ({
@@ -20,3 +20,4 @@ Object.defineProperty(window, 'matchMedia', {
 });
 
 window.scrollTo = () => {};
+Element.prototype.scrollIntoView = () => {};

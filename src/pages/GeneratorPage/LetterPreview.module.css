@@ -10,6 +10,18 @@
   border-radius: var(--radius-lg);
 }
 
+@container page (width < 1120px) {
+  .panel {
+    min-height: 320px;
+  }
+}
+
+@media (width < 768px) {
+  .panel {
+    padding: var(--space-4);
+  }
+}
+
 /* The orb and the error messages sit in the middle of the panel. */
 .panel[data-layout="center"] {
   display: grid;

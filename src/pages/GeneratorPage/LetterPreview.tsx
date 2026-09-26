@@ -1,3 +1,4 @@
+import type { Ref } from 'react';
 import { Button } from '../../components/Button/Button';
 import { CopyButton } from '../../components/CopyButton/CopyButton';
 import { LetterBody } from '../../components/LetterBody/LetterBody';
@@ -9,6 +10,7 @@ import typography from '../../styles/typography.module.css';
 import styles from './LetterPreview.module.css';
 
 type LetterPreviewProps = {
+  ref?: Ref<HTMLDivElement>;
   state: PreviewState;
   // Seconds left before a rate-limited request may be retried.
   retryCountdown: number;
@@ -78,7 +80,7 @@ function Content({
   );
 }
 
-export function LetterPreview(props: LetterPreviewProps) {
+export function LetterPreview({ ref, ...props }: LetterPreviewProps) {
   const { state } = props;
   const loading = state.status === 'loading';
   const orbExiting = useOrbExit(loading);
@@ -88,6 +90,7 @@ export function LetterPreview(props: LetterPreviewProps) {
   // One live region for every state; aria-busy holds the announcement until the letter is done.
   return (
     <div
+      ref={ref}
       className={styles.panel}
       data-layout={centered ? 'center' : undefined}
       aria-live="polite"

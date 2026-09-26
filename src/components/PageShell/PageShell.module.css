@@ -8,6 +8,12 @@
   padding-inline: clamp(var(--space-4), calc((100% - 1120px) / 2), var(--space-40));
 }
 
+@media (width < 768px) {
+  .shell {
+    padding-block: var(--space-6) var(--space-12);
+  }
+}
+
 .page {
   container: page / inline-size;
   display: flex;
