@@ -9,14 +9,11 @@ describe('useDraft', () => {
   afterEach(() => {
     sessionStorage.clear();
     vi.restoreAllMocks();
-    vi.useRealTimers();
   });
 
-  it('restores the fields after a remount once the debounce has passed', () => {
-    vi.useFakeTimers();
+  it('restores the fields after a remount', () => {
     const first = renderHook(() => useDraft());
     act(() => first.result.current.update(fields));
-    act(() => vi.advanceTimersByTime(150));
     first.unmount();
 
     const second = renderHook(() => useDraft());
@@ -43,7 +40,6 @@ describe('useDraft', () => {
   });
 
   it('keeps working when sessionStorage throws', () => {
-    vi.useFakeTimers();
     vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
       throw new DOMException('denied', 'SecurityError');
     });
@@ -53,7 +49,6 @@ describe('useDraft', () => {
     const { result } = renderHook(() => useDraft());
 
     act(() => result.current.update({ jobTitle: 'Designer' }));
-    act(() => vi.advanceTimersByTime(150));
 
     expect(result.current.draft.jobTitle).toBe('Designer');
   });

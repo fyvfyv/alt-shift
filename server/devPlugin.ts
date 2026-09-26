@@ -4,6 +4,7 @@
 
 import type { ServerResponse } from 'node:http';
 import { type Connect, loadEnv, type Plugin } from 'vite';
+import type { ApiErrorBody } from '../shared/generation.js';
 
 type Handler = (request: Request) => Promise<Response>;
 type GenerateModule = typeof import('./generate');
@@ -17,21 +18,21 @@ export function generateMiddleware(handler: Handler) {
       if (!res.writableFinished) controller.abort();
     });
 
-    const chunks: Buffer[] = [];
-    for await (const chunk of req) chunks.push(chunk);
-    const headers = new Headers();
-    for (const [name, value] of Object.entries(req.headers)) {
-      if (typeof value === 'string') headers.set(name, value);
-    }
-    const hasBody = req.method !== 'GET' && req.method !== 'HEAD';
-    const request = new Request(`http://${req.headers.host}${req.originalUrl ?? req.url}`, {
-      method: req.method,
-      headers,
-      body: hasBody ? Buffer.concat(chunks) : undefined,
-      signal: controller.signal,
-    });
-
     try {
+      const chunks: Buffer[] = [];
+      for await (const chunk of req) chunks.push(chunk);
+      const headers = new Headers();
+      for (const [name, value] of Object.entries(req.headers)) {
+        if (typeof value === 'string') headers.set(name, value);
+      }
+      const hasBody = req.method !== 'GET' && req.method !== 'HEAD';
+      const request = new Request(`http://${req.headers.host}${req.originalUrl ?? req.url}`, {
+        method: req.method,
+        headers,
+        body: hasBody ? Buffer.concat(chunks) : undefined,
+        signal: controller.signal,
+      });
+
       const response = await handler(request);
       res.writeHead(response.status, Object.fromEntries(response.headers));
       if (response.body) {
@@ -40,6 +41,15 @@ export function generateMiddleware(handler: Handler) {
       res.end();
     } catch (error) {
       if (!controller.signal.aborted) console.error('[generate]', error);
+      if (!res.headersSent && !res.destroyed) {
+        // A throw before streaming is a 500, as it would be on Vercel, not a network error.
+        const body: ApiErrorBody = {
+          error: { code: 'upstream_error', message: 'The generation handler failed.' },
+        };
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(body));
+        return;
+      }
       // No chunked terminator: the browser's read() rejects, exactly like a dropped upstream.
       res.destroy();
     }

@@ -1,9 +1,8 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { GenerateRequest } from '../../../shared/generation';
 
 // Per tab: the form survives a reload, but two tabs never overwrite each other's drafts.
 const KEY = 'alt-shift.draft';
-const WRITE_DELAY_MS = 150;
 
 export type Draft = GenerateRequest;
 
@@ -39,12 +38,9 @@ function writeDraft(draft: Draft): void {
 
 export function useDraft() {
   const [draft, setDraft] = useState(readDraft);
-  const pendingWrite = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  useEffect(() => {
-    pendingWrite.current = setTimeout(() => writeDraft(draft), WRITE_DELAY_MS);
-    return () => clearTimeout(pendingWrite.current);
-  }, [draft]);
+  // Four short strings: writing on every change is cheap and nothing is lost on unmount.
+  useEffect(() => writeDraft(draft), [draft]);
 
   const update = useCallback((patch: Partial<Draft>) => {
     setDraft((current) => ({ ...current, ...patch }));
@@ -52,7 +48,6 @@ export function useDraft() {
 
   // Forgets the stored copy only; the next edit saves again.
   const clear = useCallback(() => {
-    clearTimeout(pendingWrite.current);
     try {
       sessionStorage.removeItem(KEY);
     } catch {}

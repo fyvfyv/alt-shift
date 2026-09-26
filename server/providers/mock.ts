@@ -3,9 +3,9 @@
 
 import { readFile } from 'node:fs/promises';
 import { setTimeout as sleep } from 'node:timers/promises';
-import { countChars } from '../../shared/generation';
-import { jsonError } from '../jsonError';
-import type { Provider } from './types';
+import { countChars } from '../../shared/generation.js';
+import { jsonError } from '../jsonError.js';
+import type { Provider } from './types.js';
 
 const DISCONNECT_AT = 0.4;
 

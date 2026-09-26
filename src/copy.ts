@@ -1,6 +1,5 @@
 // Every user-facing string lives here.
 export const copy = {
-  appName: 'Alt+Shift',
   documentTitle: (page: string) => `${page} · Alt+Shift`,
 
   header: {

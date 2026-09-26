@@ -25,17 +25,20 @@ scenarios can be triggered with the `x-mock-scenario` request header: `disconnec
 
 To use the real Generation API, copy `.env.example` to `.env.local` and set
 `GENERATION_API_TOKEN`. The dev server logs which provider is active at startup.
-`GENERATION_PROVIDER=mock|variant` forces one either way.
+`GENERATION_PROVIDER=mock|variant` forces one either way; any other value stops the dev server.
+Deployments (`VERCEL_ENV` set) always use the real API and ignore it.
 
 `pnpm dev` serves the API route through a small Vite plugin that mounts the same handler the
-Vercel function exports. `vercel dev` also works if you want to check parity with production.
+Vercel function exports. `vercel dev` also works for checking parity with production, but it
+needs a linked project and `GENERATION_API_TOKEN`: it sets `VERCEL_ENV`, so it always uses the real
+API.
 
 ## Scripts
 
 | Script | What it does |
 |---|---|
 | `dev` | Vite dev server with `/api/generate` |
-| `build` / `preview` | Type-check and build to `dist/` / serve the build |
+| `build` / `preview` | Type-check and build to `dist/` / serve the build (static only, no `/api/generate`) |
 | `typecheck` | `tsc -b` over app, server and tests |
 | `lint` / `format` / `check` | Biome |
 | `test` / `test:watch` / `test:coverage` | Vitest: `node` project for `server/`, `shared/`, `scripts/`; `jsdom` project for `src/` |

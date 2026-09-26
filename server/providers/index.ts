@@ -1,6 +1,6 @@
-import { mockProvider } from './mock';
-import type { Provider } from './types';
-import { variantProvider } from './variant';
+import { mockProvider } from './mock.js';
+import type { Provider } from './types.js';
+import { variantProvider } from './variant.js';
 
 export type ProviderName = 'variant' | 'mock';
 

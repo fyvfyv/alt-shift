@@ -120,13 +120,23 @@ describe('GeneratorPage', () => {
     it('restores the typed values after the page is remounted', async () => {
       const first = await renderPage();
       await fillForm(first.user);
-      await new Promise((resolve) => setTimeout(resolve, 200));
       first.unmount();
 
       await renderPage();
 
       expect(field.jobTitle()).toHaveValue('Designer');
       expect(field.details()).toHaveValue('Ten years of shipping products');
+    });
+
+    it('forgets the typed values once a letter is saved', async () => {
+      const first = await renderPage();
+      await fillForm(first.user);
+      await generateLetter(first.user, first.fake, 'Dear Apple');
+      first.unmount();
+
+      await renderPage();
+
+      expect(field.jobTitle()).toHaveValue('');
     });
   });
 
@@ -343,6 +353,37 @@ describe('GeneratorPage', () => {
       expect(generateButton()).toBeEnabled();
       await user.click(screen.getByRole('button', { name: 'Retry' }));
       expect(fake.runs).toHaveLength(2);
+    });
+
+    it('a Retry after a failed Try Again replaces the letter instead of adding one', async () => {
+      const { user, fake, store } = await renderPage();
+      await fillForm(user);
+      await generateLetter(user, fake, 'First draft');
+
+      await user.click(tryAgainButton());
+      fake.lastRun().fail({ kind: 'upstream' });
+      await user.click(await screen.findByRole('button', { name: 'Retry' }));
+      fake.lastRun().emit('Second draft');
+      fake.lastRun().end();
+      await screen.findByText('Second draft');
+
+      await waitFor(() =>
+        expect(store.getState().letters.map((l) => l.text)).toEqual(['Second draft']),
+      );
+    });
+
+    it('while offline disables Try Again, and enables it once back online', async () => {
+      const { user, fake } = await renderPage();
+      await fillForm(user);
+      await generateLetter(user, fake, 'Dear Apple');
+      const onLine = vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
+
+      act(() => void window.dispatchEvent(new Event('offline')));
+      expect(tryAgainButton()).toBeDisabled();
+
+      onLine.mockReturnValue(true);
+      act(() => void window.dispatchEvent(new Event('online')));
+      expect(tryAgainButton()).toBeEnabled();
     });
 
     it('when the stream is cut keeps the partial text, offers Try Again and saves nothing', async () => {

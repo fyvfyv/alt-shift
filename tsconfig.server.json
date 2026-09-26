@@ -6,7 +6,7 @@
     "types": ["node"],
     "skipLibCheck": true,
 
-    /* Bundler mode; relative imports only (Vercel's function builder ignores `paths`) */
+    /* Relative imports only, with `.js` extensions: Vercel runs the functions as plain Node ESM */
     "module": "esnext",
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,

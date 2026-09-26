@@ -1,11 +1,11 @@
 // The /api/generate proxy: validates the form fields, builds the prompt server-side and streams
 // the provider's response back byte for byte. Shared by the Vercel function and the dev server.
 
-import { validateGenerateRequest } from '../shared/generation';
-import { jsonError } from './jsonError';
-import { buildPrompt } from './prompt';
-import { type ProviderName, providers, resolveProvider } from './providers';
-import type { Provider } from './providers/types';
+import { validateGenerateRequest } from '../shared/generation.js';
+import { jsonError } from './jsonError.js';
+import { buildPrompt } from './prompt.js';
+import { type ProviderName, providers, resolveProvider } from './providers/index.js';
+import type { Provider } from './providers/types.js';
 
 export async function handle(
   request: Request,

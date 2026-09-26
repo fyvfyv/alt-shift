@@ -1,4 +1,4 @@
-import type { GenerateRequest } from '../shared/generation';
+import type { GenerateRequest } from '../shared/generation.js';
 
 export type GenerationInput = { system: string; prompt: string; maxTokens: number };
 

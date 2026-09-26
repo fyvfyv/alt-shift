@@ -1,4 +1,4 @@
-import type { ApiErrorBody, ErrorCode } from '../shared/generation';
+import type { ApiErrorBody, ErrorCode } from '../shared/generation.js';
 
 // The same `{ error: { code, message } }` envelope the Variant API uses, so the client maps one shape.
 export function jsonError(

@@ -32,8 +32,8 @@ export function GeneratorPage() {
   const bodyRef = useRef<HTMLDivElement>(null);
   const previewRef = useRef<HTMLDivElement>(null);
 
-  // One visit produces one candidate letter: Try Again regenerates it in place (same id), while
-  // Generate Now after an edit starts a new one.
+  // One visit produces one candidate letter: Try Again and Retry regenerate it in place (same
+  // id), so a failed attempt never inflates the count; only an edit starts a new one.
   const letterId = useRef<string | null>(null);
   const [editedSinceRun, setEditedSinceRun] = useState(false);
 
@@ -48,10 +48,10 @@ export function GeneratorPage() {
   const blocked = retryCountdown > 0 || !online;
   const canGenerate = validateGenerateRequest(draft).ok && !blocked;
 
-  async function run(newLetter: boolean) {
+  async function run() {
     const request = validateGenerateRequest(draft);
-    if (!request.ok) return;
-    if (newLetter || letterId.current === null) letterId.current = crypto.randomUUID();
+    if (!request.ok || blocked) return;
+    if (editedSinceRun || letterId.current === null) letterId.current = crypto.randomUUID();
     const id = letterId.current;
     setEditedSinceRun(false);
     // Stacked, the preview starts below the fold: bring it up so the stream is visible.
@@ -69,8 +69,7 @@ export function GeneratorPage() {
   }
 
   function handleSubmit() {
-    if (tryAgain) void run(false);
-    else if (canGenerate) void run(true);
+    if (tryAgain || canGenerate) void run();
   }
 
   function handleChange(patch: Partial<GenerateRequest>) {
@@ -97,7 +96,13 @@ export function GeneratorPage() {
     );
   } else if (tryAgain) {
     cta = (
-      <Button type="submit" variant="secondary" fullWidth iconLeading="repeat-03">
+      <Button
+        type="submit"
+        variant="secondary"
+        fullWidth
+        iconLeading="repeat-03"
+        disabled={blocked}
+      >
         {copy.generator.tryAgain}
       </Button>
     );
@@ -125,7 +130,7 @@ export function GeneratorPage() {
           state={state}
           retryCountdown={retryCountdown}
           retryDisabled={blocked}
-          onRetry={() => void run(true)}
+          onRetry={() => void run()}
           storageFailed={storageFailed}
         />
       </div>

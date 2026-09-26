@@ -1,5 +1,5 @@
-import { jsonError } from '../jsonError';
-import type { Provider } from './types';
+import { jsonError } from '../jsonError.js';
+import type { Provider } from './types.js';
 
 const DEFAULT_API_URL = 'https://test-assignment-api.variant.net/v1/generate';
 

@@ -1,4 +1,4 @@
-import type { GenerationInput } from '../prompt';
+import type { GenerationInput } from '../prompt.js';
 
 export type ProviderContext = {
   signal: AbortSignal;
