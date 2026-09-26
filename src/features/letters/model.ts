@@ -1,0 +1,28 @@
+export type Letter = {
+  readonly id: string;
+  readonly createdAt: number;
+  readonly jobTitle: string;
+  readonly company: string;
+  readonly text: string;
+};
+
+export const GOAL = 5;
+
+export function createLetter({
+  id = crypto.randomUUID(),
+  jobTitle,
+  company,
+  text,
+}: {
+  id?: string;
+  jobTitle: string;
+  company: string;
+  text: string;
+}): Letter {
+  return { id, createdAt: Date.now(), jobTitle, company, text };
+}
+
+// The count keeps growing past the goal; the progress UI never shows more than "5/5".
+export function displayCount(count: number): number {
+  return Math.min(count, GOAL);
+}
