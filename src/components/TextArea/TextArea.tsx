@@ -19,7 +19,8 @@ type TextAreaProps = Omit<
 export function TextArea({ label, value, limit, ...textareaProps }: TextAreaProps) {
   const id = useId();
   const counterId = `${id}-counter`;
-  const count = countChars(value);
+  // Counted trimmed, like the validation rule, so the counter and the Generate button agree.
+  const count = countChars(value.trim());
   return (
     <div className={`${controls.field} ${styles.field}`}>
       <FieldLabel htmlFor={id}>{label}</FieldLabel>

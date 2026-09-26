@@ -83,6 +83,18 @@ describe('GeneratorPage', () => {
       expect(generateButton()).toBeDisabled();
     });
 
+    it('ignores trailing whitespace when counting the details', async () => {
+      const { user } = await renderPage();
+      await fillForm(user, '');
+
+      await user.click(field.details());
+      await user.paste(`${'a'.repeat(1200)}\n`);
+
+      expect(field.details()).toHaveAccessibleDescription('1200/1200');
+      expect(field.details()).not.toHaveAttribute('aria-invalid');
+      expect(generateButton()).toBeEnabled();
+    });
+
     it('counts an emoji as one character', async () => {
       const { user } = await renderPage();
       await fillForm(user, '');
@@ -353,6 +365,18 @@ describe('GeneratorPage', () => {
       expect(generateButton()).toBeEnabled();
       await user.click(screen.getByRole('button', { name: 'Retry' }));
       expect(fake.runs).toHaveLength(2);
+    });
+
+    it('disables Retry once a required field is cleared', async () => {
+      const { user, fake } = await renderPage();
+      await fillForm(user);
+      await user.click(generateButton());
+      fake.lastRun().fail({ kind: 'upstream' });
+      await screen.findByRole('alert');
+
+      await user.clear(field.jobTitle());
+
+      expect(screen.getByRole('button', { name: 'Retry' })).toBeDisabled();
     });
 
     it('a Retry after a failed Try Again replaces the letter instead of adding one', async () => {

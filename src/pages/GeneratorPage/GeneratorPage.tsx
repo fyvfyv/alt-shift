@@ -129,7 +129,7 @@ export function GeneratorPage() {
           ref={previewRef}
           state={state}
           retryCountdown={retryCountdown}
-          retryDisabled={blocked}
+          retryDisabled={!canGenerate}
           onRetry={() => void run()}
           storageFailed={storageFailed}
         />
