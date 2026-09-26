@@ -1,0 +1,19 @@
+.body {
+  display: flex;
+  flex-direction: column;
+  color: var(--color-text-quaternary);
+}
+
+/* The mockups space paragraphs differently: 28 in the preview, 18 on dashboard cards. */
+.body[data-gap="18"] {
+  gap: var(--space-4-5);
+}
+
+.body[data-gap="28"] {
+  gap: var(--space-7);
+}
+
+/* Single line breaks inside a paragraph (a signature block) are kept. */
+.paragraph {
+  white-space: pre-wrap;
+}

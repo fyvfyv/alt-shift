@@ -20,6 +20,8 @@ export function PageTitle({ children, size = 'md', placeholder = false, action }
         className={`${styles.title} ${role}`}
         data-placeholder={placeholder || undefined}
         tabIndex={-1}
+        // The md title can be cut with an ellipsis; the tooltip shows it whole.
+        title={size === 'md' && typeof children === 'string' ? children : undefined}
       >
         {children}
       </h1>

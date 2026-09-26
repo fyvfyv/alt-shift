@@ -1,0 +1,27 @@
+/* Absorbs whatever height the form column has left, so the CTA lines up with the preview panel. */
+.field {
+  flex: 1 1 0;
+}
+
+/* Figma: padding 12/14 inside the stroke (not the input's 8/12). */
+.textarea {
+  flex: 1 1 0;
+  padding: 11px 13px;
+  resize: none;
+}
+
+.textarea::-webkit-scrollbar {
+  width: 4px;
+}
+
+.textarea::-webkit-scrollbar-thumb {
+  background: var(--color-scrollbar-thumb);
+  border-radius: var(--radius-sm);
+}
+
+@supports not selector(::-webkit-scrollbar) {
+  .textarea {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-scrollbar-thumb) transparent;
+  }
+}

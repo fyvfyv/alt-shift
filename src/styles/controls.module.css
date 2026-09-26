@@ -1,0 +1,48 @@
+/* The box shared by TextField and TextArea; each adds its own height and padding. */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1-5);
+  min-width: 0;
+}
+
+.control {
+  width: 100%;
+  color: var(--color-text-primary);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-xs);
+  transition:
+    border-color 120ms ease-out,
+    box-shadow 120ms ease-out;
+}
+
+.control::placeholder {
+  color: var(--color-text-placeholder);
+  opacity: 1;
+}
+
+/* Text controls show the ring on any focus, mouse included, as in the filled + focus mockup. */
+.control:focus {
+  outline: none;
+  border-color: var(--color-border-focus);
+  box-shadow: var(--shadow-xs), var(--ring-focus);
+}
+
+/* Invalid: the border always, the ring only while focused. */
+.control[aria-invalid="true"] {
+  border-color: var(--color-border-error);
+}
+
+.control[aria-invalid="true"]:focus {
+  box-shadow: var(--shadow-xs), var(--ring-error);
+}
+
+.message {
+  color: var(--color-text-tertiary);
+}
+
+.message[data-error] {
+  color: var(--color-text-error);
+}

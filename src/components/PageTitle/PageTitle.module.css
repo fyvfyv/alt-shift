@@ -20,3 +20,10 @@
 .title[data-placeholder] {
   color: var(--color-text-placeholder);
 }
+
+/* A long "{jobTitle}, {company}" stays on one line so the title block keeps its 56px rhythm. */
+.row[data-size="md"] .title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

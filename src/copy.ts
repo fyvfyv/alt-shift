@@ -42,6 +42,7 @@ export const copy = {
     rateLimit: {
       title: 'Too many requests',
       body: (seconds: number) => `You can try again in ${seconds}s.`,
+      ready: 'You can try again now.',
     },
     upstream: {
       title: 'Generation failed',
