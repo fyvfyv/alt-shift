@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.vercel/
+.env
+.env.*
+!.env.example
+test-results/
+playwright-report/
+storybook-static/
+coverage/
+
+# Re-includes docs/: the author's global git excludes ignore docs/ wholesale (no effect for anyone else).
+!docs/
+# Agent planning artifacts stay out of history.
+docs/plans/
+docs/memos/
