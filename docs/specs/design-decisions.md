@@ -231,6 +231,14 @@ token clears both. Each line reveals left to right, then a lighter band sweeps a
 the panel's center with or without the caption, so the loading frame is unchanged until the
 caption is due.
 
+**Same role, another company.** People apply for one role at many companies, so once a letter is
+copied the preview offers "Same role, another company" under its footer. It appears only after a
+copy, the moment the letter is put to use, so the completed frame is unchanged at rest. The click
+clears Company and puts the caret there, with "Next company" as its placeholder instead of the
+mockup's "Apple"; job title, skills and details stay, and the next run is a new letter. Until
+then the saved letter stays on screen tagged "Saved · {Job title}, {Company}", and keeps its Copy.
+The same tag shows whenever the form's job no longer matches the letter on screen.
+
 **Cards.** The footer keeps Figma's two actions, Delete and Copy. A letter the 240px card clips
 gets a "Read more" over the end of its last, faded line, so it takes no row of its own; letters
 that fit show neither. Clipping is measured again whenever the card or its text changes size (a

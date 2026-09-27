@@ -17,6 +17,7 @@ type GeneratorFormProps = {
   readOnly: boolean;
   cta: ReactNode;
   note?: string;
+  companyPlaceholder?: string;
   jobTitleRef: Ref<HTMLInputElement>;
 };
 
@@ -42,6 +43,7 @@ export function GeneratorForm({
   readOnly,
   cta,
   note,
+  companyPlaceholder = copy.generator.fields.company.placeholder,
   jobTitleRef,
 }: GeneratorFormProps) {
   const { fields } = copy.generator;
@@ -73,7 +75,7 @@ export function GeneratorForm({
         <TextField
           name="company"
           label={fields.company.label}
-          placeholder={fields.company.placeholder}
+          placeholder={companyPlaceholder}
           autoComplete="organization"
           value={values.company}
           readOnly={readOnly}

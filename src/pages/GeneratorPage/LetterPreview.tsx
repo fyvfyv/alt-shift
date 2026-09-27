@@ -1,4 +1,4 @@
-import type { ReactNode, Ref } from 'react';
+import { type ReactNode, type Ref, useState } from 'react';
 import { Button } from '../../components/Button/Button';
 import { CopyButton } from '../../components/CopyButton/CopyButton';
 import { LetterBody } from '../../components/LetterBody/LetterBody';
@@ -36,6 +36,7 @@ type LetterPreviewProps = {
   storageFailed: boolean;
   name: string;
   onNameChange: (name: string) => void;
+  onNextCompany: () => void;
   company: string;
 };
 
@@ -92,8 +93,10 @@ function Content({
   storageFailed,
   name,
   onNameChange,
+  onNextCompany,
   stalled,
 }: ContentProps) {
+  const [copiedText, setCopiedText] = useState<string>();
   if (state.status === 'empty') {
     return <p className={`${styles.placeholder} ${typography.lg}`}>{copy.preview.empty}</p>;
   }
@@ -163,7 +166,12 @@ function Content({
   } else if (complete && cut) {
     // The page's status line announces a cut, so this note stays out of the alerts.
     keptNote = <p className={`${styles.keptNote} ${typography.sm}`}>{cutNote(true, keptTitle)}</p>;
+  } else if (complete && keptTitle) {
+    keptNote = (
+      <p className={`${styles.keptNote} ${typography.sm}`}>{copy.preview.saved(keptTitle)}</p>
+    );
   }
+  const offerNextCompany = complete && !keptNote && copiedText === text;
   return (
     <>
       <div className={styles.content}>
@@ -192,9 +200,19 @@ function Content({
         <div className={styles.footer}>
           <div className={signable ? styles.actions : `${styles.actions} ${styles.copyOnly}`}>
             {signable && <SignatureField name={name} onChange={onNameChange} />}
-            <CopyButton text={text} />
+            <CopyButton text={text} onCopied={() => setCopiedText(text)} />
           </div>
           <StorageNote failed={storageFailed} align="end" />
+          {offerNextCompany && (
+            <div className={styles.nextCompany}>
+              <p className={`${styles.keptNote} ${typography.sm}`}>
+                {copy.preview.nextCompany.prompt}
+              </p>
+              <Button variant="secondary" size="md" onClick={onNextCompany}>
+                {copy.preview.nextCompany.action}
+              </Button>
+            </div>
+          )}
         </div>
       )}
     </>

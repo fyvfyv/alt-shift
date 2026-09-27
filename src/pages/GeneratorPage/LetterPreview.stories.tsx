@@ -16,6 +16,7 @@ const meta = {
     storageFailed: false,
     name: '',
     onNameChange: fn(),
+    onNextCompany: fn(),
   },
   decorators: [
     (Story) => (
@@ -41,6 +42,14 @@ export const Completed: Story = { args: { state: { status: 'completed', text: sa
 
 export const Signed: Story = {
   args: { state: { status: 'completed', text: sampleText }, name: 'Alex Morgan' },
+};
+
+export const SavedWhileTypingTheNextCompany: Story = {
+  args: {
+    state: { status: 'completed', text: sampleText },
+    keptTitle: 'Product manager, Apple',
+    showCutRetry: false,
+  },
 };
 
 export const CompletedButNotSaved: Story = {

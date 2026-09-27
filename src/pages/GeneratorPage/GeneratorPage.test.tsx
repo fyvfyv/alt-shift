@@ -280,6 +280,34 @@ describe('GeneratorPage', () => {
       expect(screen.queryByText(/writing…$/i)).not.toBeInTheDocument();
     });
 
+    it('once a letter is copied offers the same role at another company', async () => {
+      const { user, fake, store } = await renderWithProviders(<GeneratorPage />);
+      await fillForm(user);
+      await generateLetter(user, fake, 'Dear Apple team,\n\nSincerely,');
+      const offer = () => screen.queryByRole('button', { name: 'Same role, another company' });
+      expect(offer()).not.toBeInTheDocument();
+
+      await user.click(screen.getByRole('button', { name: 'Copy to clipboard' }));
+      await user.click(await screen.findByRole('button', { name: 'Same role, another company' }));
+
+      expect(field.company()).toHaveValue('');
+      expect(field.company()).toHaveFocus();
+      expect(field.company()).toHaveAttribute('placeholder', 'Next company');
+      expect(previewPanel().getByText('Saved · Designer, Apple')).toBeInTheDocument();
+      expect(offer()).not.toBeInTheDocument();
+
+      await user.type(field.company(), 'Stripe{Enter}');
+      expect(fake.lastRun().request).toEqual({
+        jobTitle: 'Designer',
+        company: 'Stripe',
+        skills: 'Figma',
+        details: 'Ten years of shipping products',
+      });
+      fake.lastRun().emit('Dear Stripe team,\n\nSincerely,');
+      fake.lastRun().end();
+      await waitFor(() => expect(store.getState().letters).toHaveLength(2));
+    });
+
     it('when the preview sits beside the form leaves the scroll position alone', async () => {
       vi.spyOn(HTMLElement.prototype, 'offsetTop', 'get').mockReturnValue(32);
       const scroll = vi.spyOn(Element.prototype, 'scrollIntoView');

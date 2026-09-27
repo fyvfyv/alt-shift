@@ -231,8 +231,9 @@ See [docs/specs/design-decisions.md](docs/specs/design-decisions.md).
 
 Conversion here is a visitor who lands, generates a letter, copies it, and comes back for the next
 four. The levers I'd point to first: Try an example (a first letter without typing), a Generate Now
-that names what is missing, a failed Try Again that keeps your letter, and a profile and signature
-that carry over, so letters 2–5 cost a job title and a company. Nothing is collected yet;
+that names what is missing, a failed Try Again that keeps your letter, a profile and signature
+that carry over, so letters 2–5 cost a job title and a company, and "Same role, another company"
+right after you copy a letter, so the next one costs only a company name. Nothing is collected yet;
 [docs/specs/conversion.md](docs/specs/conversion.md) defines the funnel step by step, with
 everything shipped for it and the bets I'd build next.
 

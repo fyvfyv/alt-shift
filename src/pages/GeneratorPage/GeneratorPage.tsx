@@ -149,6 +149,12 @@ export function GeneratorPage() {
     setHint(undefined);
   }
 
+  function nextCompany() {
+    handleChange({ company: '' });
+    const company = formRef.current?.elements.namedItem('company');
+    if (company instanceof HTMLElement) company.focus();
+  }
+
   function startNew() {
     abort();
     resetJob();
@@ -209,6 +215,7 @@ export function GeneratorPage() {
           readOnly={busy}
           cta={cta}
           note={!online && !previewSaysOffline ? copy.generator.offlineNote : hint}
+          companyPlaceholder={keptTitle ? copy.generator.nextCompany : undefined}
           jobTitleRef={jobTitleRef}
         />
         <LetterPreview
@@ -224,6 +231,7 @@ export function GeneratorPage() {
           storageFailed={storageFailed}
           name={profile.name}
           onNameChange={setName}
+          onNextCompany={nextCompany}
         />
       </div>
       <p role="status" className={utilities.visuallyHidden}>

@@ -13,7 +13,7 @@ const labels: Record<Status, string> = {
   failed: copy.letter.copyFailed,
 };
 
-export function CopyButton({ text }: { text: string }) {
+export function CopyButton({ text, onCopied }: { text: string; onCopied?: () => void }) {
   const [status, setStatus] = useState<Status>('idle');
 
   useEffect(() => {
@@ -26,6 +26,7 @@ export function CopyButton({ text }: { text: string }) {
     try {
       await navigator.clipboard.writeText(text);
       setStatus('copied');
+      onCopied?.();
     } catch {
       setStatus('failed');
     }

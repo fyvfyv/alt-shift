@@ -39,6 +39,7 @@ export const copy = {
     generate: 'Generate Now',
     generating: 'Generating…',
     tryAgain: 'Try Again',
+    nextCompany: 'Next company',
     offlineNote: "You appear to be offline. Generating will work again once you're back.",
     hint: {
       names: { jobTitle: 'a job title', company: 'a company', skills: "what you're good at" },
@@ -78,6 +79,11 @@ export const copy = {
     streaming: {
       writing: 'Writing…',
       stalled: 'Still writing…',
+    },
+    saved: (title: string) => `Saved · ${title}`,
+    nextCompany: {
+      prompt: 'Applying to more companies?',
+      action: 'Same role, another company',
     },
     label: 'Your letter',
     kept: (title?: string) =>

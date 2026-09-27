@@ -43,6 +43,8 @@ In funnel order; the rules behind each are in [design-decisions.md](design-decis
 - **A signature**, added once, on every letter and every copy. *Copy.*
 - **Profile carry-over**: skills, details and the name stay, so the next letter costs a job title
   and a company. *Letters 2–5.*
+- **Same role, another company**, offered once a letter is copied: one click clears Company and
+  puts the caret there, so the next letter costs only a company name. *Copy → letters 2–5.*
 - **Banner copy that counts** down to the goal, and Read more, which opens a card's whole letter
   with its Copy. *Letters 2–5.*
 - **The job in the tab title**, so the right tab is findable. *Letters 2–5.*
@@ -53,8 +55,9 @@ Ordered by the impact I expect. None of them is built.
 
 1. **Edit the letter before copying**: a near miss becomes a sent letter without another request.
    *Complete → copy.*
-2. **Same role, another company**: start the next letter from a card's job title; it adds a card
-   action the mockups don't have. *Letters 2–5.*
+2. **Same role, another company from a card**: the generator offers it after a copy; the dashboard
+   could too, from a card's job title, but that adds a card action the mockups don't have.
+   *Letters 2–5.*
 3. **A typed event seam**: one union of client events, a console sink in development, never field
    text. Every "none" in the funnel needs it. *Every client-side step.*
 4. **Deep links**: `/new?jobTitle=…&company=…` through the example's hand-over. *Job posts → first
