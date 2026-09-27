@@ -17,6 +17,20 @@ export async function routeMockScenario(
   );
 }
 
+// Holds the request until the returned function is called, so the page stays in its loading
+// state for as long as a check needs instead of racing the mock's first delta.
+export async function holdGeneration(page: Page): Promise<() => void> {
+  let release = () => {};
+  const held = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route('**/api/generate', async (route) => {
+    await held;
+    await route.continue();
+  });
+  return release;
+}
+
 // The panel is the preview's single live region; the copy feedback region has no aria-busy.
 export function previewPanel(page: Page) {
   return page.locator('[aria-live="polite"][aria-busy]');

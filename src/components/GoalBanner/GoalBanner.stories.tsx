@@ -23,3 +23,14 @@ type Story = StoryObj<typeof meta>;
 export const NoLetters: Story = {};
 
 export const AlmostThere: Story = { args: { count: 4 } };
+
+export const Reached: Story = {
+  args: {
+    count: 5,
+    reachedAction: (
+      <Button to="/new" iconLeading="plus">
+        {copy.createNew}
+      </Button>
+    ),
+  },
+};

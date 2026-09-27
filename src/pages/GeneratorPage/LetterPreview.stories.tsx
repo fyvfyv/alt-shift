@@ -8,10 +8,13 @@ const meta = {
   parameters: { layout: 'padded' },
   args: {
     state: { status: 'empty' },
+    company: 'Apple',
     retryCountdown: 0,
     retryDisabled: false,
     onRetry: fn(),
     storageFailed: false,
+    name: '',
+    onNameChange: fn(),
   },
   decorators: [
     (Story) => (
@@ -27,6 +30,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Empty: Story = {};
 
+// The caption under the orb appears after 2 s and changes at 8 s.
 export const Loading: Story = { args: { state: { status: 'loading' } } };
 
 export const Streaming: Story = {
@@ -34,6 +38,10 @@ export const Streaming: Story = {
 };
 
 export const Completed: Story = { args: { state: { status: 'completed', text: sampleText } } };
+
+export const Signed: Story = {
+  args: { state: { status: 'completed', text: sampleText }, name: 'Alex Morgan' },
+};
 
 export const CompletedButNotSaved: Story = {
   args: { state: { status: 'completed', text: sampleText }, storageFailed: true },

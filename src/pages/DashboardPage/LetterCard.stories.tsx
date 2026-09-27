@@ -5,12 +5,15 @@ import { LetterCard } from './LetterCard';
 
 const [short, , long] = sampleLetters(3);
 
+// The card takes its width from the dashboard grid; stories set it directly.
+type CardParameters = { width?: number };
+
 const meta = {
   component: LetterCard,
   args: { letter: short, onDelete: fn() },
   decorators: [
-    (Story) => (
-      <div style={{ width: 413 }}>
+    (Story, { parameters }) => (
+      <div style={{ width: (parameters as CardParameters).width ?? 413 }}>
         <Story />
       </div>
     ),
@@ -23,3 +26,8 @@ type Story = StoryObj<typeof meta>;
 export const Short: Story = {};
 
 export const Long: Story = { args: { letter: long } };
+
+export const Signed: Story = { args: { letter: long, signature: 'Jane Doe' } };
+
+// A 375px phone: the three actions wrap and the preview gives up a row.
+export const Phone: Story = { args: { letter: long }, parameters: { width: 343 } };

@@ -5,11 +5,11 @@
 }
 
 /* The mockups space paragraphs differently: 28 in the preview, 18 on dashboard cards. */
-.body[data-gap="18"] {
+.body[data-spacing="compact"] {
   gap: var(--space-4-5);
 }
 
-.body[data-gap="28"] {
+.body[data-spacing="comfortable"] {
   gap: var(--space-7);
 }
 

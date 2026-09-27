@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { LIMITS } from '../../../shared/generation';
 import { copy } from '../../copy';
 import { TextField } from './TextField';
 
@@ -29,5 +30,8 @@ export const Focused: Story = {
 };
 
 export const WithError: Story = {
-  args: { defaultValue: 'Product Manager'.repeat(21), error: copy.generator.fieldTooLong },
+  args: {
+    defaultValue: 'Product Manager'.repeat(21),
+    error: copy.generator.fieldTooLong(LIMITS.singleLine),
+  },
 };

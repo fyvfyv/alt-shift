@@ -24,3 +24,7 @@ export function useLetterStore<T>(selector: (state: LetterState) => T): T {
 export function useGeneratedCount(): number {
   return useLetterStore((state) => state.letters.length);
 }
+
+export function useStorageFailed(): boolean {
+  return useLetterStore((state) => state.lastStorageError !== null);
+}

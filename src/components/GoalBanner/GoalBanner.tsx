@@ -9,24 +9,30 @@ type GoalBannerProps = {
   count: number;
   // The page decides what "Create New" does: a link on the dashboard, a reset on the generator.
   action: ReactNode;
+  // Figma drops the banner at the goal; a page keeps it only by offering a next step here.
+  reachedAction?: ReactNode;
 };
 
-export function GoalBanner({ count, action }: GoalBannerProps) {
+export function GoalBanner({ count, action, reachedAction }: GoalBannerProps) {
   const titleId = useId();
-  if (count >= GOAL) return null;
+  const reached = count >= GOAL;
+  if (reached && !reachedAction) return null;
+  const shown = reached ? GOAL : count;
   return (
     <section className={styles.banner} aria-labelledby={titleId}>
       <div className={styles.content}>
         <div className={styles.pitch}>
           <h2 id={titleId} className={`${styles.title} ${typography.displayMd}`}>
-            {copy.goal.title}
+            {reached ? copy.goal.reachedTitle : copy.goal.title}
           </h2>
-          <p className={`${styles.subtitle} ${typography.lg}`}>{copy.goal.subtitle}</p>
-          {action}
+          <p className={`${styles.subtitle} ${typography.lg}`}>
+            {reached ? copy.goal.reachedSubtitle : copy.goal.subtitle(count, GOAL)}
+          </p>
+          {reached ? reachedAction : action}
         </div>
         <div className={styles.progress}>
-          <ProgressDots count={count} total={GOAL} variant="bars" />
-          <p className={typography.lg}>{copy.goal.progress(count, GOAL)}</p>
+          <ProgressDots count={shown} total={GOAL} variant="bars" />
+          <p className={typography.lg}>{copy.goal.progress(shown, GOAL)}</p>
         </div>
       </div>
     </section>

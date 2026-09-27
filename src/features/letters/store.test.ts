@@ -32,13 +32,17 @@ describe('createLetterStore', () => {
     expect(await repository.list()).toContainEqual(letter);
   });
 
-  it('replaces a letter added again with the same id', async () => {
-    const store = createLetterStore({ repository: new InMemoryLetterRepository() });
+  it('re-adding a letter with the same id replaces it in place, keeping its createdAt', async () => {
+    const repository = new InMemoryLetterRepository();
+    const store = createLetterStore({ repository });
+    await store.getState().add(letterAt(1, 'first'));
+    await store.getState().add(letterAt(2, 'second'));
 
-    await store.getState().add(letterAt(1, 'same'));
-    await store.getState().add({ ...letterAt(2, 'same'), text: 'Dear Apple team' });
+    await store.getState().add({ ...letterAt(3, 'first'), text: 'Dear Apple team' });
 
-    expect(store.getState().letters).toEqual([{ ...letterAt(2, 'same'), text: 'Dear Apple team' }]);
+    const replaced = { ...letterAt(1, 'first'), text: 'Dear Apple team' };
+    expect(store.getState().letters).toEqual([letterAt(2, 'second'), replaced]);
+    expect(await repository.list()).toContainEqual(replaced);
   });
 
   it('keeps an added letter in memory when persisting fails', async () => {

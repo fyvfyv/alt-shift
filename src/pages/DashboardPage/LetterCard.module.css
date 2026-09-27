@@ -16,19 +16,34 @@
   overflow: hidden;
 }
 
-/* Covers the last 32px of the body and the top 8px of the footer's padding. */
+/* Three actions do not fit a narrow card on one row; wrapping keeps them inside the card and
+   the body, not the card, gives up the height. */
+.footer {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  align-items: center;
+  justify-content: space-between;
+  padding-top: var(--space-4);
+}
+
+/* Anchored to the footer so it follows a wrapped one: covers the last 32px of the body and the
+   top 8px of the footer's padding. */
 .fade {
   position: absolute;
-  inset-inline: var(--space-6);
-  bottom: 56px;
+  top: -32px;
+  inset-inline: 0;
   height: 40px;
   pointer-events: none;
   background: var(--gradient-card-fade);
 }
 
-.footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-top: var(--space-4);
+/* Expanded, the card grows with the letter; the fade goes with the clipping it announced. */
+.card[data-expanded] {
+  height: auto;
+}
+
+.card[data-expanded] .fade {
+  display: none;
 }

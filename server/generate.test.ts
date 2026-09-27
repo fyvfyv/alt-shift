@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ApiErrorBody } from '../shared/generation';
 import { handle } from './generate';
+import type { Provider } from './providers/types';
 import { variantProvider } from './providers/variant';
 
 const validBody = {
@@ -15,6 +16,7 @@ function post(body: unknown, init: RequestInit = {}): Request {
     method: 'POST',
     body: typeof body === 'string' ? body : JSON.stringify(body),
     ...init,
+    headers: { Host: 'localhost', ...init.headers },
   });
 }
 
@@ -104,6 +106,50 @@ describe('handle', () => {
     controller.abort();
 
     expect(fetchMock.mock.calls[0]?.[1].signal?.aborted).toBe(true);
+  });
+
+  it('hands the provider the validated request and the incoming headers', async () => {
+    const provider = vi.fn<Provider>(async () => new Response(''));
+    const request = post(
+      { ...validBody, company: '  Acme  ' },
+      { headers: { 'x-mock-scenario': 'disconnect' } },
+    );
+
+    await handle(request, provider, 'mock');
+
+    const ctx = provider.mock.calls[0]?.[1];
+    expect(ctx?.request).toEqual({ ...validBody, company: 'Acme' });
+    expect(ctx?.headers.get('x-mock-scenario')).toBe('disconnect');
+  });
+
+  it.each([
+    [
+      'same-origin browser headers',
+      { 'Sec-Fetch-Site': 'same-origin', Origin: 'http://localhost' },
+    ],
+    ['a user-initiated navigation', { 'Sec-Fetch-Site': 'none' }],
+    ['no fetch metadata at all', {}],
+  ])('lets a request with %s through', async (_case, headers) => {
+    const provider = vi.fn(async () => new Response(''));
+
+    const response = await handle(post(validBody, { headers }), provider, 'mock');
+
+    expect(response.status).toBe(200);
+    expect(provider).toHaveBeenCalledOnce();
+  });
+
+  it.each([
+    ['a cross-site Sec-Fetch-Site', { 'Sec-Fetch-Site': 'cross-site', Origin: 'http://localhost' }],
+    ['an Origin that does not match the Host', { Origin: 'http://evil.example' }],
+    ['an opaque Origin', { Origin: 'null' }],
+  ])('refuses a request with %s as 403 forbidden', async (_case, headers) => {
+    const provider = vi.fn();
+
+    const response = await handle(post(validBody, { headers }), provider, 'mock');
+
+    expect(response.status).toBe(403);
+    expect(await errorCode(response)).toBe('forbidden');
+    expect(provider).not.toHaveBeenCalled();
   });
 
   it.each([

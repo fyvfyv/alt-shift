@@ -1,0 +1,7 @@
+.note {
+  color: var(--color-text-tertiary);
+}
+
+.note[data-align="end"] {
+  text-align: right;
+}

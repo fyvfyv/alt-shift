@@ -1,5 +1,6 @@
 import type { Preview } from '@storybook/react-vite';
 import { MemoryRouter } from 'react-router';
+import { PageShell } from '../src/components/PageShell/PageShell';
 import { GenerationProvider } from '../src/features/generation/GenerationProvider';
 import { InMemoryLetterRepository } from '../src/features/letters/inMemoryRepository';
 import { LetterStoreProvider } from '../src/features/letters/LetterStoreProvider';
@@ -15,6 +16,8 @@ type AppParameters = {
   letters?: Letter[];
   generationDelayMs?: number;
   route?: string;
+  // Page stories opt in: the header belongs to the app's layout route, not to the pages.
+  chrome?: boolean;
 };
 
 const preview: Preview = {
@@ -30,12 +33,18 @@ const preview: Preview = {
   ],
   decorators: [
     (Story, { loaded, parameters }) => {
-      const { generationDelayMs = 40, route = '/' } = parameters as AppParameters;
+      const { generationDelayMs = 40, route = '/', chrome = false } = parameters as AppParameters;
       return (
         <MemoryRouter initialEntries={[route]}>
           <LetterStoreProvider store={loaded.store as LetterStore}>
             <GenerationProvider port={createStoryPort(generationDelayMs)}>
-              <Story />
+              {chrome ? (
+                <PageShell>
+                  <Story />
+                </PageShell>
+              ) : (
+                <Story />
+              )}
             </GenerationProvider>
           </LetterStoreProvider>
         </MemoryRouter>

@@ -4,11 +4,17 @@
  * browser clamps the wdth axis to it: 87.5% is Fixel's "Text" cut, 100% its
  * "Display" cut. Without the descriptor every browser renders wdth 100, so
  * body copy would come out in the Display width.
+ *
+ * The file is instanced to wght 400–600 (the only weights the type scale
+ * uses; wdth stays 87.5–100) and subset to Latin, Latin Extended-A,
+ * Cyrillic, General Punctuation, € and ™ with kern/liga/calt/tnum kept.
+ * The font-weight descriptor states that range so the browser does not
+ * expect weights the file no longer carries. Build recipe: README.
  */
 @font-face {
   font-family: "Fixel Text";
   src: url("../assets/fonts/FixelVariable.woff2") format("woff2");
-  font-weight: 100 900;
+  font-weight: 400 600;
   font-stretch: 87.5%;
   font-style: normal;
   font-display: swap;
@@ -17,7 +23,7 @@
 @font-face {
   font-family: "Fixel Display";
   src: url("../assets/fonts/FixelVariable.woff2") format("woff2");
-  font-weight: 100 900;
+  font-weight: 400 600;
   font-stretch: 100%;
   font-style: normal;
   font-display: swap;

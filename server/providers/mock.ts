@@ -1,29 +1,82 @@
 // Offline stand-in for the Variant API: replays transcripts recorded from the real API
 // (`pnpm record:fixture`) at a realistic pace, plus the failure modes the UI has to handle.
+// The recorded job title and company are swapped for the request's so the letter reads as the
+// user's own; the text is then re-chunked to the recorded delta sizes so pacing stays realistic.
 
 import { readFile } from 'node:fs/promises';
 import { setTimeout as sleep } from 'node:timers/promises';
-import { countChars } from '../../shared/generation.js';
+import { countChars, type GenerateRequest } from '../../shared/generation.js';
+import { type FixtureName, SAMPLES } from '../fixtures/samples.js';
 import { jsonError } from '../jsonError.js';
 import type { Provider } from './types.js';
 
 const DISCONNECT_AT = 0.4;
 
-function fixtureFor(details: string): 'short' | 'medium' | 'long' {
+type Fixture = { comments: string[]; deltas: string[] };
+type Transcript = { comments: string[]; events: string[] };
+
+function fixtureFor(details: string): FixtureName {
   const length = countChars(details);
   if (length < 200) return 'short';
   if (length < 600) return 'medium';
   return 'long';
 }
 
-function streamFixture(
-  raw: string,
+function parseFixture(raw: string): Fixture {
+  const comments: string[] = [];
+  const deltas: string[] = [];
+  for (const block of raw.split('\n\n')) {
+    if (block.startsWith(':')) comments.push(block);
+    const data = block.split('\n').find((line) => line.startsWith('data: {'));
+    if (data) deltas.push((JSON.parse(data.slice(6)) as { text: string }).text);
+  }
+  return { comments, deltas };
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// One pass over both names, so a replacement value is never itself replaced.
+function personalize(text: string, recorded: GenerateRequest, request: GenerateRequest): string {
+  const swaps = new Map([
+    [recorded.jobTitle, request.jobTitle],
+    [recorded.company, request.company],
+  ]);
+  const pattern = new RegExp([...swaps.keys()].map(escapeRegExp).join('|'), 'g');
+  return text.replace(pattern, (match) => swaps.get(match) ?? match);
+}
+
+// Code points, not UTF-16 units, so a surrogate pair never straddles two deltas.
+function rechunk(text: string, sizes: number[]): string[] {
+  const chars = Array.from(text);
+  const chunks: string[] = [];
+  for (let offset = 0, i = 0; offset < chars.length; i++) {
+    const size = Math.max(1, sizes[i % sizes.length] ?? 1);
+    chunks.push(chars.slice(offset, offset + size).join(''));
+    offset += size;
+  }
+  return chunks;
+}
+
+async function transcriptFor(request: GenerateRequest): Promise<Transcript> {
+  const name = fixtureFor(request.details);
+  const raw = await readFile(new URL(`../fixtures/${name}.sse`, import.meta.url), 'utf8');
+  const { comments, deltas } = parseFixture(raw);
+  const text = personalize(deltas.join(''), SAMPLES[name], request);
+  const sizes = deltas.map((delta) => delta.length);
+  const events = rechunk(text, sizes).map(
+    (chunk) => `event: delta\ndata: ${JSON.stringify({ text: chunk })}`,
+  );
+  events.push('data: [DONE]');
+  return { comments, events };
+}
+
+function stream(
+  { comments, events }: Transcript,
   { signal, disconnect }: { signal: AbortSignal; disconnect: boolean },
 ): ReadableStream<Uint8Array> {
   const encoder = new TextEncoder();
-  const blocks = raw.split('\n\n').filter(Boolean);
-  const comments = blocks.filter((block) => block.startsWith(':'));
-  const events = blocks.filter((block) => !block.startsWith(':'));
   const cutAt = disconnect ? Math.floor(events.length * DISCONNECT_AT) : events.length;
   const firstDelay = Number(process.env.MOCK_FIRST_DELTA_MS ?? 1200);
   const delay = Number(process.env.MOCK_DELAY_MS ?? 40);
@@ -50,8 +103,8 @@ function streamFixture(
   });
 }
 
-export const mockProvider: Provider = async (_input, { signal, details, mockScenario }) => {
-  const scenario = mockScenario ?? 'complete';
+export const mockProvider: Provider = async (_input, { signal, request, headers }) => {
+  const scenario = headers.get('x-mock-scenario') ?? 'complete';
   switch (scenario) {
     case 'rate-limit':
       return jsonError(429, 'rate_limit_exceeded', 'Rate limit exceeded (mock).', {
@@ -63,9 +116,8 @@ export const mockProvider: Provider = async (_input, { signal, details, mockScen
       return jsonError(401, 'invalid_token', 'Invalid token (mock).');
     case 'complete':
     case 'disconnect': {
-      const url = new URL(`../fixtures/${fixtureFor(details)}.sse`, import.meta.url);
-      const raw = await readFile(url, 'utf8');
-      const body = streamFixture(raw, { signal, disconnect: scenario === 'disconnect' });
+      const transcript = await transcriptFor(request);
+      const body = stream(transcript, { signal, disconnect: scenario === 'disconnect' });
       return new Response(body, { headers: { 'Content-Type': 'text/event-stream' } });
     }
     default:

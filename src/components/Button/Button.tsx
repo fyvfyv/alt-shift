@@ -22,7 +22,9 @@ type OwnProps = {
 type AsButton = OwnProps &
   Omit<ComponentProps<'button'>, keyof OwnProps> & {
     to?: never;
-    // Disables the button and swaps the label for a spinner; the label stays for screen readers.
+    // Swaps the label for a spinner (the label stays for screen readers) and ignores clicks.
+    // Not `disabled`: focus stays on the button, so keyboard users are not dropped at the top
+    // of the page when a run starts, and aria-disabled tells them why nothing happens.
     loading?: boolean;
   };
 
@@ -43,13 +45,10 @@ export function Button(props: ButtonProps) {
     children,
     ...rest
   } = props;
-  const iconSize = variant !== 'tertiary' && size === 'xl' ? 24 : 20;
+  const large = variant !== 'tertiary' && size === 'xl';
+  const iconSize = large ? 24 : 20;
   const shared = {
-    className: [
-      styles.button,
-      iconSize === 24 ? typography.lgStrong : typography.mdStrong,
-      className,
-    ]
+    className: [styles.button, large ? typography.lgStrong : typography.mdStrong, className]
       .filter(Boolean)
       .join(' '),
     'data-variant': variant,
@@ -72,14 +71,22 @@ export function Button(props: ButtonProps) {
     );
   }
 
-  const { type = 'button', disabled, ...buttonProps } = rest;
+  const { type = 'button', onClick, ...buttonProps } = rest;
   return (
     <button
       {...buttonProps}
       {...shared}
       type={type}
-      disabled={disabled || loading}
+      aria-disabled={loading || undefined}
       aria-busy={loading || undefined}
+      onClick={(event) => {
+        // preventDefault also stops a submit button from submitting its form.
+        if (loading) {
+          event.preventDefault();
+          return;
+        }
+        onClick?.(event);
+      }}
     >
       {loading ? (
         <>

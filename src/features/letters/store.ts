@@ -45,9 +45,12 @@ export function createLetterStore({ repository }: { repository: LetterRepository
       },
 
       add(letter) {
+        // Re-adding (Try Again) replaces the text but keeps the letter's place in the list.
+        const existing = get().letters.find((l) => l.id === letter.id);
+        const next = existing ? { ...letter, createdAt: existing.createdAt } : letter;
         const others = get().letters.filter((l) => l.id !== letter.id);
-        set({ letters: newestFirst([letter, ...others]) });
-        return persist(() => repository.save(letter));
+        set({ letters: newestFirst([next, ...others]) });
+        return persist(() => repository.save(next));
       },
 
       remove(id) {

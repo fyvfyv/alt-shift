@@ -3,11 +3,11 @@ import styles from './LetterBody.module.css';
 
 type LetterBodyProps = {
   text: string;
-  paragraphGap: 18 | 28;
+  spacing: 'compact' | 'comfortable';
   className?: string;
 };
 
-export function LetterBody({ text, paragraphGap, className }: LetterBodyProps) {
+export function LetterBody({ text, spacing, className }: LetterBodyProps) {
   const paragraphs = text
     .split(/\n\s*\n/)
     .map((paragraph) => paragraph.trim())
@@ -15,7 +15,7 @@ export function LetterBody({ text, paragraphGap, className }: LetterBodyProps) {
   return (
     <div
       className={[styles.body, typography.lg, className].filter(Boolean).join(' ')}
-      data-gap={paragraphGap}
+      data-spacing={spacing}
     >
       {paragraphs.map((paragraph, index) => (
         // biome-ignore lint/suspicious/noArrayIndexKey: paragraphs have no identity; while streaming only the last one grows

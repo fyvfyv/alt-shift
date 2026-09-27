@@ -2,17 +2,12 @@ import type { ReactNode } from 'react';
 import { AppHeader } from '../AppHeader/AppHeader';
 import styles from './PageShell.module.css';
 
-type PageShellProps = {
-  children: ReactNode;
-  // The crash fallback drops the header: it reads the store, which may be what failed.
-  header?: boolean;
-};
-
-export function PageShell({ children, header = true }: PageShellProps) {
+// Rendered once by the layout route, so the header is not re-mounted on every navigation.
+export function PageShell({ children }: { children: ReactNode }) {
   return (
     <div className={styles.shell}>
       <div className={styles.page}>
-        {header && <AppHeader />}
+        <AppHeader />
         <main className={styles.main}>{children}</main>
       </div>
     </div>

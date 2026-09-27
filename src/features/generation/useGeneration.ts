@@ -53,16 +53,20 @@ export function useGeneration() {
         if (run.signal.aborted) return;
         // Whatever the last frame hasn't shown yet belongs before the error.
         flush();
+        // The port promises a GenerationFailure; anything else is a bug worth a trace.
+        if (!(e instanceof GenerationFailure)) console.error('[generation]', e);
         dispatch({
           type: 'error',
           error: e instanceof GenerationFailure ? e.error : { kind: 'upstream' },
         });
         return;
+      } finally {
+        // A newer run may own the ref by now.
+        if (controller.current === run) controller.current = null;
       }
       if (run.signal.aborted) return;
       flush();
       dispatch({ type: 'done' });
-      controller.current = null;
       return text === '' ? undefined : text;
     },
     [port, cancelRun, flush],

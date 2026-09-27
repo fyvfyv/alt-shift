@@ -73,6 +73,7 @@ async function failure(promise: Promise<unknown>): Promise<GenerationError> {
 describe('generate', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
+    vi.useRealTimers();
   });
 
   it('posts the form fields as JSON to the proxy', async () => {
@@ -114,16 +115,58 @@ describe('generate', () => {
     expect(await failure(collect())).toEqual({ kind: 'network' });
   });
 
-  it('yields every recorded delta and cancels the reader on [DONE]', async () => {
+  it('yields every recorded delta', async () => {
     const fixture = recorded('short');
-    const onCancel = vi.fn();
-    stubStream({ chunks: [encoder.encode(fixture.sse)], ending: 'open', onCancel });
+    stubStream({ chunks: [encoder.encode(fixture.sse)] });
 
     const texts = await collect();
 
     expect(texts).toHaveLength(fixture.deltaCount);
     expect(texts.join('')).toBe(fixture.text);
-    expect(onCancel).toHaveBeenCalled();
+  });
+
+  describe('after [DONE]', () => {
+    it.each([
+      ['closes', [], 'close' as const],
+      ['errors', [], new TypeError('network error')],
+      ['sends more before closing', [': bye\n\n'], 'close' as const],
+    ])('completes without cancelling when the upstream %s', async (_, trailing, ending) => {
+      const onCancel = vi.fn();
+      const chunks = [delta('Dear') + DONE, ...trailing].map((c) => encoder.encode(c));
+      stubStream({ chunks, ending, onCancel });
+
+      expect(await collect()).toEqual(['Dear']);
+      expect(onCancel).not.toHaveBeenCalled();
+    });
+
+    it('cancels an upstream still open after 2 s', async () => {
+      vi.useFakeTimers();
+      const onCancel = vi.fn();
+      stubStream({ chunks: [encoder.encode(delta('Dear') + DONE)], ending: 'open', onCancel });
+
+      const texts = collect();
+      await vi.advanceTimersByTimeAsync(2_000);
+
+      expect(await texts).toEqual(['Dear']);
+      expect(onCancel).toHaveBeenCalled();
+    });
+  });
+
+  describe('idle for 30 s', () => {
+    it.each([
+      ['after deltas', [delta('Dear')], 'stream-cut'],
+      ['before any delta', [': keepalive\n\n'], 'upstream'],
+    ])('cancels the stream and fails %s', async (_, chunks, kind) => {
+      vi.useFakeTimers();
+      const onCancel = vi.fn();
+      stubStream({ chunks: chunks.map((c) => encoder.encode(c)), ending: 'open', onCancel });
+
+      const outcome = failure(collect());
+      await vi.advanceTimersByTimeAsync(30_000);
+
+      expect(await outcome).toEqual({ kind });
+      expect(onCancel).toHaveBeenCalled();
+    });
   });
 
   it('completes on a clean close after deltas without [DONE]', async () => {

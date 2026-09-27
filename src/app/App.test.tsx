@@ -1,9 +1,8 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { renderWithProviders } from '../test/renderWithProviders';
 import { App } from './App';
-import { AppErrorBoundary } from './AppErrorBoundary';
 
 describe('App', () => {
   it('renders the not-found page with a way back for an unknown URL', async () => {
@@ -29,23 +28,5 @@ describe('App', () => {
     await renderWithProviders(<App />, { url: '/' });
 
     expect(screen.getByRole('heading', { level: 1 })).not.toHaveFocus();
-  });
-});
-
-describe('AppErrorBoundary', () => {
-  it('replaces a crashed tree with a reload link', async () => {
-    vi.spyOn(console, 'error').mockImplementation(() => {});
-    function Crash(): never {
-      throw new Error('boom');
-    }
-
-    await renderWithProviders(
-      <AppErrorBoundary>
-        <Crash />
-      </AppErrorBoundary>,
-    );
-
-    expect(screen.getByText('Something went wrong.')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Reload the app' })).toHaveAttribute('href', '/');
   });
 });

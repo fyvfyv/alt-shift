@@ -1,13 +1,14 @@
-import { useEffect, useRef } from 'react';
+import { useRef } from 'react';
+import { flushSync } from 'react-dom';
 import { usePageMeta } from '../../app/usePageMeta';
 import { Button } from '../../components/Button/Button';
 import { EmptyPanel } from '../../components/EmptyPanel/EmptyPanel';
 import { GoalBanner } from '../../components/GoalBanner/GoalBanner';
-import { PageShell } from '../../components/PageShell/PageShell';
 import { PageTitle } from '../../components/PageTitle/PageTitle';
+import { StorageNote } from '../../components/StorageNote/StorageNote';
 import { copy } from '../../copy';
-import { useLetterStore } from '../../features/letters/LetterStoreProvider';
-import typography from '../../styles/typography.module.css';
+import { useProfile } from '../../features/generation/useGeneratorFields';
+import { useLetterStore, useStorageFailed } from '../../features/letters/LetterStoreProvider';
 import styles from './DashboardPage.module.css';
 import { LetterCard } from './LetterCard';
 
@@ -15,25 +16,19 @@ export function DashboardPage() {
   usePageMeta(copy.dashboard.title);
   const letters = useLetterStore((s) => s.letters);
   const remove = useLetterStore((s) => s.remove);
-  const storageFailed = useLetterStore((s) => s.lastStorageError !== null);
+  const storageFailed = useStorageFailed();
+  const { profile } = useProfile();
 
-  // A deleted card takes its focused button with it. Focus moves to the card that slides into its
-  // place, or to the page title when there is none, after the commit that removed it.
   const titleRef = useRef<HTMLHeadingElement>(null);
   const deleteButtons = useRef(new Map<string, HTMLButtonElement>());
-  const focusAfterDelete = useRef<(() => void) | null>(null);
 
-  useEffect(() => {
-    focusAfterDelete.current?.();
-    focusAfterDelete.current = null;
-  });
-
+  // A deleted card takes its focused button with it. The removal is committed before focus moves
+  // to the card that slides into its place, or to the page title when there is none.
   function handleDelete(id: string, index: number) {
     const next = letters[index + 1];
-    focusAfterDelete.current = next
-      ? () => deleteButtons.current.get(next.id)?.focus()
-      : () => titleRef.current?.focus();
-    void remove(id);
+    flushSync(() => void remove(id));
+    const nextDelete = next ? deleteButtons.current.get(next.id) : undefined;
+    (nextDelete ?? titleRef.current)?.focus();
   }
 
   const createNew = (
@@ -43,22 +38,31 @@ export function DashboardPage() {
   );
 
   return (
-    <PageShell>
+    <>
       <div className={styles.section}>
         <PageTitle ref={titleRef} size="lg" action={createNew}>
           {copy.dashboard.title}
         </PageTitle>
-        {storageFailed && (
-          <p className={`${styles.storageNote} ${typography.sm}`}>{copy.storageNote}</p>
-        )}
+        {storageFailed && <StorageNote />}
         {letters.length === 0 ? (
-          <EmptyPanel text={copy.dashboard.empty} action={createNew} />
+          <EmptyPanel
+            text={copy.dashboard.empty}
+            action={
+              <>
+                {createNew}
+                <Button variant="tertiary" to="/new" state={{ prefill: copy.example.request }}>
+                  {copy.example.label}
+                </Button>
+              </>
+            }
+          />
         ) : (
           <div className={styles.grid}>
             {letters.map((letter, index) => (
               <LetterCard
                 key={letter.id}
                 letter={letter}
+                signature={profile.name}
                 onDelete={() => handleDelete(letter.id, index)}
                 deleteRef={(button) => {
                   if (!button) return;
@@ -78,6 +82,6 @@ export function DashboardPage() {
           </Button>
         }
       />
-    </PageShell>
+    </>
   );
 }

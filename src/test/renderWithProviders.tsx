@@ -1,6 +1,6 @@
 import { render } from '@testing-library/react';
 import type { ReactNode } from 'react';
-import { MemoryRouter } from 'react-router';
+import { type InitialEntry, MemoryRouter } from 'react-router';
 import { GenerationProvider } from '../features/generation/GenerationProvider';
 import type { GenerationPort } from '../features/generation/generationClient';
 import { InMemoryLetterRepository } from '../features/letters/inMemoryRepository';
@@ -11,7 +11,8 @@ import { createLetterStore } from '../features/letters/store';
 import { createFakePort } from './fakeGenerationPort';
 
 type Options = {
-  url?: string;
+  // A string, or an entry with history state (a prefilled job).
+  url?: InitialEntry;
   letters?: Letter[];
   repository?: LetterRepository;
   port?: GenerationPort;

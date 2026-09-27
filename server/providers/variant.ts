@@ -2,11 +2,20 @@ import { jsonError } from '../jsonError.js';
 import type { Provider } from './types.js';
 
 export const DEFAULT_API_URL = 'https://test-assignment-api.variant.net/v1/generate';
+const DEFAULT_FIRST_BYTE_TIMEOUT_MS = 20_000;
 
 // Only these reach the browser; upstream cookies, CORS and anything else stay behind the proxy.
 const FORWARDED_HEADERS = ['Content-Type', 'Retry-After', 'X-Request-Id'];
 
 export const variantProvider: Provider = async (input, { signal }) => {
+  // Bounds only the wait for response headers: the timer is cleared before the body streams, so a
+  // slow model mid-letter is never cut off, but one that never starts does not hang the function.
+  const firstByte = new AbortController();
+  const timer = setTimeout(
+    () => firstByte.abort(new Error('First byte timeout')),
+    Number(process.env.GENERATION_FIRST_BYTE_TIMEOUT_MS ?? DEFAULT_FIRST_BYTE_TIMEOUT_MS),
+  );
+
   let upstream: Response;
   try {
     upstream = await fetch(process.env.GENERATION_API_URL ?? DEFAULT_API_URL, {
@@ -16,11 +25,16 @@ export const variantProvider: Provider = async (input, { signal }) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(input),
-      signal,
+      signal: AbortSignal.any([signal, firstByte.signal]),
     });
   } catch (error) {
-    if (error instanceof Error && error.name === 'AbortError') throw error;
+    if (signal.aborted) throw error;
+    if (firstByte.signal.aborted) {
+      return jsonError(504, 'upstream_error', 'The model took too long to start.');
+    }
     return jsonError(502, 'upstream_error', 'The generation service is unreachable.');
+  } finally {
+    clearTimeout(timer);
   }
 
   const headers = new Headers();

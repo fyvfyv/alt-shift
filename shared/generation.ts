@@ -9,12 +9,20 @@ export type GenerateRequest = {
 
 export const LIMITS = { details: 1200, singleLine: 300 } as const;
 
+export const EMPTY_REQUEST: GenerateRequest = {
+  jobTitle: '',
+  company: '',
+  skills: '',
+  details: '',
+};
+
 export type ErrorCode =
   | 'invalid_request'
   | 'invalid_token'
   | 'rate_limit_exceeded'
   | 'upstream_error'
-  | 'method_not_allowed';
+  | 'method_not_allowed'
+  | 'forbidden';
 
 export type ApiErrorBody = { error: { code: ErrorCode; message: string } };
 
@@ -38,7 +46,7 @@ export function validateGenerateRequest(input: unknown): ValidationResult {
     return invalid('Request body must be a JSON object.');
   }
   const body = input as Record<string, unknown>;
-  const value: GenerateRequest = { jobTitle: '', company: '', skills: '', details: '' };
+  const value: GenerateRequest = { ...EMPTY_REQUEST };
 
   for (const field of SINGLE_LINE_FIELDS) {
     const raw = body[field];

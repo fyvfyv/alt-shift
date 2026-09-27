@@ -1,31 +1,47 @@
-import type { ReactNode, Ref } from 'react';
+import type { KeyboardEvent, ReactNode, Ref } from 'react';
 import { countChars, type GenerateRequest, LIMITS } from '../../../shared/generation';
 import { PageTitle } from '../../components/PageTitle/PageTitle';
 import { TextArea } from '../../components/TextArea/TextArea';
 import { TextField } from '../../components/TextField/TextField';
 import { copy } from '../../copy';
+import typography from '../../styles/typography.module.css';
 import styles from './GeneratorForm.module.css';
 
 type GeneratorFormProps = {
+  ref?: Ref<HTMLFormElement>;
   values: GenerateRequest;
   onChange: (patch: Partial<GenerateRequest>) => void;
   onSubmit: () => void;
   // Fields stay focusable and selectable while a letter streams, but can't change under it.
   readOnly: boolean;
   cta: ReactNode;
+  // One line under the CTA for whatever keeps it from working right now.
+  note?: string;
   jobTitleRef: Ref<HTMLInputElement>;
 };
 
 function lengthError(value: string): string | undefined {
-  return countChars(value.trim()) > LIMITS.singleLine ? copy.generator.fieldTooLong : undefined;
+  return countChars(value.trim()) > LIMITS.singleLine
+    ? copy.generator.fieldTooLong(LIMITS.singleLine)
+    : undefined;
+}
+
+// Enter alone already submits from the single-line fields; the modifier makes it work from the
+// textarea too, and preventDefault keeps the browser's own submission from doubling it.
+function submitOnModifierEnter(event: KeyboardEvent<HTMLFormElement>) {
+  if (event.key !== 'Enter' || !(event.metaKey || event.ctrlKey)) return;
+  event.preventDefault();
+  event.currentTarget.requestSubmit();
 }
 
 export function GeneratorForm({
+  ref,
   values,
   onChange,
   onSubmit,
   readOnly,
   cta,
+  note,
   jobTitleRef,
 }: GeneratorFormProps) {
   const { fields } = copy.generator;
@@ -35,12 +51,14 @@ export function GeneratorForm({
 
   return (
     <form
+      ref={ref}
       className={styles.form}
       noValidate
       onSubmit={(event) => {
         event.preventDefault();
         onSubmit();
       }}
+      onKeyDown={submitOnModifierEnter}
     >
       <PageTitle placeholder={!hasTitle}>
         {hasTitle ? copy.letter.title(jobTitle, company) : copy.generator.title}
@@ -84,6 +102,11 @@ export function GeneratorForm({
         onChange={(event) => onChange({ details: event.target.value })}
       />
       {cta}
+      {note && (
+        <p className={`${styles.note} ${typography.sm}`} aria-live="polite">
+          {note}
+        </p>
+      )}
     </form>
   );
 }

@@ -1,6 +1,8 @@
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it } from 'vitest';
+import { Route, Routes, useLocation } from 'react-router';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { copy } from '../../copy';
 import { InMemoryLetterRepository } from '../../features/letters/inMemoryRepository';
 import type { Letter } from '../../features/letters/model';
 import { StorageError } from '../../features/letters/repository';
@@ -24,11 +26,21 @@ async function renderPage(options: Parameters<typeof renderWithProviders>[1] = {
   return { ...rendered, user };
 }
 
+// Stands in for the generator: shows what state the navigation carried.
+function NewRouteProbe() {
+  const { state } = useLocation();
+  return <pre>{JSON.stringify(state)}</pre>;
+}
+
 const cards = () => screen.queryAllByRole('article');
 const card = (name: string) => screen.getByRole('article', { name });
 const deleteIn = (name: string) => within(card(name)).getByRole('button', { name: 'Delete' });
 const banner = () => screen.queryByRole('region', { name: 'Hit your goal' });
-const headerCounter = () => screen.getByRole('status', { name: /applications generated/ });
+
+afterEach(() => {
+  localStorage.clear();
+  vi.restoreAllMocks();
+});
 
 describe('DashboardPage', () => {
   it('shows the empty panel and the goal banner before the first letter', async () => {
@@ -37,6 +49,22 @@ describe('DashboardPage', () => {
     expect(cards()).toHaveLength(0);
     expect(screen.getByText('Your generated applications will appear here...')).toBeInTheDocument();
     expect(banner()).toHaveTextContent('0 out of 5');
+  });
+
+  it('links the empty state to the generator, prefilled with the example', async () => {
+    const user = userEvent.setup();
+    await renderWithProviders(
+      <Routes>
+        <Route index element={<DashboardPage />} />
+        <Route path="new" element={<NewRouteProbe />} />
+      </Routes>,
+    );
+    const example = screen.getByRole('link', { name: 'Try an example' });
+    expect(example).toHaveAttribute('href', '/new');
+
+    await user.click(example);
+
+    expect(screen.getByText(JSON.stringify({ prefill: copy.example.request }))).toBeInTheDocument();
   });
 
   it('lists every letter, newest first, with the banner while under the goal', async () => {
@@ -48,7 +76,6 @@ describe('DashboardPage', () => {
       'Role 1, Acme',
       'Role 0, Acme',
     ]);
-    expect(headerCounter()).toHaveTextContent('4/5');
     expect(banner()).toHaveTextContent('4 out of 5');
   });
 
@@ -59,7 +86,6 @@ describe('DashboardPage', () => {
     await user.click(deleteIn('Role 2, Acme'));
 
     expect(cards()).toHaveLength(4);
-    expect(headerCounter()).toHaveTextContent('4/5');
     expect(banner()).toBeInTheDocument();
   });
 
@@ -82,5 +108,19 @@ describe('DashboardPage', () => {
 
     expect(cards()).toHaveLength(1);
     expect(await screen.findByText(/couldn't save your latest changes/)).toBeInTheDocument();
+  });
+
+  it('signs a letter that stops on a sign-off with the profile name, on screen and when copied', async () => {
+    localStorage.setItem('alt-shift.profile', JSON.stringify({ name: 'Jane Doe' }));
+    const text = 'Dear Acme team,\n\nThank you.\n\nSincerely,';
+    const { user } = await renderPage({ letters: lettersOf(1).map((l) => ({ ...l, text })) });
+    const writeText = vi.spyOn(navigator.clipboard, 'writeText').mockResolvedValue(undefined);
+
+    const signed = card('Role 0, Acme');
+    expect(within(signed).getByText(/Sincerely,\s*Jane Doe$/)).toBeInTheDocument();
+
+    await user.click(within(signed).getByRole('button', { name: 'Copy to clipboard' }));
+
+    expect(writeText).toHaveBeenCalledWith(`${text}\nJane Doe`);
   });
 });

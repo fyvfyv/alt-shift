@@ -14,6 +14,11 @@
   .panel {
     min-height: 320px;
   }
+
+  /* Room for the caption under the orb, so the orb does not shift when it appears. */
+  .panel[data-layout="loading"] {
+    min-height: 360px;
+  }
 }
 
 @media (width < 768px) {
@@ -29,6 +34,35 @@
   text-align: center;
 }
 
+/* Rows 1 and 3 split the free space, so the orb holds the panel's centre whether or not the
+   caption below it is showing. */
+.panel[data-layout="loading"] {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: 1fr auto 1fr;
+  gap: 0;
+  justify-items: center;
+  text-align: center;
+}
+
+.orbSlot {
+  grid-row: 2;
+}
+
+.caption {
+  display: grid;
+  grid-row: 3;
+  gap: var(--space-1);
+  align-self: start;
+  min-width: 0;
+  padding-top: var(--space-6);
+  overflow-wrap: anywhere;
+}
+
+.eyebrow {
+  color: var(--color-text-tertiary);
+}
+
 .placeholder {
   color: var(--color-text-placeholder);
 }
@@ -41,6 +75,10 @@
 
 .cutNote {
   color: var(--color-text-error);
+}
+
+.cutRetry {
+  align-self: flex-start;
 }
 
 .error {
@@ -63,7 +101,11 @@
   gap: var(--space-2);
 }
 
-.storageNote {
-  color: var(--color-text-tertiary);
-  text-align: right;
+/* Signature on the left, Copy on the right. */
+.actions {
+  display: flex;
+  align-items: flex-end;
+  align-self: stretch;
+  justify-content: space-between;
+  gap: var(--space-4);
 }

@@ -1,4 +1,4 @@
-import { act, screen, waitFor } from '@testing-library/react';
+import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { InMemoryLetterRepository } from '../../features/letters/inMemoryRepository';
@@ -19,6 +19,8 @@ const field = {
 
 const generateButton = () => screen.getByRole('button', { name: 'Generate Now' });
 const tryAgainButton = () => screen.getByRole('button', { name: 'Try Again' });
+const previewPanel = (container: HTMLElement) =>
+  within(container.querySelector('[aria-live="polite"]') as HTMLElement);
 
 function lettersOf(count: number): Letter[] {
   return Array.from({ length: count }, (_, i) =>
@@ -55,6 +57,8 @@ async function generateLetter(user: User, fake: ReturnType<typeof createFakePort
 describe('GeneratorPage', () => {
   afterEach(() => {
     sessionStorage.clear();
+    localStorage.clear();
+    vi.useRealTimers();
     vi.restoreAllMocks();
   });
 
@@ -139,6 +143,39 @@ describe('GeneratorPage', () => {
 
       expect(field.jobTitle()).toHaveValue('');
     });
+
+    it('takes a job handed over in history state, replacing the job but not a saved profile', async () => {
+      const first = await renderPage();
+      await first.user.type(field.jobTitle(), 'iOS Engineer');
+      await first.user.type(field.skills(), 'Figma');
+      first.unmount();
+
+      await renderPage({
+        url: {
+          pathname: '/new',
+          state: { prefill: { jobTitle: 'Designer', company: 'Apple', skills: 'Sketch' } },
+        },
+      });
+
+      expect(field.jobTitle()).toHaveValue('Designer');
+      expect(field.company()).toHaveValue('Apple');
+      expect(field.skills()).toHaveValue('Figma');
+    });
+
+    it('on arrival puts the caret in Job title', async () => {
+      await renderPage();
+
+      expect(field.jobTitle()).toHaveFocus();
+    });
+
+    it('Ctrl+Enter submits from the details field', async () => {
+      const { user, fake } = await renderPage();
+      await fillForm(user);
+
+      await user.type(field.details(), '{Control>}{Enter}{/Control}');
+
+      expect(fake.runs).toHaveLength(1);
+    });
   });
 
   describe('generation', () => {
@@ -168,7 +205,43 @@ describe('GeneratorPage', () => {
       expect(screen.getByText('Dear Apple team,')).toBeInTheDocument();
     });
 
-    it('in the stacked layout scrolls the preview into view when generation starts', async () => {
+    it('keeps focus on the CTA from Generate Now through to Try Again', async () => {
+      const { user, fake } = await renderPage();
+      await fillForm(user);
+
+      await user.click(generateButton());
+      expect(screen.getByRole('button', { name: 'Generating…' })).toHaveFocus();
+
+      fake.lastRun().emit('Dear Apple');
+      fake.lastRun().end();
+      expect(await screen.findByRole('button', { name: 'Try Again' })).toHaveFocus();
+    });
+
+    it('captions the orb after 2 s, and admits the wait after 8 s', async () => {
+      // Only the caption's clock is faked: user-event and RTL drain through real setTimeout.
+      vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval', 'Date'] });
+      const { user } = await renderPage();
+      await fillForm(user);
+      await user.click(generateButton());
+
+      act(() => vi.advanceTimersByTime(1_000));
+      expect(screen.queryByText('Generating')).not.toBeInTheDocument();
+
+      act(() => vi.advanceTimersByTime(1_000));
+      expect(screen.getByText('Generating')).toBeInTheDocument();
+      expect(screen.getByText('Writing your letter for Apple…')).toBeInTheDocument();
+
+      act(() => vi.advanceTimersByTime(6_000));
+      expect(screen.getByText('Almost there…')).toBeInTheDocument();
+    });
+
+    it('when the preview sits below the form scrolls it into view as generation starts', async () => {
+      // jsdom lays nothing out: pretend the preview's top edge is under the form's.
+      vi.spyOn(HTMLElement.prototype, 'offsetTop', 'get').mockImplementation(function (
+        this: HTMLElement,
+      ) {
+        return this.matches('form') ? 0 : 640;
+      });
       const scroll = vi.spyOn(Element.prototype, 'scrollIntoView');
       const { user, container } = await renderPage();
       await fillForm(user);
@@ -179,8 +252,8 @@ describe('GeneratorPage', () => {
       expect(scroll.mock.contexts[0]).toBe(container.querySelector('[aria-live="polite"]'));
     });
 
-    it('in the two-column layout leaves the scroll position alone', async () => {
-      vi.spyOn(HTMLElement.prototype, 'offsetWidth', 'get').mockReturnValue(1120);
+    it('when the preview sits beside the form leaves the scroll position alone', async () => {
+      vi.spyOn(HTMLElement.prototype, 'offsetTop', 'get').mockReturnValue(32);
       const scroll = vi.spyOn(Element.prototype, 'scrollIntoView');
       const { user } = await renderPage();
       await fillForm(user);
@@ -233,6 +306,16 @@ describe('GeneratorPage', () => {
       expect(screen.getByText('3 out of 5')).toBeInTheDocument();
     });
 
+    it('at the goal swaps the banner for the reached one, still offering Create New', async () => {
+      const { user, fake } = await renderPage({ letters: lettersOf(4) });
+      await fillForm(user);
+
+      await generateLetter(user, fake, 'Dear Apple');
+
+      const banner = screen.getByRole('region', { name: 'You hit your goal' });
+      expect(within(banner).getByRole('button', { name: 'Create New' })).toBeInTheDocument();
+    });
+
     it('Try Again replaces the letter instead of adding one', async () => {
       const { user, fake, store } = await renderPage();
       await fillForm(user);
@@ -256,7 +339,7 @@ describe('GeneratorPage', () => {
       expect(store.getState().letters.map((l) => l.text)).toEqual(['For Google', 'For Apple']);
     });
 
-    it("the banner's Create New empties the form and preview, and the next run is a new letter", async () => {
+    it("the banner's Create New empties the job and preview but keeps the profile, and the next run is a new letter", async () => {
       const { user, fake, store } = await renderPage();
       await fillForm(user);
       await generateLetter(user, fake, 'For Apple');
@@ -265,11 +348,14 @@ describe('GeneratorPage', () => {
 
       expect(field.jobTitle()).toHaveValue('');
       expect(field.jobTitle()).toHaveFocus();
-      expect(field.details()).toHaveValue('');
+      expect(field.company()).toHaveValue('');
+      expect(field.skills()).toHaveValue('Figma');
+      expect(field.details()).toHaveValue('Ten years of shipping products');
       expect(await screen.findByText(/will appear here/)).toBeInTheDocument();
       expect(screen.queryByRole('heading', { name: 'Hit your goal' })).not.toBeInTheDocument();
 
-      await fillForm(user);
+      await user.type(field.jobTitle(), 'Designer');
+      await user.type(field.company(), 'Apple');
       await generateLetter(user, fake, 'Again for Apple');
       expect(store.getState().letters).toHaveLength(2);
     });
@@ -310,6 +396,20 @@ describe('GeneratorPage', () => {
 
       expect(await navigator.clipboard.readText()).toBe('Dear Apple');
       expect(screen.getByRole('button', { name: 'Copied' })).toBeInTheDocument();
+    });
+
+    it('signs the letter with the name added in the footer, and copies it signed', async () => {
+      const { user, fake } = await renderPage();
+      await fillForm(user);
+      await generateLetter(user, fake, 'Dear Apple,\n\nSincerely,');
+
+      await user.click(screen.getByRole('button', { name: 'Add your name' }));
+      await user.type(screen.getByLabelText('Your name'), 'Alex Morgan{Enter}');
+
+      expect(screen.getByText('Sincerely, Alex Morgan')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Change name' })).toHaveFocus();
+      await user.click(screen.getByRole('button', { name: 'Copy to clipboard' }));
+      expect(await navigator.clipboard.readText()).toBe('Dear Apple,\n\nSincerely,\nAlex Morgan');
     });
   });
 
@@ -376,7 +476,7 @@ describe('GeneratorPage', () => {
       );
     });
 
-    it('while offline disables Try Again, and enables it once back online', async () => {
+    it('while offline disables Try Again and says so under it, until back online', async () => {
       const { user, fake } = await renderPage();
       await fillForm(user);
       await generateLetter(user, fake, 'Dear Apple');
@@ -384,14 +484,29 @@ describe('GeneratorPage', () => {
 
       act(() => void window.dispatchEvent(new Event('offline')));
       expect(tryAgainButton()).toBeDisabled();
+      expect(screen.getByText(/Generating will work again/)).toBeInTheDocument();
 
       onLine.mockReturnValue(true);
       act(() => void window.dispatchEvent(new Event('online')));
       expect(tryAgainButton()).toBeEnabled();
+      expect(screen.queryByText(/Generating will work again/)).not.toBeInTheDocument();
     });
 
-    it('when the stream is cut keeps the partial text, offers Try Again and saves nothing', async () => {
-      const { user, fake, store } = await renderPage();
+    it('leaves the offline note out while the preview already shows the network error', async () => {
+      const { user, fake } = await renderPage();
+      await fillForm(user);
+      await user.click(generateButton());
+      fake.lastRun().fail({ kind: 'network' });
+      await screen.findByRole('alert');
+      vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
+
+      act(() => void window.dispatchEvent(new Event('offline')));
+
+      expect(screen.queryByText(/Generating will work again/)).not.toBeInTheDocument();
+    });
+
+    it('when the stream is cut keeps the partial text and saves nothing; the panel offers Try Again too', async () => {
+      const { user, fake, store, container } = await renderPage();
       await fillForm(user);
       await user.click(generateButton());
 
@@ -400,8 +515,15 @@ describe('GeneratorPage', () => {
 
       expect(await screen.findByText('The letter was cut short.')).toBeInTheDocument();
       expect(screen.getByText('Dear Ap')).toBeInTheDocument();
-      expect(tryAgainButton()).toBeEnabled();
+      expect(screen.getAllByRole('button', { name: 'Try Again' })).toHaveLength(2);
       expect(store.getState().letters).toEqual([]);
+
+      await user.click(previewPanel(container).getByRole('button', { name: 'Try Again' }));
+      fake.lastRun().emit('Dear Apple');
+      fake.lastRun().end();
+      await screen.findByRole('button', { name: 'Copy to clipboard' });
+
+      expect(store.getState().letters.map((l) => l.text)).toEqual(['Dear Apple']);
     });
   });
 });

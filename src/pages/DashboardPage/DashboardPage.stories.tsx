@@ -4,7 +4,7 @@ import { DashboardPage } from './DashboardPage';
 
 const meta = {
   component: DashboardPage,
-  parameters: { layout: 'fullscreen' },
+  parameters: { layout: 'fullscreen', chrome: true },
 } satisfies Meta<typeof DashboardPage>;
 
 export default meta;

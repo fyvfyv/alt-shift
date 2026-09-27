@@ -4,10 +4,6 @@
   gap: var(--space-6);
 }
 
-.storageNote {
-  color: var(--color-text-tertiary);
-}
-
 /* minmax(0, 1fr): a long unbroken word in a letter must not widen its column. */
 .grid {
   display: grid;

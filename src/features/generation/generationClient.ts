@@ -7,6 +7,17 @@ import { decode } from './variantDecoder';
 export type GenerationPort = (req: GenerateRequest, signal: AbortSignal) => AsyncIterable<string>;
 
 const DEFAULT_RETRY_AFTER_SECONDS = 30;
+// Longer than any pause the model takes between deltas; a stalled connection surfaces as an error
+// instead of a spinner that never stops.
+const IDLE_TIMEOUT_MS = 30_000;
+// The upstream closes right after [DONE]; reading until then lets the browser record the request
+// as completed instead of ERR_ABORTED. One that stays open is cancelled after this.
+const CLOSE_AFTER_DONE_MS = 2_000;
+
+const TIMED_OUT = Symbol('timed out');
+
+type Reader = ReadableStreamDefaultReader<Uint8Array>;
+type ReadResult = ReadableStreamReadResult<Uint8Array> | typeof TIMED_OUT;
 
 function isAbort(e: unknown, signal: AbortSignal): boolean {
   return signal.aborted || (e instanceof DOMException && e.name === 'AbortError');
@@ -45,6 +56,31 @@ async function openStream(
   return response.body;
 }
 
+function readWithin(reader: Reader, ms: number): Promise<ReadResult> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<typeof TIMED_OUT>((resolve) => {
+    timer = setTimeout(() => resolve(TIMED_OUT), ms);
+  });
+  return Promise.race([reader.read(), timeout]).finally(() => clearTimeout(timer));
+}
+
+// The letter is complete once [DONE] arrived, so nothing the stream does afterwards can fail it.
+async function drain(reader: Reader): Promise<void> {
+  const deadline = new Promise<typeof TIMED_OUT>((resolve) => {
+    setTimeout(() => resolve(TIMED_OUT), CLOSE_AFTER_DONE_MS);
+  });
+  try {
+    for (;;) {
+      const result = await Promise.race([reader.read(), deadline]);
+      if (result === TIMED_OUT) {
+        await reader.cancel();
+        return;
+      }
+      if (result.done) return;
+    }
+  } catch {}
+}
+
 export const generate: GenerationPort = async function* (req, signal) {
   const reader = (await openStream(req, signal)).getReader();
   const decoder = new TextDecoder();
@@ -52,11 +88,15 @@ export const generate: GenerationPort = async function* (req, signal) {
   let receivedText = false;
 
   for (;;) {
-    let result: ReadableStreamReadResult<Uint8Array>;
+    let result: ReadResult;
     try {
-      result = await reader.read();
+      result = await readWithin(reader, IDLE_TIMEOUT_MS);
     } catch (e) {
       if (isAbort(e, signal)) throw e;
+      throw new GenerationFailure({ kind: receivedText ? 'stream-cut' : 'upstream' });
+    }
+    if (result === TIMED_OUT) {
+      await reader.cancel();
       throw new GenerationFailure({ kind: receivedText ? 'stream-cut' : 'upstream' });
     }
     if (result.done) break;
@@ -64,7 +104,7 @@ export const generate: GenerationPort = async function* (req, signal) {
     for (const message of parser.feed(decoder.decode(result.value, { stream: true }))) {
       const event = decode(message);
       if (event?.type === 'done') {
-        await reader.cancel();
+        await drain(reader);
         return;
       }
       if (event?.type === 'delta') {
