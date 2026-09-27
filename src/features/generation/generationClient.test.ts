@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { GenerateRequest } from '../../../shared/generation';
+import { DONE_EVENT, encodeDelta, KEEPALIVE_COMMENT } from '../../../shared/variantDecoder';
 import { recorded } from '../../test/fixtures';
 import { type GenerationError, GenerationFailure } from './errors';
 import { generate } from './generationClient';
@@ -11,12 +12,7 @@ const request: GenerateRequest = {
   details: '',
 };
 
-const DONE = 'data: [DONE]\n\n';
 const encoder = new TextEncoder();
-
-function delta(text: string): string {
-  return `event: delta\ndata: ${JSON.stringify({ text })}\n\n`;
-}
 
 type StreamScript = {
   chunks: Uint8Array[];
@@ -71,13 +67,10 @@ async function failure(promise: Promise<unknown>): Promise<GenerationError> {
 }
 
 describe('generate', () => {
-  afterEach(() => {
-    vi.unstubAllGlobals();
-    vi.useRealTimers();
-  });
+  afterEach(() => vi.useRealTimers());
 
   it('posts the form fields as JSON to the proxy', async () => {
-    stubStream({ chunks: [encoder.encode(delta('Dear') + DONE)] });
+    stubStream({ chunks: [encoder.encode(encodeDelta('Dear') + DONE_EVENT)] });
 
     await collect();
 
@@ -132,7 +125,7 @@ describe('generate', () => {
       ['sends more before closing', [': bye\n\n'], 'close' as const],
     ])('completes without cancelling when the upstream %s', async (_, trailing, ending) => {
       const onCancel = vi.fn();
-      const chunks = [delta('Dear') + DONE, ...trailing].map((c) => encoder.encode(c));
+      const chunks = [encodeDelta('Dear') + DONE_EVENT, ...trailing].map((c) => encoder.encode(c));
       stubStream({ chunks, ending, onCancel });
 
       expect(await collect()).toEqual(['Dear']);
@@ -142,7 +135,11 @@ describe('generate', () => {
     it('cancels an upstream still open after 2 s', async () => {
       vi.useFakeTimers();
       const onCancel = vi.fn();
-      stubStream({ chunks: [encoder.encode(delta('Dear') + DONE)], ending: 'open', onCancel });
+      stubStream({
+        chunks: [encoder.encode(encodeDelta('Dear') + DONE_EVENT)],
+        ending: 'open',
+        onCancel,
+      });
 
       const texts = collect();
       await vi.advanceTimersByTimeAsync(2_000);
@@ -154,8 +151,8 @@ describe('generate', () => {
 
   describe('idle for 30 s', () => {
     it.each([
-      ['after deltas', [delta('Dear')], 'stream-cut'],
-      ['before any delta', [': keepalive\n\n'], 'upstream'],
+      ['after deltas', [encodeDelta('Dear')], 'stream-cut'],
+      ['before any delta', [KEEPALIVE_COMMENT], 'upstream'],
     ])('cancels the stream and fails %s', async (_, chunks, kind) => {
       vi.useFakeTimers();
       const onCancel = vi.fn();
@@ -171,28 +168,33 @@ describe('generate', () => {
 
   it('completes on a clean close after deltas without [DONE]', async () => {
     const fixture = recorded('short');
-    stubStream({ chunks: [encoder.encode(fixture.sse.replace(DONE, ''))] });
+    stubStream({ chunks: [encoder.encode(fixture.sse.replace(DONE_EVENT, ''))] });
 
     expect((await collect()).join('')).toBe(fixture.text);
   });
 
   it('decodes UTF-8 sequences split across chunks', async () => {
     const fixture = recorded('medium');
-    // One byte per chunk splits every multibyte character (the transcript contains ’).
-    const chunks = [...encoder.encode(fixture.sse)].map((byte) => Uint8Array.of(byte));
+    const multibyte = ' ’é — 🚀';
+    const sse = fixture.sse.replace(DONE_EVENT, encodeDelta(multibyte) + DONE_EVENT);
+    // One byte per chunk splits every multibyte character, whatever the recording contains.
+    const chunks = [...encoder.encode(sse)].map((byte) => Uint8Array.of(byte));
     stubStream({ chunks });
 
-    expect((await collect()).join('')).toBe(fixture.text);
+    expect((await collect()).join('')).toBe(fixture.text + multibyte);
   });
 
   it('maps a clean close with nothing received to upstream', async () => {
-    stubStream({ chunks: [encoder.encode(': keepalive\n\n')] });
+    stubStream({ chunks: [encoder.encode(KEEPALIVE_COMMENT)] });
 
     expect(await failure(collect())).toEqual({ kind: 'upstream' });
   });
 
   it('maps a stream error after deltas to stream-cut', async () => {
-    stubStream({ chunks: [encoder.encode(delta('Dear'))], ending: new TypeError('network error') });
+    stubStream({
+      chunks: [encoder.encode(encodeDelta('Dear'))],
+      ending: new TypeError('network error'),
+    });
 
     expect(await failure(collect())).toEqual({ kind: 'stream-cut' });
   });
@@ -205,7 +207,7 @@ describe('generate', () => {
 
   it('rethrows the AbortError when aborted mid-stream', async () => {
     const controller = new AbortController();
-    stubStream({ chunks: [encoder.encode(delta('Dear'))], ending: 'open' });
+    stubStream({ chunks: [encoder.encode(encodeDelta('Dear'))], ending: 'open' });
 
     const run = (async () => {
       for await (const _ of generate(request, controller.signal)) controller.abort();

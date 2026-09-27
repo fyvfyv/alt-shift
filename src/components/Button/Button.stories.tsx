@@ -11,30 +11,34 @@ type Story = StoryObj<typeof meta>;
 
 export const Primary: Story = {};
 
-const variants: ButtonVariant[] = ['primary', 'secondary', 'tertiary'];
-const sizes: ButtonSize[] = ['xl', 'md'];
+// Tertiary has no box, so Button ignores `size` for it: one row.
+const rows: [ButtonVariant, ButtonSize][] = [
+  ['primary', 'xl'],
+  ['primary', 'md'],
+  ['secondary', 'xl'],
+  ['secondary', 'md'],
+  ['tertiary', 'md'],
+];
 
 export const Matrix: Story = {
   render: ({ children }) => (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, auto)', gap: 16 }}>
-      {variants.flatMap((variant) =>
-        sizes.map((size) => (
-          <div key={`${variant}-${size}`} style={{ display: 'contents' }}>
-            <Button variant={variant} size={size}>
-              {children}
-            </Button>
-            <Button variant={variant} size={size} iconLeading="plus">
-              {children}
-            </Button>
-            <Button variant={variant} size={size} loading>
-              {children}
-            </Button>
-            <Button variant={variant} size={size} disabled>
-              {children}
-            </Button>
-          </div>
-        )),
-      )}
+      {rows.map(([variant, size]) => (
+        <div key={`${variant}-${size}`} style={{ display: 'contents' }}>
+          <Button variant={variant} size={size}>
+            {children}
+          </Button>
+          <Button variant={variant} size={size} iconLeading="plus">
+            {children}
+          </Button>
+          <Button variant={variant} size={size} loading>
+            {children}
+          </Button>
+          <Button variant={variant} size={size} disabled>
+            {children}
+          </Button>
+        </div>
+      ))}
     </div>
   ),
 };

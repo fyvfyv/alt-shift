@@ -50,6 +50,7 @@ describe('generateMiddleware', () => {
     vi.stubEnv('MOCK_FIRST_DELTA_MS', '0');
     vi.stubEnv('MOCK_DELAY_MS', '0');
     vi.spyOn(console, 'info').mockImplementation(() => {});
+    vi.spyOn(console, 'error').mockImplementation(() => {});
   });
 
   afterEach(() => {

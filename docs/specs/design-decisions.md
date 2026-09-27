@@ -36,7 +36,7 @@ What the file does not have, and what that meant for me:
 |---|---|---|---|---|---|---|
 | Title | "New application", placeholder color | "{Job title}, {Company}" | same | same | same | same |
 | Counter | `0/1200` | live | live, error color | live | live | live |
-| CTA | Generate Now, disabled | Generate Now | Generate Now, disabled | spinner, inert | spinner, inert | Try Again |
+| CTA | Generate Now, inert | Generate Now | Generate Now, inert | spinner, inert | spinner, inert | Try Again |
 | Fields | editable | editable | editable | read-only | read-only | editable |
 | Preview | placeholder | placeholder | placeholder | orb | text | text + Copy |
 | Goal banner | — | — | — | — | — | yes; "You hit your goal" at 5 |
@@ -49,12 +49,24 @@ What the file does not have, and what that meant for me:
   5/5, so 5 is a goal, not a cap: the list is unbounded and generation stays enabled.
 - **Copy appears only when there is something to copy.** The mockups show it on the empty
   preview (`2:1483`); I hide the footer until the letter is complete, streaming included.
-- **The CTA is enabled exactly when the request would pass server validation.** The form and
-  the server call the same validator, so they cannot disagree.
+- **The CTA runs exactly when the request would pass server validation.** The form and the
+  server call the same validator, so they cannot disagree. The hint below reads the same rules
+  field by field only to name what is missing.
 - **The busy CTA is inert, not disabled.** While the spinner shows it is `aria-disabled`, keeps
   the brand green of `4:10721` and ignores clicks and submits, but stays in the tab order: focus
   stays on it from Generate Now through to Try Again instead of being dropped at the top of the
   page.
+- **So is a CTA that can't run yet.** On an incomplete or over-limit form, while the browser is
+  offline and while a rate-limit countdown runs, Generate Now (or Try Again) is `aria-disabled`:
+  the gray of `2:1483`, no hover, still in the tab order. A click or Enter on an invalid form
+  says under the button what to fix and moves the caret there: the empty required fields by name
+  ("Add a job title, a company and what you're good at to generate."), or "Shorten the field over
+  its limit to generate." when nothing is missing but a field runs over. The next edit or Create
+  New clears it. The mockups mark no field as required, so the button has to say it. Offline or
+  counting down, a click does nothing: the note under the button or the countdown already says
+  why.
+- **The tab title follows the h1:** "New application · Alt+Shift" until both job fields are
+  filled, then "{Job title}, {Company} · Alt+Shift".
 
 ## Layout
 
@@ -77,7 +89,7 @@ the screen are viewport queries.
 | container < 1120px | two 544px columns no longer fit | generator stacks: form, then preview (min 320px); textarea keeps 236px; on start the preview scrolls into view |
 | container < 656px | two cards would drop below ~320px | dashboard goes to one column, cards stay 240px |
 | viewport < 768px | small screens | page padding 24/48, header shows "3/5" without the suffix, banner and preview padding shrink |
-| viewport < 480px | phones | Job title / Company stack, generator title wraps instead of ellipsis, dashboard title row wraps |
+| viewport < 480px | phones | Job title / Company stack, generator title wraps instead of ellipsis, dashboard title row wraps, header items sit closer (24px to 16px) |
 
 ## Tokens
 
@@ -123,47 +135,80 @@ models hidden in `4:12292`; not rendered, not followed).
 
 ## Designed gaps
 
-**Empty dashboard.** The title row and banner ("0 out of 5") stay; the grid is replaced by a
-full-width panel in the preview-panel style with "Your generated applications will appear
-here..." and Create New. Next to it, "Try an example" opens the generator with the mockups' own
-sample (Product manager at Apple, the placeholder skills, the details from `4:10541`), handed over
-in history state. The job fields always take it (clicking the example is the user's choice); the
-profile fields only when still empty, so a saved bio is never replaced by the sample.
+**Empty dashboard.** The title row and banner ("0 out of 5") stay, both with Create New. The grid
+is replaced by a full-width panel in the preview-panel style that says what the product is: a
+one-line pitch in lg strong ("Tell Alt+Shift the job, the company and what you're good at, and it
+writes the cover letter."), then "Your generated applications will appear here...", then one
+secondary action, "Try an example", and under it a small trust note: no sign-up, the details go
+to the generation service only to write the letter, and the letters stay in this browser. The
+note is derived from the code (the client posts the four fields, the proxy logs lengths and
+status but no text, letters live in `localStorage`) and has to stay true to it. Create New left
+the panel: three on one screen was two too many, and the panel's job is the path that needs no
+typing.
+
+"Try an example" opens the generator with the mockups' own sample (Product manager at Apple, the
+placeholder skills, the details from `4:10541`), handed over in history state. The job fields
+always take it (clicking the example is the user's choice); the profile fields only when still
+empty, so a saved bio is never replaced by the sample. The fields read it on the first render and
+save it like typed input, and the page then clears it from history, so a reload or Back never
+applies it again over later edits.
 
 **Streaming.** Same typography and layout as the completed letter, so nothing reflows when the
 stream ends. Text is appended as it arrives: no typewriter effect, no cursor. The orb fades out
 on the first token (250ms, immediate under reduced motion). The spinner stays in the CTA until
-the stream closes, and fields are read-only without being grayed out. Screen readers get the
-letter once, at completion, not token by token.
+the stream closes, and fields are read-only without being grayed out.
+
+**Announcements.** The panel is a named region ("Your letter"), not a live region, so a screen
+reader never reads the letter as it streams. One status line outside it says "Generating your
+letter…" when a run starts (streaming says the same, so it is not repeated), "Your letter is
+ready. Copy it or add your name below it, or use Try Again for another version." when it
+completes, and "The letter was cut short." when the stream breaks. Every other error speaks
+through its own alert, which holds fixed text only. Status lines that can change (the offline
+note and the hint under the CTA, a field's error, the storage note) stay mounted, empty and off
+screen until they have something to say, because a status is announced when its text changes,
+not when it is inserted already holding it.
 
 **Errors.** Inside the preview panel, neutral colors: the product has no toast or red-surface
 pattern and I didn't add one. Each maps to what the live API returns:
 
 | Cause (live API) | Title | Body | Panel action |
 |---|---|---|---|
-| 429 `rate_limit_exceeded` + `Retry-After` | Too many requests | You can try again in {n}s. | "Retry in {n}s", disabled, counts down to "Retry" |
+| 429 `rate_limit_exceeded` + `Retry-After` | Too many requests | The generation service is at its limit right now. You can try again in {n}s. | "Retry in {n}s", inert, counts down to "Retry" |
 | 401 `invalid_token`, 400 `invalid_request`, 403 `forbidden`, 5xx `upstream_error` (including the proxy's own 504 when the model sends nothing for 20 s), a non-stream reply, a stream that ends or goes quiet for 30 s before any text | Generation failed | Something went wrong on our side. Your inputs are safe. | Retry |
-| The request never reached the server, or the browser is offline | You appear to be offline | Check your connection and try again. | Retry, disabled until the browser is back online |
-| Connection drops mid-letter, or goes quiet for 30 s after text arrived | received text stays | "The letter was cut short." in error red under it | Try Again under the note; the form's CTA becomes Try Again too |
+| The request never reached the server, or the browser is offline | You appear to be offline | Check your connection and try again. | Retry, inert until the browser is back online |
+| Connection drops mid-letter, or goes quiet for 30 s after text arrived | received text stays | "The letter was cut short." in error red under it | Try Again under the note; the form's CTA becomes Try Again too. After an edit the panel's button goes and the note stays |
+| Any of the first three on a run started over a finished letter (Try Again, or Generate Now after an edit), before any text | the previous letter stays, with Copy and the signature | "{Title}. {Body} Your previous letter is kept." in tertiary gray under it, then the countdown on a 429 | Try Again under the note, "Retry in {n}s" while counting down. After an edit the button goes and the note stays |
 
 A 400 is folded into "Generation failed" on purpose: the form blocks anything the server would
 reject, so a 400 means a bug, not a user mistake.
 
-**Offline.** While the browser reports no connection, Generate Now, Try Again and Retry are
-disabled and a line under the CTA says why ("You appear to be offline. Generate Now will work
-again once you're back."). It is a polite live region, so the change is announced, and it stays
-out while the preview already shows the offline error, so nothing is said twice. Everything comes
-back on the `online` event.
+The note under a kept letter is tertiary, not error red: the letter above it is fine, and it is
+still saved. On a 429 the seconds tick outside the accessibility tree (the button's label carries
+them), and "You can try again now." is announced once when the wait ends, unless the button is
+still blocked. Every button in the panel follows the form's CTA: inert while the form is invalid,
+the browser is offline or a countdown runs.
+
+**Offline.** While the browser reports no connection, Generate Now, Try Again and Retry are inert
+(gray, focusable, a click does nothing) and a line under the CTA says why ("You appear to be
+offline. Generating will work again once you're back."). The line is a status that stays mounted,
+so the change is announced, and it stays empty while the preview already shows the offline error,
+so nothing is said twice. Everything comes back on the `online` event.
 
 **Interactive states.** All from the existing palette: primary hover uses the logomark green,
-secondary hover and active use the two light grays, text fields get a darker gray border on hover.
-Keyboard focus reuses the designed green ring on every control, shown on `:focus-visible` only.
-Disabled everywhere is the gray from `2:1483`.
+secondary hover and active use the two light grays, text fields get a darker gray border on hover
+(not while read-only during a run). Keyboard focus reuses the designed green ring on every
+control, shown on `:focus-visible` only. A button that can't act right now uses the gray from
+`2:1483` through `aria-disabled` and keeps its tab stop; nothing in the app is natively disabled.
+
+**Arrival focus.** Arriving on the generator with an empty job puts the caret in Job title, except
+on touch-only devices (`(hover: none) and (pointer: coarse)`), where it would open the on-screen
+keyboard over the page. The test is input modality, not width: a tablet is wide, and a narrow
+desktop window still has a keyboard.
 
 **Feedback.** Copy swaps its label to "Copied" for 2s, or to "Couldn't copy" when the clipboard
 refuses. Delete is immediate with no confirmation
 (none is designed), and focus moves to the next card's Delete, or to the page heading after the
-last one. When the browser refuses to save (full or blocked storage), a one-line note says the
+last one. When the browser refuses to save (full or blocked storage), a one-line status says the
 latest changes will be lost when the tab closes; the letters stay on screen.
 
 **Slow starts.** Two seconds into a run the orb gets a caption below it: a small "Generating"
@@ -180,7 +225,11 @@ wraps and the preview gives up the row; the card stays 240px.
 
 **Signature.** A completed letter that ends on a bare sign-off ("Sincerely,") gets the user's name
 under it, on screen and when copied. The name is entered once from the preview footer ("Add your
-name") and kept in the profile, so every card signs the same way.
+name", then "Change name") and kept in the profile, so every card signs the same way, in every
+tab. The field replaces the button: its label is spoken, not shown, and doubles as the
+placeholder. Enter or leaving it saves, Escape cancels, and closing it from the keyboard puts
+focus back on the button. It takes up to 300 characters, the form's single-line limit, made hard
+because a field that saves on blur has nowhere to show an error.
 
 **Banner copy.** The subtitle follows the count: "Generate your first job application to get hired
 faster" at 0, "One more job application and you hit your goal" at 4, the mockup's line in between.
@@ -193,8 +242,10 @@ however many letters there are.
 
 **Not found and crashes.** Unknown URLs render the shell with "This page doesn't exist." and a
 link to the dashboard. A render crash replaces only the page: the header stays, so the way home
-still works, and the panel offers a full reload because in-memory state may be what broke.
-Navigating away gives the next page a fresh try.
+still works. The crash arrives like a page: an h1 "Something went wrong" that takes focus, the
+document title "Something went wrong · Alt+Shift", and "This page stopped working." in an alert
+with a full reload as its action, because in-memory state may be what broke. Navigating away
+gives the next page a fresh try.
 
 ## Product rules
 
@@ -204,20 +255,26 @@ Navigating away gives the next page a fresh try.
 - **One visit to the generator is one candidate letter.** Generate Now creates it; Try Again
   replaces it (same card, same count, same place in the list: the original `createdAt` is kept).
   Editing any field after completion turns the CTA back into Generate Now, and the next run is a
-  new letter.
+  new letter. A failed Try Again keeps the same id, so the next success still replaces the letter.
 - **Create New on the generator** (the banner's button) resets the page in place: empty job
   title and company, empty preview, focus in Job title. What you are good at and your details
   stay, because the next letter is for another job, not another person. Navigating to the same
   URL would do nothing visible.
 - **Leaving mid-stream** cancels the request and saves nothing; a half letter is not a letter. No
   confirmation dialog: nothing is lost that one click can't regenerate, and the form is kept.
-- **The form survives a reload.** The job (title, company) is per tab and is cleared once a
-  letter is saved; skills, details and the signature name are a profile shared by every tab.
-- **During errors** the CTA is Generate Now, or Try Again under a cut letter; it and the panel's
-  button are disabled while the rate-limit countdown runs or the browser is offline, so they never
-  offer something that is certain to fail.
+- **The form survives a reload.** The job (title, company) is per tab; its stored copy is
+  forgotten once the letter is saved and written again on the next edit of any field. Skills,
+  details and the signature name are a profile shared by every tab and kept in step across them;
+  a page that only reads it never writes it.
+- **During errors** the CTA is Generate Now, or Try Again under a cut or kept letter until a field
+  is edited; it and the panel's buttons are inert while the rate-limit countdown runs or the
+  browser is offline, so they never offer something that is certain to fail. A regenerate that
+  fails before it starts never takes away the letter you already have; a successful one replaces
+  it.
 - **Letters live in this browser** and sync across its tabs. No accounts: nothing in the design
   implies one.
+
+How these rules are meant to move conversion: [README → Conversion](../../README.md#conversion).
 
 ## Box-sizing rule
 

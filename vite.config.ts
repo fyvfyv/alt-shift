@@ -23,6 +23,8 @@ export default defineConfig({
         test: {
           name: 'jsdom',
           environment: 'jsdom',
+          unstubEnvs: true,
+          unstubGlobals: true,
           include: ['src/**/*.test.{ts,tsx}'],
           setupFiles: ['src/test/setup.ts'],
         },
@@ -36,7 +38,7 @@ export default defineConfig({
         lines: 90,
         'src/features/generation/generationClient.ts': { branches: 95 },
         'src/features/generation/generationReducer.ts': { branches: 95 },
-        'src/features/generation/variantDecoder.ts': { branches: 95 },
+        'shared/variantDecoder.ts': { branches: 95 },
         'shared/generation.ts': { branches: 95 },
       },
     },

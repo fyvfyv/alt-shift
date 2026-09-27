@@ -1,14 +1,13 @@
 import { act, screen, waitFor, within } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import type { UserEvent } from '@testing-library/user-event';
+import { type InitialEntry, useLocation } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { InMemoryLetterRepository } from '../../features/letters/inMemoryRepository';
-import { createLetter, type Letter } from '../../features/letters/model';
 import { StorageError } from '../../features/letters/repository';
-import { createFakePort } from '../../test/fakeGenerationPort';
+import type { createFakePort } from '../../test/fakeGenerationPort';
+import { lettersOf } from '../../test/letters';
 import { renderWithProviders } from '../../test/renderWithProviders';
 import { GeneratorPage } from './GeneratorPage';
-
-type User = ReturnType<typeof userEvent.setup>;
 
 const field = {
   jobTitle: () => screen.getByLabelText('Job title'),
@@ -19,27 +18,19 @@ const field = {
 
 const generateButton = () => screen.getByRole('button', { name: 'Generate Now' });
 const tryAgainButton = () => screen.getByRole('button', { name: 'Try Again' });
-const previewPanel = (container: HTMLElement) =>
-  within(container.querySelector('[aria-live="polite"]') as HTMLElement);
+const previewRegion = () => screen.getByRole('region', { name: 'Your letter' });
+const previewPanel = () => within(previewRegion());
+// What a screen reader hears: text inside a status, which is announced when it changes.
+const announced = (text: string | RegExp) =>
+  screen.getByText(text, { selector: '[role="status"]' });
 
-function lettersOf(count: number): Letter[] {
-  return Array.from({ length: count }, (_, i) =>
-    createLetter({ jobTitle: `Role ${i}`, company: 'Acme', text: `Letter ${i}` }),
-  );
+// Keeps the router's current entry, so a test can remount on it the way a reload does.
+function RememberLocation({ into }: { into: { current: InitialEntry } }) {
+  into.current = useLocation();
+  return null;
 }
 
-async function renderPage(options: Parameters<typeof renderWithProviders>[1] = {}) {
-  const fake = createFakePort();
-  const user = userEvent.setup();
-  const rendered = await renderWithProviders(<GeneratorPage />, {
-    url: '/new',
-    port: fake.port,
-    ...options,
-  });
-  return { ...rendered, fake, user };
-}
-
-async function fillForm(user: User, details = 'Ten years of shipping products') {
+async function fillForm(user: UserEvent, details = 'Ten years of shipping products') {
   await user.type(field.jobTitle(), 'Designer');
   await user.type(field.company(), 'Apple');
   await user.type(field.skills(), 'Figma');
@@ -47,7 +38,11 @@ async function fillForm(user: User, details = 'Ten years of shipping products') 
 }
 
 // Streams a whole letter through the fake and waits until the page shows it as finished.
-async function generateLetter(user: User, fake: ReturnType<typeof createFakePort>, text: string) {
+async function generateLetter(
+  user: UserEvent,
+  fake: ReturnType<typeof createFakePort>,
+  text: string,
+) {
   await user.click(screen.getByRole('button', { name: /Generate Now|Try Again|Retry/ }));
   fake.lastRun().emit(text);
   fake.lastRun().end();
@@ -56,27 +51,58 @@ async function generateLetter(user: User, fake: ReturnType<typeof createFakePort
 
 describe('GeneratorPage', () => {
   afterEach(() => {
-    sessionStorage.clear();
-    localStorage.clear();
     vi.useRealTimers();
     vi.restoreAllMocks();
   });
 
   describe('form', () => {
-    it('keeps Generate Now disabled until the required fields are filled', async () => {
-      const { user } = await renderPage();
+    it('keeps Generate Now inert until the required fields are filled', async () => {
+      const { user } = await renderWithProviders(<GeneratorPage />);
 
-      expect(generateButton()).toBeDisabled();
+      expect(generateButton()).toHaveAttribute('aria-disabled', 'true');
       await user.type(field.jobTitle(), 'Designer');
       await user.type(field.company(), 'Apple');
-      expect(generateButton()).toBeDisabled();
+      expect(generateButton()).toHaveAttribute('aria-disabled', 'true');
 
       await user.type(field.skills(), 'Figma');
-      expect(generateButton()).toBeEnabled();
+      expect(generateButton()).not.toHaveAttribute('aria-disabled');
     });
 
-    it('disables Generate Now when the details run past 1200 characters', async () => {
-      const { user } = await renderPage();
+    it('a press on the inert Generate Now says what is missing and puts the caret there', async () => {
+      const { user, fake } = await renderWithProviders(<GeneratorPage />);
+
+      await user.click(generateButton());
+      expect(
+        announced("Add a job title, a company and what you're good at to generate."),
+      ).toBeInTheDocument();
+      expect(field.jobTitle()).toHaveFocus();
+
+      await user.type(field.jobTitle(), 'Designer');
+      expect(screen.queryByText(/to generate\.$/)).not.toBeInTheDocument();
+      await user.type(field.company(), 'Apple{Enter}');
+      expect(announced("Add what you're good at to generate.")).toBeInTheDocument();
+      expect(field.skills()).toHaveFocus();
+
+      await user.type(field.skills(), 'F');
+      expect(screen.queryByText(/to generate\.$/)).not.toBeInTheDocument();
+      expect(fake.runs).toHaveLength(0);
+    });
+
+    it('a press on Generate Now with a field over its limit says so and puts the caret there', async () => {
+      const { user, fake } = await renderWithProviders(<GeneratorPage />);
+      await fillForm(user, '');
+      await user.click(field.details());
+      await user.paste('a'.repeat(1201));
+
+      await user.click(generateButton());
+
+      expect(announced('Shorten the field over its limit to generate.')).toBeInTheDocument();
+      expect(field.details()).toHaveFocus();
+      expect(fake.runs).toHaveLength(0);
+    });
+
+    it('makes Generate Now inert when the details run past 1200 characters', async () => {
+      const { user } = await renderWithProviders(<GeneratorPage />);
       await fillForm(user, '');
 
       await user.click(field.details());
@@ -84,11 +110,11 @@ describe('GeneratorPage', () => {
 
       expect(field.details()).toHaveAccessibleDescription('1201/1200');
       expect(field.details()).toHaveAttribute('aria-invalid', 'true');
-      expect(generateButton()).toBeDisabled();
+      expect(generateButton()).toHaveAttribute('aria-disabled', 'true');
     });
 
     it('counts the details trimmed and by code point, like the validation rule', async () => {
-      const { user } = await renderPage();
+      const { user } = await renderWithProviders(<GeneratorPage />);
       await fillForm(user, '');
 
       await user.click(field.details());
@@ -96,80 +122,91 @@ describe('GeneratorPage', () => {
 
       expect(field.details()).toHaveAccessibleDescription('1200/1200');
       expect(field.details()).not.toHaveAttribute('aria-invalid');
-      expect(generateButton()).toBeEnabled();
+      expect(generateButton()).not.toHaveAttribute('aria-disabled');
     });
 
-    it('shows a field error and disables Generate Now for a job title over 300 characters', async () => {
-      const { user } = await renderPage();
+    it('shows a field error and makes Generate Now inert for a job title over 300 characters', async () => {
+      const { user } = await renderWithProviders(<GeneratorPage />);
       await fillForm(user);
 
       await user.click(field.jobTitle());
       await user.paste('a'.repeat(300));
 
       expect(field.jobTitle()).toHaveAccessibleDescription('Keep it under 300 characters');
-      expect(generateButton()).toBeDisabled();
+      expect(generateButton()).toHaveAttribute('aria-disabled', 'true');
     });
 
-    it('titles the page with the job title and company once both are filled', async () => {
-      const { user } = await renderPage();
+    it('titles the page and the tab with the job title and company once both are filled', async () => {
+      const { user } = await renderWithProviders(<GeneratorPage />);
       const heading = screen.getByRole('heading', { level: 1 });
       expect(heading).toHaveTextContent('New application');
 
       await user.type(field.jobTitle(), 'Designer');
       expect(heading).toHaveTextContent('New application');
+      expect(document.title).toBe('New application · Alt+Shift');
       await user.type(field.company(), 'Apple');
 
       expect(heading).toHaveTextContent('Designer, Apple');
-    });
-
-    it('restores the typed values after the page is remounted', async () => {
-      const first = await renderPage();
-      await fillForm(first.user);
-      first.unmount();
-
-      await renderPage();
-
-      expect(field.jobTitle()).toHaveValue('Designer');
-      expect(field.details()).toHaveValue('Ten years of shipping products');
+      expect(document.title).toBe('Designer, Apple · Alt+Shift');
     });
 
     it('forgets the typed values once a letter is saved', async () => {
-      const first = await renderPage();
+      const first = await renderWithProviders(<GeneratorPage />);
       await fillForm(first.user);
       await generateLetter(first.user, first.fake, 'Dear Apple');
       first.unmount();
 
-      await renderPage();
+      await renderWithProviders(<GeneratorPage />);
 
       expect(field.jobTitle()).toHaveValue('');
     });
 
-    it('takes a job handed over in history state, replacing the job but not a saved profile', async () => {
-      const first = await renderPage();
-      await first.user.type(field.jobTitle(), 'iOS Engineer');
-      await first.user.type(field.skills(), 'Figma');
-      first.unmount();
-
-      await renderPage({
-        url: {
+    it('takes a job handed over in history state once, so a reload keeps what was typed over it', async () => {
+      const entry: { current: InitialEntry } = {
+        current: {
           pathname: '/new',
-          state: { prefill: { jobTitle: 'Designer', company: 'Apple', skills: 'Sketch' } },
+          state: { prefill: { jobTitle: 'Designer', company: 'Apple' } },
         },
-      });
-
+      };
+      const first = await renderWithProviders(
+        <>
+          <GeneratorPage />
+          <RememberLocation into={entry} />
+        </>,
+        { url: entry.current },
+      );
       expect(field.jobTitle()).toHaveValue('Designer');
       expect(field.company()).toHaveValue('Apple');
-      expect(field.skills()).toHaveValue('Figma');
+
+      await first.user.clear(field.company());
+      await first.user.type(field.company(), 'Google');
+      first.unmount();
+      await renderWithProviders(<GeneratorPage />, { url: entry.current });
+
+      expect(field.jobTitle()).toHaveValue('Designer');
+      expect(field.company()).toHaveValue('Google');
     });
 
     it('on arrival puts the caret in Job title', async () => {
-      await renderPage();
+      await renderWithProviders(<GeneratorPage />);
 
       expect(field.jobTitle()).toHaveFocus();
     });
 
+    it('on a touch screen leaves the caret out of Job title, so no keyboard pops up', async () => {
+      const matchMedia = window.matchMedia;
+      vi.spyOn(window, 'matchMedia').mockImplementation((query) => ({
+        ...matchMedia(query),
+        matches: query === '(hover: none) and (pointer: coarse)',
+      }));
+
+      await renderWithProviders(<GeneratorPage />);
+
+      expect(field.jobTitle()).not.toHaveFocus();
+    });
+
     it('Ctrl+Enter submits from the details field', async () => {
-      const { user, fake } = await renderPage();
+      const { user, fake } = await renderWithProviders(<GeneratorPage />);
       await fillForm(user);
 
       await user.type(field.details(), '{Control>}{Enter}{/Control}');
@@ -180,12 +217,12 @@ describe('GeneratorPage', () => {
 
   describe('generation', () => {
     it('shows the orb until the first text arrives, then streams the letter', async () => {
-      const { user, fake, container } = await renderPage();
+      const { user, fake } = await renderWithProviders(<GeneratorPage />);
       await fillForm(user);
 
       await user.click(generateButton());
 
-      const orb = () => container.querySelector('[aria-live="polite"] [aria-hidden]');
+      const orb = () => previewRegion().querySelector('[aria-hidden]');
       expect(orb()).toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'Generating…' })).toHaveAttribute(
         'aria-busy',
@@ -206,7 +243,7 @@ describe('GeneratorPage', () => {
     });
 
     it('keeps focus on the CTA from Generate Now through to Try Again', async () => {
-      const { user, fake } = await renderPage();
+      const { user, fake } = await renderWithProviders(<GeneratorPage />);
       await fillForm(user);
 
       await user.click(generateButton());
@@ -217,10 +254,26 @@ describe('GeneratorPage', () => {
       expect(await screen.findByRole('button', { name: 'Try Again' })).toHaveFocus();
     });
 
+    it('announces a run as it starts and the letter once it is ready, not while it streams', async () => {
+      const { user, fake } = await renderWithProviders(<GeneratorPage />);
+      await fillForm(user);
+
+      await user.click(generateButton());
+      expect(announced('Generating your letter…')).toBeInTheDocument();
+
+      fake.lastRun().emit('Dear Apple');
+      await screen.findByText('Dear Apple');
+      expect(announced('Generating your letter…')).toBeInTheDocument();
+
+      fake.lastRun().end();
+      await screen.findByRole('button', { name: 'Copy to clipboard' });
+      expect(announced(/^Your letter is ready\./)).toBeInTheDocument();
+    });
+
     it('captions the orb after 2 s, and admits the wait after 8 s', async () => {
       // Only the caption's clock is faked: user-event and RTL drain through real setTimeout.
       vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval', 'Date'] });
-      const { user } = await renderPage();
+      const { user } = await renderWithProviders(<GeneratorPage />);
       await fillForm(user);
       await user.click(generateButton());
 
@@ -243,19 +296,19 @@ describe('GeneratorPage', () => {
         return this.matches('form') ? 0 : 640;
       });
       const scroll = vi.spyOn(Element.prototype, 'scrollIntoView');
-      const { user, container } = await renderPage();
+      const { user } = await renderWithProviders(<GeneratorPage />);
       await fillForm(user);
 
       await user.click(generateButton());
 
       expect(scroll).toHaveBeenCalledWith({ block: 'start' });
-      expect(scroll.mock.contexts[0]).toBe(container.querySelector('[aria-live="polite"]'));
+      expect(scroll.mock.contexts[0]).toBe(previewRegion());
     });
 
     it('when the preview sits beside the form leaves the scroll position alone', async () => {
       vi.spyOn(HTMLElement.prototype, 'offsetTop', 'get').mockReturnValue(32);
       const scroll = vi.spyOn(Element.prototype, 'scrollIntoView');
-      const { user } = await renderPage();
+      const { user } = await renderWithProviders(<GeneratorPage />);
       await fillForm(user);
 
       await user.click(generateButton());
@@ -264,7 +317,7 @@ describe('GeneratorPage', () => {
     });
 
     it('sends the form fields to the port', async () => {
-      const { user, fake } = await renderPage();
+      const { user, fake } = await renderWithProviders(<GeneratorPage />);
       await fillForm(user);
 
       await user.click(generateButton());
@@ -278,7 +331,7 @@ describe('GeneratorPage', () => {
     });
 
     it('keeps the text of the last frame when the stream ends right after it', async () => {
-      const { user, fake, repository } = await renderPage();
+      const { user, fake, repository } = await renderWithProviders(<GeneratorPage />);
       await fillForm(user);
 
       await user.click(generateButton());
@@ -295,7 +348,9 @@ describe('GeneratorPage', () => {
     });
 
     it('after completion saves one letter, offers Try Again and shows the goal banner', async () => {
-      const { user, fake, store } = await renderPage({ letters: lettersOf(2) });
+      const { user, fake, store } = await renderWithProviders(<GeneratorPage />, {
+        letters: lettersOf(2),
+      });
       await fillForm(user);
 
       await generateLetter(user, fake, 'Dear Apple');
@@ -307,7 +362,9 @@ describe('GeneratorPage', () => {
     });
 
     it('at the goal swaps the banner for the reached one, still offering Create New', async () => {
-      const { user, fake } = await renderPage({ letters: lettersOf(4) });
+      const { user, fake } = await renderWithProviders(<GeneratorPage />, {
+        letters: lettersOf(4),
+      });
       await fillForm(user);
 
       await generateLetter(user, fake, 'Dear Apple');
@@ -317,7 +374,7 @@ describe('GeneratorPage', () => {
     });
 
     it('Try Again replaces the letter instead of adding one', async () => {
-      const { user, fake, store } = await renderPage();
+      const { user, fake, store } = await renderWithProviders(<GeneratorPage />);
       await fillForm(user);
       await generateLetter(user, fake, 'First draft');
 
@@ -327,7 +384,7 @@ describe('GeneratorPage', () => {
     });
 
     it('after an edit offers Generate Now again and the next run adds a second letter', async () => {
-      const { user, fake, store } = await renderPage();
+      const { user, fake, store } = await renderWithProviders(<GeneratorPage />);
       await fillForm(user);
       await generateLetter(user, fake, 'For Apple');
 
@@ -340,7 +397,7 @@ describe('GeneratorPage', () => {
     });
 
     it("the banner's Create New empties the job and preview but keeps the profile, and the next run is a new letter", async () => {
-      const { user, fake, store } = await renderPage();
+      const { user, fake, store } = await renderWithProviders(<GeneratorPage />);
       await fillForm(user);
       await generateLetter(user, fake, 'For Apple');
 
@@ -361,7 +418,7 @@ describe('GeneratorPage', () => {
     });
 
     it('when the page unmounts mid-stream aborts the run and saves nothing', async () => {
-      const { user, fake, unmount, repository } = await renderPage();
+      const { user, fake, unmount, repository } = await renderWithProviders(<GeneratorPage />);
       await fillForm(user);
       await user.click(generateButton());
       fake.lastRun().emit('Dear');
@@ -378,7 +435,7 @@ describe('GeneratorPage', () => {
     it('still shows the letter, with a note, when storage fails', async () => {
       const repository = new InMemoryLetterRepository();
       repository.rejectWritesWith(new StorageError('quota'));
-      const { user, fake } = await renderPage({ repository });
+      const { user, fake } = await renderWithProviders(<GeneratorPage />, { repository });
       await fillForm(user);
 
       await generateLetter(user, fake, 'Dear Apple');
@@ -388,7 +445,7 @@ describe('GeneratorPage', () => {
     });
 
     it('copies the letter to the clipboard', async () => {
-      const { user, fake } = await renderPage();
+      const { user, fake } = await renderWithProviders(<GeneratorPage />);
       await fillForm(user);
       await generateLetter(user, fake, 'Dear Apple');
 
@@ -399,7 +456,7 @@ describe('GeneratorPage', () => {
     });
 
     it('signs the letter with the name added in the footer, and copies it signed', async () => {
-      const { user, fake } = await renderPage();
+      const { user, fake } = await renderWithProviders(<GeneratorPage />);
       await fillForm(user);
       await generateLetter(user, fake, 'Dear Apple,\n\nSincerely,');
 
@@ -414,59 +471,58 @@ describe('GeneratorPage', () => {
   });
 
   describe('errors', () => {
-    it('on a rate limit disables both buttons until the countdown ends, then Retry runs again', async () => {
-      const { user, fake } = await renderPage();
+    it('on a rate limit makes both buttons inert until the countdown ends, then Retry runs again', async () => {
+      // Only the countdown's clock is faked: user-event and RTL drain through real setTimeout.
+      vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval', 'Date'] });
+      const { user, fake } = await renderWithProviders(<GeneratorPage />);
       await fillForm(user);
       await user.click(generateButton());
 
       fake.lastRun().fail({ kind: 'rate-limit', retryAfterSeconds: 1 });
 
       expect(await screen.findByText('Too many requests')).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'Retry in 1s' })).toBeDisabled();
-      expect(generateButton()).toBeDisabled();
-      const retry = await screen.findByRole('button', { name: 'Retry' }, { timeout: 2000 });
-      expect(generateButton()).toBeEnabled();
-
-      await user.click(retry);
-      expect(fake.runs).toHaveLength(2);
-    });
-
-    it.each([
-      ['upstream' as const, 'Generation failed'],
-      ['network' as const, 'You appear to be offline'],
-    ])('on a %s error shows the message and Retry runs again', async (kind, title) => {
-      const { user, fake } = await renderPage();
-      await fillForm(user);
+      expect(screen.getByRole('button', { name: 'Retry in 1s' })).toHaveAttribute(
+        'aria-disabled',
+        'true',
+      );
+      expect(generateButton()).toHaveAttribute('aria-disabled', 'true');
+      await user.click(screen.getByRole('button', { name: 'Retry in 1s' }));
       await user.click(generateButton());
+      expect(fake.runs).toHaveLength(1);
 
-      fake.lastRun().fail({ kind });
-
-      expect(await screen.findByRole('alert')).toHaveTextContent(title);
-      expect(generateButton()).toBeEnabled();
+      act(() => vi.advanceTimersByTime(1_000));
+      expect(generateButton()).not.toHaveAttribute('aria-disabled');
       await user.click(screen.getByRole('button', { name: 'Retry' }));
       expect(fake.runs).toHaveLength(2);
     });
 
-    it('disables Retry once a required field is cleared', async () => {
-      const { user, fake } = await renderPage();
-      await fillForm(user);
-      await user.click(generateButton());
-      fake.lastRun().fail({ kind: 'upstream' });
-      await screen.findByRole('alert');
-
-      await user.clear(field.jobTitle());
-
-      expect(screen.getByRole('button', { name: 'Retry' })).toBeDisabled();
-    });
-
-    it('a Retry after a failed Try Again replaces the letter instead of adding one', async () => {
-      const { user, fake, store } = await renderPage();
+    it('a Try Again that hits the rate limit keeps the letter, its Copy and the focus until it can run', async () => {
+      vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval', 'Date'] });
+      const { user, fake, store } = await renderWithProviders(<GeneratorPage />);
       await fillForm(user);
       await generateLetter(user, fake, 'First draft');
+      const cta = tryAgainButton();
 
-      await user.click(tryAgainButton());
-      fake.lastRun().fail({ kind: 'upstream' });
-      await user.click(await screen.findByRole('button', { name: 'Retry' }));
+      await user.click(cta);
+      fake.lastRun().fail({ kind: 'rate-limit', retryAfterSeconds: 1 });
+
+      expect(await screen.findByRole('alert')).toHaveTextContent('Too many requests');
+      expect(screen.getByText('First draft')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Copy to clipboard' })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Hit your goal' })).toBeInTheDocument();
+      // Inert, not disabled: a button disabled under the caret drops keyboard focus to the page.
+      expect(cta).toHaveAccessibleName('Try Again');
+      expect(cta).not.toBeDisabled();
+      expect(cta).toHaveAttribute('aria-disabled', 'true');
+      expect(cta).toHaveFocus();
+      expect(previewPanel().getByRole('button', { name: 'Retry in 1s' })).toHaveAttribute(
+        'aria-disabled',
+        'true',
+      );
+
+      act(() => vi.advanceTimersByTime(1_000));
+      expect(cta).not.toHaveAttribute('aria-disabled');
+      await user.click(previewPanel().getByRole('button', { name: 'Try Again' }));
       fake.lastRun().emit('Second draft');
       fake.lastRun().end();
       await screen.findByText('Second draft');
@@ -476,54 +532,126 @@ describe('GeneratorPage', () => {
       );
     });
 
-    it('while offline disables Try Again and says so under it, until back online', async () => {
-      const { user, fake } = await renderPage();
+    it("the panel's Try Again hands focus to the CTA, which stays while the orb replaces the panel", async () => {
+      const { user, fake } = await renderWithProviders(<GeneratorPage />);
+      await fillForm(user);
+      await generateLetter(user, fake, 'First draft');
+      await user.click(tryAgainButton());
+      fake.lastRun().fail({ kind: 'upstream' });
+      await screen.findByRole('alert');
+
+      await user.click(previewPanel().getByRole('button', { name: 'Try Again' }));
+
+      expect(screen.getByRole('button', { name: 'Generating…' })).toHaveFocus();
+      fake.lastRun().emit('Second draft');
+      fake.lastRun().end();
+      expect(await screen.findByRole('button', { name: 'Try Again' })).toHaveFocus();
+    });
+
+    it.each([
+      ['upstream' as const, 'Generation failed'],
+      ['network' as const, 'You appear to be offline'],
+    ])('on a %s error shows the message and Retry runs again', async (kind, title) => {
+      const { user, fake } = await renderWithProviders(<GeneratorPage />);
+      await fillForm(user);
+      await user.click(generateButton());
+
+      fake.lastRun().fail({ kind });
+
+      expect(await screen.findByRole('alert')).toHaveTextContent(title);
+      expect(generateButton()).not.toHaveAttribute('aria-disabled');
+      await user.click(screen.getByRole('button', { name: 'Retry' }));
+      expect(fake.runs).toHaveLength(2);
+    });
+
+    it('makes Retry inert once a required field is cleared', async () => {
+      const { user, fake } = await renderWithProviders(<GeneratorPage />);
+      await fillForm(user);
+      await user.click(generateButton());
+      fake.lastRun().fail({ kind: 'upstream' });
+      await screen.findByRole('alert');
+
+      await user.clear(field.jobTitle());
+
+      expect(screen.getByRole('button', { name: 'Retry' })).toHaveAttribute(
+        'aria-disabled',
+        'true',
+      );
+    });
+
+    it('while offline makes Try Again inert and says so under it, until back online', async () => {
+      const { user, fake } = await renderWithProviders(<GeneratorPage />);
       await fillForm(user);
       await generateLetter(user, fake, 'Dear Apple');
       const onLine = vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
 
       act(() => void window.dispatchEvent(new Event('offline')));
-      expect(tryAgainButton()).toBeDisabled();
-      expect(screen.getByText(/Generating will work again/)).toBeInTheDocument();
+      expect(tryAgainButton()).toHaveAttribute('aria-disabled', 'true');
+      expect(announced(/Generating will work again/)).toBeInTheDocument();
+      await user.click(tryAgainButton());
+      expect(fake.runs).toHaveLength(1);
 
       onLine.mockReturnValue(true);
       act(() => void window.dispatchEvent(new Event('online')));
-      expect(tryAgainButton()).toBeEnabled();
+      expect(tryAgainButton()).not.toHaveAttribute('aria-disabled');
       expect(screen.queryByText(/Generating will work again/)).not.toBeInTheDocument();
     });
 
-    it('leaves the offline note out while the preview already shows the network error', async () => {
-      const { user, fake } = await renderPage();
+    it('leaves the offline note out while the preview already shows the network error, whose Retry waits too', async () => {
+      const { user, fake } = await renderWithProviders(<GeneratorPage />);
       await fillForm(user);
       await user.click(generateButton());
       fake.lastRun().fail({ kind: 'network' });
       await screen.findByRole('alert');
-      vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
+      const onLine = vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
 
       act(() => void window.dispatchEvent(new Event('offline')));
 
       expect(screen.queryByText(/Generating will work again/)).not.toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Retry' })).toHaveAttribute(
+        'aria-disabled',
+        'true',
+      );
+      onLine.mockReturnValue(true);
+      act(() => void window.dispatchEvent(new Event('online')));
+      expect(screen.getByRole('button', { name: 'Retry' })).not.toHaveAttribute('aria-disabled');
     });
 
     it('when the stream is cut keeps the partial text and saves nothing; the panel offers Try Again too', async () => {
-      const { user, fake, store, container } = await renderPage();
+      const { user, fake, store } = await renderWithProviders(<GeneratorPage />);
       await fillForm(user);
       await user.click(generateButton());
 
       fake.lastRun().emit('Dear Ap');
       fake.lastRun().fail({ kind: 'stream-cut' });
 
-      expect(await screen.findByText('The letter was cut short.')).toBeInTheDocument();
+      expect(await previewPanel().findByText('The letter was cut short.')).toBeInTheDocument();
+      expect(announced('The letter was cut short.')).toBeInTheDocument();
       expect(screen.getByText('Dear Ap')).toBeInTheDocument();
       expect(screen.getAllByRole('button', { name: 'Try Again' })).toHaveLength(2);
       expect(store.getState().letters).toEqual([]);
 
-      await user.click(previewPanel(container).getByRole('button', { name: 'Try Again' }));
+      await user.click(previewPanel().getByRole('button', { name: 'Try Again' }));
       fake.lastRun().emit('Dear Apple');
       fake.lastRun().end();
       await screen.findByRole('button', { name: 'Copy to clipboard' });
 
       expect(store.getState().letters.map((l) => l.text)).toEqual(['Dear Apple']);
+    });
+
+    it('after an edit under a cut letter drops the panel Try Again and offers Generate Now', async () => {
+      const { user, fake } = await renderWithProviders(<GeneratorPage />);
+      await fillForm(user);
+      await user.click(generateButton());
+      fake.lastRun().emit('Dear Ap');
+      fake.lastRun().fail({ kind: 'stream-cut' });
+      await previewPanel().findByText('The letter was cut short.');
+
+      await user.type(field.company(), ' Inc');
+
+      expect(screen.queryByRole('button', { name: 'Try Again' })).not.toBeInTheDocument();
+      expect(generateButton()).toBeInTheDocument();
+      expect(previewPanel().getByText('The letter was cut short.')).toBeInTheDocument();
     });
   });
 });

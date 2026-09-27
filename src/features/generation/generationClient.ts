@@ -1,7 +1,7 @@
 import type { GenerateRequest } from '../../../shared/generation';
+import { createSseParser } from '../../../shared/sseParser';
+import { decode } from '../../../shared/variantDecoder';
 import { GenerationFailure } from './errors';
-import { createSseParser } from './sseParser';
-import { decode } from './variantDecoder';
 
 // Throws only a GenerationFailure, or the AbortError when `signal` aborts.
 export type GenerationPort = (req: GenerateRequest, signal: AbortSignal) => AsyncIterable<string>;

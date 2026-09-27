@@ -35,3 +35,9 @@ export const WithError: Story = {
     error: copy.generator.fieldTooLong(LIMITS.singleLine),
   },
 };
+
+// The signature editor: the button it replaces already said what it is for, so the label is only
+// the accessible name and the placeholder carries it on screen.
+export const HiddenLabel: Story = {
+  args: { label: copy.signature.label, placeholder: copy.signature.label, hideLabel: true },
+};

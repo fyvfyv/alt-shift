@@ -1,4 +1,5 @@
-// Every user-facing string lives here.
+// Every user-facing string lives here, except index.html's meta tags: crawlers and link previews
+// read them without running the app.
 export const copy = {
   documentTitle: (page: string) => `${page} · Alt+Shift`,
 
@@ -13,6 +14,12 @@ export const copy = {
   dashboard: {
     title: 'Applications',
     empty: 'Your generated applications will appear here...',
+    pitch:
+      "Tell Alt+Shift the job, the company and what you're good at, and it writes the cover letter.",
+    // Keep it true to the code: the client posts the four fields, the proxy logs no field text,
+    // and letters live in localStorage.
+    trust:
+      'No sign-up. Your details go to the generation service only to write the letter; the letters stay in this browser.',
   },
 
   generator: {
@@ -34,6 +41,16 @@ export const copy = {
     generating: 'Generating…',
     tryAgain: 'Try Again',
     offlineNote: "You appear to be offline. Generating will work again once you're back.",
+    // Under a gray Generate Now once it is pressed: what keeps the request from going out.
+    hint: {
+      names: { jobTitle: 'a job title', company: 'a company', skills: "what you're good at" },
+      missing: (names: readonly string[]) => {
+        const list =
+          names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names.at(-1)}` : names[0];
+        return `Add ${list} to generate.`;
+      },
+      tooLong: 'Shorten the field over its limit to generate.',
+    },
   },
 
   preview: {
@@ -43,7 +60,8 @@ export const copy = {
     retryIn: (seconds: number) => `Retry in ${seconds}s`,
     rateLimit: {
       title: 'Too many requests',
-      body: (seconds: number) => `You can try again in ${seconds}s.`,
+      body: 'The generation service is at its limit right now.',
+      wait: (seconds: number) => `You can try again in ${seconds}s.`,
       ready: 'You can try again now.',
     },
     upstream: {
@@ -58,6 +76,13 @@ export const copy = {
       eyebrow: 'Generating',
       writing: (company: string) => `Writing your letter for ${company}…`,
       almost: 'Almost there…',
+    },
+    label: 'Your letter',
+    kept: 'Your previous letter is kept.',
+    status: {
+      generating: 'Generating your letter…',
+      ready:
+        'Your letter is ready. Copy it or add your name below it, or use Try Again for another version.',
     },
   },
 
@@ -112,7 +137,8 @@ export const copy = {
   },
 
   crash: {
-    text: 'Something went wrong.',
+    title: 'Something went wrong',
+    text: 'This page stopped working.',
     action: 'Reload the app',
   },
 } as const;

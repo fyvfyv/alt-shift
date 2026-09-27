@@ -7,8 +7,8 @@ import { GoalBanner } from '../../components/GoalBanner/GoalBanner';
 import { PageTitle } from '../../components/PageTitle/PageTitle';
 import { StorageNote } from '../../components/StorageNote/StorageNote';
 import { copy } from '../../copy';
-import { useProfile } from '../../features/generation/useGeneratorFields';
 import { useLetterStore, useStorageFailed } from '../../features/letters/LetterStoreProvider';
+import { useProfile } from '../../features/profile/useProfile';
 import styles from './DashboardPage.module.css';
 import { LetterCard } from './LetterCard';
 
@@ -43,17 +43,23 @@ export function DashboardPage() {
         <PageTitle ref={titleRef} size="lg" action={createNew}>
           {copy.dashboard.title}
         </PageTitle>
-        {storageFailed && <StorageNote />}
+        <StorageNote failed={storageFailed} />
         {letters.length === 0 ? (
+          // Create New is already in the title row and the banner; the panel offers the path that
+          // needs no typing.
           <EmptyPanel
+            heading={copy.dashboard.pitch}
             text={copy.dashboard.empty}
+            note={copy.dashboard.trust}
             action={
-              <>
-                {createNew}
-                <Button variant="tertiary" to="/new" state={{ prefill: copy.example.request }}>
-                  {copy.example.label}
-                </Button>
-              </>
+              <Button
+                variant="secondary"
+                size="md"
+                to="/new"
+                state={{ prefill: copy.example.request }}
+              >
+                {copy.example.label}
+              </Button>
             }
           />
         ) : (

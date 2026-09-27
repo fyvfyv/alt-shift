@@ -10,3 +10,12 @@
   background: var(--color-surface-subtle);
   border-radius: var(--radius-lg);
 }
+
+.heading {
+  color: var(--color-text-primary);
+}
+
+/* The goal banner's text column, so a sentence-long note wraps at a readable measure. */
+.note {
+  max-width: 480px;
+}

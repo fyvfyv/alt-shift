@@ -1,21 +1,15 @@
 import { readFile } from 'node:fs/promises';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { GenerateRequest } from '../../shared/generation';
-import { SAMPLES } from '../fixtures/samples';
+import { decodeTranscript } from '../../shared/variantDecoder';
+import { type FixtureName, SAMPLES } from '../fixtures/samples';
 import { mockProvider } from './mock';
 
 const input = { system: '', prompt: '', maxTokens: 900 };
 
-async function expected(name: string): Promise<{ deltaCount: number; text: string }> {
+async function expected(name: FixtureName): Promise<{ deltaCount: number; text: string }> {
   const url = new URL(`../fixtures/${name}.expected.json`, import.meta.url);
   return JSON.parse(await readFile(url, 'utf8'));
-}
-
-function deltaTexts(chunk: string): string[] {
-  return chunk
-    .split('\n')
-    .filter((line) => line.startsWith('data: {'))
-    .map((line) => JSON.parse(line.slice(6)).text);
 }
 
 function call(request: GenerateRequest, scenario?: string, signal = new AbortController().signal) {
@@ -37,35 +31,77 @@ async function readAll(reader: ReadableStreamDefaultReader<string>): Promise<str
   return chunks;
 }
 
+async function deltasFor(request: GenerateRequest): Promise<string[]> {
+  return decodeTranscript((await readAll(await start(request))).join(''));
+}
+
+function occurrences(text: string, value: string): number {
+  return text.split(value).length - 1;
+}
+
 describe('mockProvider', () => {
   beforeEach(() => {
     vi.stubEnv('MOCK_FIRST_DELTA_MS', '0');
     vi.stubEnv('MOCK_DELAY_MS', '0');
   });
 
-  it.each(['short', 'long'] as const)(
-    'replays the %s transcript verbatim for the request it was recorded with',
-    async (name) => {
-      const texts = (await readAll(await start(SAMPLES[name]))).flatMap(deltaTexts);
+  it.each([
+    [199, 'short'],
+    [200, 'medium'],
+    [599, 'medium'],
+    [600, 'long'],
+  ] as const)(
+    'replays %i characters of details as the %s transcript, delta for delta',
+    async (length, name) => {
+      const deltas = await deltasFor({ ...SAMPLES[name], details: 'a'.repeat(length) });
 
       const fixture = await expected(name);
-      expect(texts).toHaveLength(fixture.deltaCount);
-      expect(texts.join('')).toBe(fixture.text);
+      expect(deltas).toHaveLength(fixture.deltaCount);
+      expect(deltas.join('')).toBe(fixture.text);
     },
   );
 
-  it('swaps the recorded job title and company for the request values', async () => {
-    const chunks = await readAll(
-      await start({ ...SAMPLES.short, jobTitle: 'QA Lead', company: 'Acme' }),
-    );
-    const text = chunks.flatMap(deltaTexts).join('');
+  it.each(['short', 'medium', 'long'] as const)(
+    'writes the request job title and company over every mention in the %s transcript',
+    async (name) => {
+      const chunks = await readAll(
+        await start({ ...SAMPLES[name], jobTitle: 'QA Lead', company: 'Acme' }),
+      );
+      const text = decodeTranscript(chunks.join('')).join('').toLowerCase();
 
-    expect(text).toContain('Dear Acme team,');
-    expect(text).toContain('QA Lead');
-    expect(text).not.toContain('Northwind');
-    expect(text).not.toContain('Frontend Engineer');
-    expect(chunks[0]).toBe(': keepalive\n\n');
-    expect(chunks.at(-1)).toBe('data: [DONE]\n\n');
+      expect(text).toContain('dear acme team,');
+      expect(text).toContain('qa lead');
+      expect(text).not.toContain(SAMPLES[name].company.toLowerCase());
+      expect(text).not.toContain(SAMPLES[name].jobTitle.toLowerCase());
+      expect(chunks[0]).toBe(': keepalive\n\n');
+      expect(chunks.at(-1)).toBe('data: [DONE]\n\n');
+    },
+  );
+
+  it('swaps the two names in one pass, so a replacement is never replaced again', async () => {
+    const { jobTitle, company } = SAMPLES.short;
+    const recorded = (await expected('short')).text;
+
+    const text = (await deltasFor({ ...SAMPLES.short, jobTitle: company, company: jobTitle })).join(
+      '',
+    );
+
+    expect(text).toContain(`Dear ${jobTitle} team,`);
+    expect(occurrences(text, jobTitle)).toBe(occurrences(recorded, company));
+    expect(occurrences(text, company)).toBe(occurrences(recorded, jobTitle));
+  });
+
+  it('keeps replacement patterns in a request value literal', async () => {
+    const text = (await deltasFor({ ...SAMPLES.short, company: 'Acme $& Co' })).join('');
+
+    expect(text).toContain('Dear Acme $& Co team,');
+  });
+
+  it('never splits an emoji across two deltas', async () => {
+    const deltas = await deltasFor({ ...SAMPLES.short, company: '🚀🚀🚀 Labs' });
+
+    expect(deltas.join('')).toContain('Dear 🚀🚀🚀 Labs team,');
+    expect(deltas.filter((delta) => /\p{Surrogate}/u.test(delta))).toEqual([]);
   });
 
   it('errors the stream part-way through on the disconnect scenario', async () => {
@@ -76,7 +112,7 @@ describe('mockProvider', () => {
       (async () => {
         for (;;) {
           const { value = '' } = await reader.read();
-          deltas += deltaTexts(value).length;
+          deltas += decodeTranscript(value).length;
         }
       })(),
     ).rejects.toThrow('Mock disconnect');

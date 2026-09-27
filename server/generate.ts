@@ -1,6 +1,6 @@
 // Builds the prompt here, not in the browser, so the token can't be spent on arbitrary prompts.
 
-import { validateGenerateRequest } from '../shared/generation.js';
+import { countChars, validateGenerateRequest } from '../shared/generation.js';
 import { jsonError } from './jsonError.js';
 import { buildPrompt } from './prompt.js';
 import { type ProviderName, providers, resolveProvider } from './providers/index.js';
@@ -44,6 +44,15 @@ export async function handle(
   const result = validateGenerateRequest(body);
   if (!result.ok) return jsonError(400, 'invalid_request', result.message);
 
+  const startedAt = Date.now();
+  // Never the field values: job title, company, skills and details are personal text.
+  const log = (line: Record<string, unknown>) => console.info(JSON.stringify(line));
+  request.signal.addEventListener(
+    'abort',
+    () => log({ event: 'generate_cancelled', provider: providerName }),
+    { once: true },
+  );
+
   const upstream = await provider(buildPrompt(result.value), {
     signal: request.signal,
     request: result.value,
@@ -53,9 +62,15 @@ export async function handle(
   const headers = new Headers(upstream.headers);
   headers.set('Cache-Control', 'no-cache, no-transform');
   headers.set('X-Generation-Provider', providerName);
-  console.info(
-    `[generate] ${providerName} ${upstream.status} x-request-id=${headers.get('X-Request-Id') ?? '-'}`,
-  );
+  log({
+    event: 'generate',
+    provider: providerName,
+    status: upstream.status,
+    waitMs: Date.now() - startedAt,
+    detailsChars: countChars(result.value.details),
+    skillsChars: countChars(result.value.skills),
+    requestId: headers.get('X-Request-Id'),
+  });
   return new Response(upstream.body, { status: upstream.status, headers });
 }
 

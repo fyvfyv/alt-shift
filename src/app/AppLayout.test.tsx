@@ -1,7 +1,7 @@
 import { screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { type ReactNode, useState } from 'react';
 import { Route, Routes } from 'react-router';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '../test/renderWithProviders';
 import { AppLayout } from './AppLayout';
 
@@ -9,27 +9,71 @@ function Crash(): never {
   throw new Error('boom');
 }
 
-describe('AppLayout', () => {
-  it('keeps the header around a crashed page and recovers on its next navigation', async () => {
-    vi.spyOn(console, 'error').mockImplementation(() => {});
-    const user = userEvent.setup();
-    await renderWithProviders(
-      <Routes>
-        <Route element={<AppLayout />}>
-          <Route index element={<h1>Home</h1>} />
-          <Route path="boom" element={<Crash />} />
-        </Route>
-      </Routes>,
-      { url: '/boom' },
-    );
+// Crashes on a click, with no navigation: the button that had focus goes with the page.
+function Home() {
+  const [broken, setBroken] = useState(false);
+  if (broken) throw new Error('boom');
+  return (
+    <>
+      <h1>Home</h1>
+      <button type="button" onClick={() => setBroken(true)}>
+        Break it
+      </button>
+    </>
+  );
+}
 
-    expect(screen.getByText('Something went wrong.')).toBeInTheDocument();
+function renderLayout(url: string, home: ReactNode = <Home />) {
+  return renderWithProviders(
+    <Routes>
+      <Route element={<AppLayout />}>
+        <Route index element={home} />
+        <Route path="boom" element={<Crash />} />
+      </Route>
+    </Routes>,
+    { url },
+  );
+}
+
+const crashHeading = () => screen.getByRole('heading', { level: 1, name: 'Something went wrong' });
+
+describe('AppLayout', () => {
+  beforeEach(() => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    document.title = '';
+  });
+
+  it('keeps the header around a crashed page and recovers on its next navigation', async () => {
+    const { user } = await renderLayout('/boom');
+
+    expect(crashHeading()).toHaveFocus();
+    expect(document.title).toBe('Something went wrong · Alt+Shift');
+    expect(screen.getByRole('alert')).toHaveTextContent('This page stopped working.');
     expect(screen.getByRole('link', { name: 'Reload the app' })).toHaveAttribute('href', '/');
     expect(screen.getByRole('banner')).toBeInTheDocument();
 
     await user.click(screen.getByRole('link', { name: 'Dashboard' }));
 
     expect(screen.getByRole('heading', { level: 1, name: 'Home' })).toBeInTheDocument();
-    expect(screen.queryByText('Something went wrong.')).not.toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('announces a crash that replaces a page already on screen', async () => {
+    const { user } = await renderLayout('/');
+
+    await user.click(screen.getByRole('button', { name: 'Break it' }));
+
+    expect(crashHeading()).toHaveFocus();
+    expect(document.title).toBe('Something went wrong · Alt+Shift');
+  });
+
+  it('announces it again when the fresh try on the next page crashes too', async () => {
+    const { user } = await renderLayout('/boom', <Crash />);
+    document.title = '';
+
+    await user.click(screen.getByRole('link', { name: 'Dashboard' }));
+
+    expect(crashHeading()).toHaveFocus();
+    expect(document.title).toBe('Something went wrong · Alt+Shift');
   });
 });

@@ -12,13 +12,14 @@ const meta = {
     retryCountdown: 0,
     retryDisabled: false,
     onRetry: fn(),
+    showCutRetry: true,
     storageFailed: false,
     name: '',
     onNameChange: fn(),
   },
   decorators: [
     (Story) => (
-      <div style={{ width: 656, height: 720, display: 'grid' }}>
+      <div style={{ width: 656, minHeight: 720, display: 'grid' }}>
         <Story />
       </div>
     ),
@@ -59,6 +60,19 @@ export const RateLimitOver: Story = {
   args: { state: { status: 'error', error: { kind: 'rate-limit', retryAfterSeconds: 24 } } },
 };
 
+// A Try Again that hit the limit: the previous letter, still saved, stays with its Copy.
+export const KeptAfterRateLimit: Story = {
+  args: {
+    state: {
+      status: 'error',
+      error: { kind: 'rate-limit', retryAfterSeconds: 12 },
+      text: sampleText,
+    },
+    retryCountdown: 12,
+    retryDisabled: true,
+  },
+};
+
 export const UpstreamError: Story = {
   args: { state: { status: 'error', error: { kind: 'upstream' } } },
 };
@@ -71,4 +85,9 @@ export const StreamCut: Story = {
   args: {
     state: { status: 'error', error: { kind: 'stream-cut' }, text: sampleText.slice(0, 600) },
   },
+};
+
+// After an edit the form's CTA is Generate Now, so the panel keeps only the note.
+export const StreamCutAfterEdit: Story = {
+  args: { ...StreamCut.args, showCutRetry: false },
 };

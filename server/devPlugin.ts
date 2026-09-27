@@ -4,7 +4,7 @@
 
 import type { ServerResponse } from 'node:http';
 import { type Connect, loadEnv, type Plugin } from 'vite';
-import type { ApiErrorBody } from '../shared/generation.js';
+import type { ApiErrorBody } from './jsonError.js';
 
 type Handler = (request: Request) => Promise<Response>;
 type GenerateModule = typeof import('./generate.js');

@@ -1,10 +1,10 @@
-import { type KeyboardEvent, useEffect, useRef, useState } from 'react';
+import { type KeyboardEvent, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
+import { LIMITS } from '../../../shared/generation';
 import { Button } from '../../components/Button/Button';
 import { TextField } from '../../components/TextField/TextField';
 import { copy } from '../../copy';
 import styles from './SignatureField.module.css';
-
-const NAME_MAX_LENGTH = 80;
 
 type SignatureFieldProps = {
   name: string;
@@ -18,14 +18,6 @@ export function SignatureField({ name, onChange }: SignatureFieldProps) {
   const buttonRef = useRef<HTMLButtonElement>(null);
   // Enter and Escape close the field themselves; the blur its unmount fires must not save again.
   const closed = useRef(false);
-  const restoreFocus = useRef(false);
-
-  // Closing from the keyboard returns focus to the button; a click elsewhere keeps its target.
-  useEffect(() => {
-    if (editing || !restoreFocus.current) return;
-    restoreFocus.current = false;
-    buttonRef.current?.focus();
-  }, [editing]);
 
   function open() {
     setDraft(name);
@@ -40,11 +32,12 @@ export function SignatureField({ name, onChange }: SignatureFieldProps) {
     setEditing(false);
   }
 
+  // Closing from the keyboard returns focus to the button; a click elsewhere keeps its target.
   function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
     if (event.key !== 'Enter' && event.key !== 'Escape') return;
     event.preventDefault();
-    restoreFocus.current = true;
-    close(event.key === 'Enter');
+    flushSync(() => close(event.key === 'Enter'));
+    buttonRef.current?.focus();
   }
 
   if (!editing) {
@@ -54,12 +47,16 @@ export function SignatureField({ name, onChange }: SignatureFieldProps) {
       </Button>
     );
   }
+  // The field replaces the button just clicked, so its label is spoken, not shown. The cap is the
+  // form's single-line limit made hard: a field that saves on blur has nowhere to show an error.
   return (
     <div className={styles.editor}>
       <TextField
         label={copy.signature.label}
+        hideLabel
+        placeholder={copy.signature.label}
         value={draft}
-        maxLength={NAME_MAX_LENGTH}
+        maxLength={LIMITS.singleLine}
         autoComplete="name"
         autoFocus
         onChange={(event) => setDraft(event.target.value)}

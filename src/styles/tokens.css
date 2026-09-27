@@ -57,7 +57,8 @@
     rgb(255 255 255 / 0.16) 100%
   );
   --gradient-orb-base: radial-gradient(circle farthest-corner at 0 0, #ffffff 0%, #d0d5dd 100%);
-  --gradient-card-fade: linear-gradient(180deg, rgb(242 244 247 / 0) 0%, #f2f4f7 100%);
+  /* Ends in the card surface, so the clipped text fades into the card itself. */
+  --gradient-card-fade: linear-gradient(180deg, transparent, var(--color-surface-subtle));
 
   /* font families; sizes live in typography.module.css */
   --font-text: "Fixel Text", system-ui, sans-serif;

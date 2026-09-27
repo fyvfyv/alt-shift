@@ -1,4 +1,8 @@
+/// <reference lib="dom" />
 import type { Page } from '@playwright/test';
+import type { Letter } from '../../src/features/letters/model';
+
+export { lettersOf } from '../../src/test/letters';
 
 export async function fillGeneratorForm(page: Page, details = ''): Promise<void> {
   await page.getByLabel('Job title').fill('Product Designer');
@@ -31,7 +35,16 @@ export async function holdGeneration(page: Page): Promise<() => void> {
   return release;
 }
 
-// The panel is the preview's single live region; the copy feedback region has no aria-busy.
 export function previewPanel(page: Page) {
-  return page.locator('[aria-live="polite"][aria-busy]');
+  return page.getByRole('region', { name: 'Your letter' });
+}
+
+// Not addInitScript: that re-runs on every navigation and would overwrite whatever the test has
+// since changed. Needs a page already open on the origin, so call it after the first goto.
+export async function seedLetters(page: Page, letters: Letter[]): Promise<void> {
+  await page.evaluate(
+    (envelope) => window.localStorage.setItem('alt-shift.letters', envelope),
+    JSON.stringify({ version: 1, letters }),
+  );
+  await page.reload();
 }

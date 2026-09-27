@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { ApiErrorBody } from '../shared/generation';
 import { handle } from './generate';
+import type { ApiErrorBody } from './jsonError';
 import type { Provider } from './providers/types';
 import { variantProvider } from './providers/variant';
 
@@ -106,6 +106,37 @@ describe('handle', () => {
     controller.abort();
 
     expect(fetchMock.mock.calls[0]?.[1].signal?.aborted).toBe(true);
+  });
+
+  it('logs one JSON line per generation with input lengths and never the text', async () => {
+    const provider = vi.fn<Provider>(async () => new Response(''));
+
+    await handle(post({ ...validBody, details: 'secret bio' }), provider, 'mock');
+
+    const line = String(vi.mocked(console.info).mock.lastCall?.[0]);
+    expect(JSON.parse(line)).toMatchObject({
+      event: 'generate',
+      provider: 'mock',
+      status: 200,
+      detailsChars: 10,
+      skillsChars: 5,
+    });
+    expect(line).not.toContain('secret bio');
+    expect(line).not.toContain('Northwind');
+  });
+
+  it('logs a cancel line when the client aborts', async () => {
+    const controller = new AbortController();
+
+    await handle(
+      post(validBody, { signal: controller.signal }),
+      vi.fn<Provider>(async () => new Response('')),
+      'mock',
+    );
+    controller.abort();
+
+    const lines = vi.mocked(console.info).mock.calls.map(([line]) => JSON.parse(String(line)));
+    expect(lines).toContainEqual({ event: 'generate_cancelled', provider: 'mock' });
   });
 
   it('hands the provider the validated request and the incoming headers', async () => {

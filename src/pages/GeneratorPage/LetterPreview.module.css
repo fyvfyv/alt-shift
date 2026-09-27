@@ -77,6 +77,11 @@
   color: var(--color-text-error);
 }
 
+/* Tertiary, not error red: the letter above it is fine, the note is about the retry. */
+.keptNote {
+  color: var(--color-text-tertiary);
+}
+
 .cutRetry {
   align-self: flex-start;
 }

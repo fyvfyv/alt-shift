@@ -6,31 +6,23 @@
 import { readFile } from 'node:fs/promises';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { countChars, type GenerateRequest } from '../../shared/generation.js';
+import {
+  DONE_EVENT,
+  decodeTranscript,
+  encodeDelta,
+  KEEPALIVE_COMMENT,
+} from '../../shared/variantDecoder.js';
 import { type FixtureName, SAMPLES } from '../fixtures/samples.js';
 import { jsonError } from '../jsonError.js';
 import type { Provider } from './types.js';
 
 const DISCONNECT_AT = 0.4;
 
-type Fixture = { comments: string[]; deltas: string[] };
-type Transcript = { comments: string[]; events: string[] };
-
 function fixtureFor(details: string): FixtureName {
   const length = countChars(details);
   if (length < 200) return 'short';
   if (length < 600) return 'medium';
   return 'long';
-}
-
-function parseFixture(raw: string): Fixture {
-  const comments: string[] = [];
-  const deltas: string[] = [];
-  for (const block of raw.split('\n\n')) {
-    if (block.startsWith(':')) comments.push(block);
-    const data = block.split('\n').find((line) => line.startsWith('data: {'));
-    if (data) deltas.push((JSON.parse(data.slice(6)) as { text: string }).text);
-  }
-  return { comments, deltas };
 }
 
 function escapeRegExp(value: string): string {
@@ -59,21 +51,16 @@ function rechunk(text: string, sizes: number[]): string[] {
   return chunks;
 }
 
-async function transcriptFor(request: GenerateRequest): Promise<Transcript> {
+async function eventsFor(request: GenerateRequest): Promise<string[]> {
   const name = fixtureFor(request.details);
   const raw = await readFile(new URL(`../fixtures/${name}.sse`, import.meta.url), 'utf8');
-  const { comments, deltas } = parseFixture(raw);
+  const deltas = decodeTranscript(raw);
   const text = personalize(deltas.join(''), SAMPLES[name], request);
-  const sizes = deltas.map((delta) => delta.length);
-  const events = rechunk(text, sizes).map(
-    (chunk) => `event: delta\ndata: ${JSON.stringify({ text: chunk })}`,
-  );
-  events.push('data: [DONE]');
-  return { comments, events };
+  return [...rechunk(text, deltas.map(countChars)).map(encodeDelta), DONE_EVENT];
 }
 
 function stream(
-  { comments, events }: Transcript,
+  events: string[],
   { signal, disconnect }: { signal: AbortSignal; disconnect: boolean },
 ): ReadableStream<Uint8Array> {
   const encoder = new TextEncoder();
@@ -84,7 +71,7 @@ function stream(
 
   return new ReadableStream({
     start(controller) {
-      for (const comment of comments) controller.enqueue(encoder.encode(`${comment}\n\n`));
+      controller.enqueue(encoder.encode(KEEPALIVE_COMMENT));
     },
     async pull(controller) {
       try {
@@ -97,7 +84,7 @@ function stream(
         controller.error(new Error('Mock disconnect'));
         return;
       }
-      controller.enqueue(encoder.encode(`${events[index++]}\n\n`));
+      controller.enqueue(encoder.encode(events[index++]));
       if (index === events.length) controller.close();
     },
   });
@@ -116,8 +103,8 @@ export const mockProvider: Provider = async (_input, { signal, request, headers 
       return jsonError(401, 'invalid_token', 'Invalid token (mock).');
     case 'complete':
     case 'disconnect': {
-      const transcript = await transcriptFor(request);
-      const body = stream(transcript, { signal, disconnect: scenario === 'disconnect' });
+      const events = await eventsFor(request);
+      const body = stream(events, { signal, disconnect: scenario === 'disconnect' });
       return new Response(body, { headers: { 'Content-Type': 'text/event-stream' } });
     }
     default:

@@ -16,16 +16,6 @@ export const EMPTY_REQUEST: GenerateRequest = {
   details: '',
 };
 
-export type ErrorCode =
-  | 'invalid_request'
-  | 'invalid_token'
-  | 'rate_limit_exceeded'
-  | 'upstream_error'
-  | 'method_not_allowed'
-  | 'forbidden';
-
-export type ApiErrorBody = { error: { code: ErrorCode; message: string } };
-
 type ValidationResult = { ok: true; value: GenerateRequest } | { ok: false; message: string };
 
 // Code points, not UTF-16 units: an emoji counts as one character, matching what the user sees.

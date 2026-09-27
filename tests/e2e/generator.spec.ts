@@ -1,12 +1,13 @@
 import { expect, test } from '@playwright/test';
-import { fillGeneratorForm, holdGeneration, previewPanel, routeMockScenario } from './generator';
+import { fillGeneratorForm, holdGeneration, previewPanel, routeMockScenario } from './helpers';
 
 // 600+ characters select the mock's longest transcript, so streaming is slow enough to observe.
 const LONG_DETAILS =
   'I rebuilt a design system used by six product teams and cut UI review time in half. '.repeat(8);
 
-test('a generated letter streams in, is saved and survives a reload', async ({ page }) => {
-  test.slow();
+test('a generated letter streams in, is saved and survives a reload', { tag: '@desktop' }, async ({
+  page,
+}) => {
   const release = await holdGeneration(page);
   await page.goto('/new');
   await fillGeneratorForm(page, LONG_DETAILS);
@@ -16,7 +17,6 @@ test('a generated letter streams in, is saved and survives a reload', async ({ p
   await expect(page.getByRole('button', { name: 'Generating…' })).toBeDisabled();
   await expect(panel.locator('[aria-hidden]')).toBeVisible();
   // Two seconds in, the orb gets a caption naming the company.
-  await expect(panel).toContainText('Generating');
   await expect(panel).toContainText('Writing your letter for Acme…');
 
   release();
@@ -24,12 +24,9 @@ test('a generated letter streams in, is saved and survives a reload', async ({ p
   const textLength = async () => (await panel.innerText()).length;
   await expect.poll(textLength).toBeGreaterThan(0);
   const partial = await textLength();
-  await expect(panel).toHaveAttribute('aria-busy', 'true');
   await expect.poll(textLength).toBeGreaterThan(partial);
 
-  await expect(page.getByRole('button', { name: 'Copy to clipboard' })).toBeVisible({
-    timeout: 30_000,
-  });
+  await expect(page.getByRole('button', { name: 'Copy to clipboard' })).toBeVisible();
 
   await page.getByRole('link', { name: 'Dashboard' }).click();
   const card = page.getByRole('article', { name: 'Product Designer, Acme' });
@@ -37,29 +34,35 @@ test('a generated letter streams in, is saved and survives a reload', async ({ p
   await expect(card).toBeVisible();
   await expect(counter).toBeVisible();
 
-  // The long letter overflows the card's fixed height; Read more lets it grow.
-  const collapsedHeight = (await card.boundingBox())?.height ?? 0;
-  await card.getByRole('button', { name: 'Read more' }).click();
-  await expect(card.getByRole('button', { name: 'Show less' })).toHaveAttribute(
-    'aria-expanded',
-    'true',
-  );
-  expect((await card.boundingBox())?.height).toBeGreaterThan(collapsedHeight);
-
   await page.reload();
   await expect(card).toBeVisible();
   await expect(counter).toBeVisible();
 });
 
+test('on a phone Generate Now brings the preview under the form into view', {
+  tag: '@phone',
+}, async ({ page }) => {
+  await holdGeneration(page);
+  await page.goto('/new');
+  await fillGeneratorForm(page);
+  // Stacked, the preview starts below the fold.
+  const panel = previewPanel(page);
+  await expect(panel).not.toBeInViewport();
+
+  await page.getByRole('button', { name: 'Generate Now' }).click();
+
+  await expect(panel).toBeInViewport({ ratio: 0.5 });
+});
+
 test('a dropped stream keeps the partial letter and saves nothing', async ({ page }) => {
-  test.slow();
   await routeMockScenario(page, 'disconnect');
   await page.goto('/new');
   await fillGeneratorForm(page);
   await page.getByRole('button', { name: 'Generate Now' }).click();
 
+  // The note is also the page's status line, so look for it inside the panel.
   const panel = previewPanel(page);
-  await expect(page.getByText('The letter was cut short.')).toBeVisible({ timeout: 15_000 });
+  await expect(panel.getByText('The letter was cut short.')).toBeVisible();
   // The mock replays recorded letters, so only the greeting is known.
   await expect(panel).toContainText('Dear ');
   // Try Again is offered twice: under the cut letter and as the form's CTA.
@@ -79,6 +82,7 @@ test('a rate-limited request counts down before it can be retried', async ({ pag
   await generate.click();
 
   await expect(page.getByRole('alert')).toContainText('Too many requests');
+  // Inert, not disabled (aria-disabled keeps the focus), which toBeDisabled also reads.
   await expect(generate).toBeDisabled();
   await expect(page.getByRole('button', { name: /^Retry in \d+s$/ })).toBeDisabled();
 

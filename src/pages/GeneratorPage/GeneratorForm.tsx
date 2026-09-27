@@ -5,10 +5,13 @@ import { TextArea } from '../../components/TextArea/TextArea';
 import { TextField } from '../../components/TextField/TextField';
 import { copy } from '../../copy';
 import typography from '../../styles/typography.module.css';
+import utilities from '../../styles/utilities.module.css';
 import styles from './GeneratorForm.module.css';
 
 type GeneratorFormProps = {
   ref?: Ref<HTMLFormElement>;
+  // The job, or undefined while it is incomplete: the h1 then shows the placeholder title.
+  title?: string;
   values: GenerateRequest;
   onChange: (patch: Partial<GenerateRequest>) => void;
   onSubmit: () => void;
@@ -36,6 +39,7 @@ function submitOnModifierEnter(event: KeyboardEvent<HTMLFormElement>) {
 
 export function GeneratorForm({
   ref,
+  title,
   values,
   onChange,
   onSubmit,
@@ -45,9 +49,6 @@ export function GeneratorForm({
   jobTitleRef,
 }: GeneratorFormProps) {
   const { fields } = copy.generator;
-  const jobTitle = values.jobTitle.trim();
-  const company = values.company.trim();
-  const hasTitle = jobTitle !== '' && company !== '';
 
   return (
     <form
@@ -60,12 +61,11 @@ export function GeneratorForm({
       }}
       onKeyDown={submitOnModifierEnter}
     >
-      <PageTitle placeholder={!hasTitle}>
-        {hasTitle ? copy.letter.title(jobTitle, company) : copy.generator.title}
-      </PageTitle>
+      <PageTitle placeholder={title === undefined}>{title ?? copy.generator.title}</PageTitle>
       <div className={styles.row}>
         <TextField
           ref={jobTitleRef}
+          name="jobTitle"
           label={fields.jobTitle.label}
           placeholder={fields.jobTitle.placeholder}
           autoComplete="organization-title"
@@ -75,6 +75,7 @@ export function GeneratorForm({
           onChange={(event) => onChange({ jobTitle: event.target.value })}
         />
         <TextField
+          name="company"
           label={fields.company.label}
           placeholder={fields.company.placeholder}
           autoComplete="organization"
@@ -85,6 +86,7 @@ export function GeneratorForm({
         />
       </div>
       <TextField
+        name="skills"
         label={fields.skills.label}
         placeholder={fields.skills.placeholder}
         autoComplete="off"
@@ -94,6 +96,7 @@ export function GeneratorForm({
         onChange={(event) => onChange({ skills: event.target.value })}
       />
       <TextArea
+        name="details"
         label={fields.details.label}
         placeholder={fields.details.placeholder}
         value={values.details}
@@ -102,11 +105,14 @@ export function GeneratorForm({
         onChange={(event) => onChange({ details: event.target.value })}
       />
       {cta}
-      {note && (
-        <p className={`${styles.note} ${typography.sm}`} aria-live="polite">
-          {note}
-        </p>
-      )}
+      {/* Mounted even when there is nothing to say (off screen and empty, so it takes no room):
+          a status is announced when its text changes, not when it is inserted with it. */}
+      <p
+        role="status"
+        className={note ? `${styles.note} ${typography.sm}` : utilities.visuallyHidden}
+      >
+        {note}
+      </p>
     </form>
   );
 }

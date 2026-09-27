@@ -1,6 +1,15 @@
-import type { ApiErrorBody, ErrorCode } from '../shared/generation.js';
+type ErrorCode =
+  | 'invalid_request'
+  | 'invalid_token'
+  | 'rate_limit_exceeded'
+  | 'upstream_error'
+  | 'method_not_allowed'
+  | 'forbidden';
 
-// The same `{ error: { code, message } }` envelope the Variant API uses, so the client maps one shape.
+export type ApiErrorBody = { error: { code: ErrorCode; message: string } };
+
+// Mirrors the Variant API's envelope, so the proxy's own errors look like upstream's on the wire.
+// The browser reads only the status and headers.
 export function jsonError(
   status: number,
   code: ErrorCode,

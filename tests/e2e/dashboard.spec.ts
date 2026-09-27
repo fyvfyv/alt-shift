@@ -1,6 +1,5 @@
 import { expect, type Locator, test } from '@playwright/test';
-import { previewPanel } from './generator';
-import { lettersOf, seedLetters } from './seed';
+import { lettersOf, previewPanel, seedLetters } from './helpers';
 
 async function rightEdge(locator: Locator): Promise<number> {
   const box = await locator.boundingBox();
@@ -8,7 +7,9 @@ async function rightEdge(locator: Locator): Promise<number> {
   return box.x + box.width;
 }
 
-test('a clipped letter keeps every card action inside the card', async ({ page }) => {
+test('a clipped letter keeps every card action inside the card and grows on Read more', async ({
+  page,
+}) => {
   await page.goto('/');
   const filler = 'A sentence about impact. '.repeat(40);
   await seedLetters(
@@ -24,6 +25,16 @@ test('a clipped letter keeps every card action inside the card', async ({ page }
   for (const name of ['Delete', 'Read more', 'Copy to clipboard']) {
     expect(await rightEdge(card.getByRole('button', { name }))).toBeLessThanOrEqual(contentEdge);
   }
+
+  const collapsedHeight = (await card.boundingBox())?.height ?? 0;
+  await card.getByRole('button', { name: 'Read more' }).click();
+  await expect(card.getByRole('button', { name: 'Show less' })).toHaveAttribute(
+    'aria-expanded',
+    'true',
+  );
+  await expect
+    .poll(async () => (await card.boundingBox())?.height)
+    .toBeGreaterThan(collapsedHeight);
 });
 
 test('reaching the goal swaps the dots for a badge and hides the banner', async ({ page }) => {
@@ -40,30 +51,24 @@ test('reaching the goal swaps the dots for a badge and hides the banner', async 
   await expect(page.getByRole('heading', { level: 1, name: 'New application' })).toBeVisible();
 });
 
-test('Try an example fills the generator and ends with a saved letter', async ({ page }) => {
-  test.slow();
+// The hand-over of the example into the form is covered in App.test.tsx; this is the browser
+// half: the mock writes the example's company and job title into its recorded letter.
+test('Try an example ends with a saved letter written for the example job', {
+  tag: '@desktop',
+}, async ({ page }) => {
   await page.goto('/');
   await page.getByRole('link', { name: 'Try an example' }).click();
 
   await expect(page).toHaveURL('/new');
-  await expect(page.getByLabel('Job title')).toHaveValue('Product manager');
-  await expect(page.getByLabel('Company')).toHaveValue('Apple');
-  await expect(page.getByLabel('I am good at...')).toHaveValue(
-    'HTML, CSS and doing things in time',
-  );
-  await expect(page.getByLabel('Additional details')).toHaveValue(/^I want to help you build/);
   await expect(
     page.getByRole('heading', { level: 1, name: 'Product manager, Apple' }),
   ).toBeVisible();
 
   await page.getByRole('button', { name: 'Generate Now' }).click();
 
-  // The mock writes the typed company and job title into its recorded letter.
   const panel = previewPanel(page);
-  await expect(panel).toContainText('Dear Apple team,', { timeout: 10_000 });
-  await expect(page.getByRole('button', { name: 'Copy to clipboard' })).toBeVisible({
-    timeout: 30_000,
-  });
+  await expect(panel).toContainText('Dear Apple team,');
+  await expect(page.getByRole('button', { name: 'Copy to clipboard' })).toBeVisible();
   await expect(panel).toContainText('Product manager');
   await expect(panel).not.toContainText('Northwind');
 

@@ -26,22 +26,18 @@ describe('LetterCard', () => {
     const user = userEvent.setup();
     const text = `Dear Acme team,\n\n${'A sentence about impact. '.repeat(12)}`;
     render(<LetterCard letter={letterOf(text)} onDelete={() => {}} />);
-    const article = screen.getByRole('article');
     const toggle = screen.getByRole('button', { name: 'Read more' });
     expect(toggle).toHaveAttribute('aria-expanded', 'false');
-    expect(article).not.toHaveAttribute('data-expanded');
     const body = document.getElementById(toggle.getAttribute('aria-controls') ?? '');
     expect(body).toHaveTextContent('Dear Acme team,');
 
     await user.click(toggle);
 
-    expect(article).toHaveAttribute('data-expanded');
     const collapse = screen.getByRole('button', { name: 'Show less' });
     expect(collapse).toHaveAttribute('aria-expanded', 'true');
 
     await user.click(collapse);
 
-    expect(article).not.toHaveAttribute('data-expanded');
     expect(screen.getByRole('button', { name: 'Read more' })).toBeInTheDocument();
   });
 

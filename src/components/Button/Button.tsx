@@ -71,13 +71,15 @@ export function Button(props: ButtonProps) {
     );
   }
 
-  const { type = 'button', onClick, ...buttonProps } = rest;
+  // A caller's aria-disabled only paints and announces the state: the click still fires (a submit
+  // still submits), so the page can say what is missing. Only `loading` swallows it.
+  const { type = 'button', onClick, 'aria-disabled': ariaDisabled, ...buttonProps } = rest;
   return (
     <button
       {...buttonProps}
       {...shared}
       type={type}
-      aria-disabled={loading || undefined}
+      aria-disabled={loading || ariaDisabled || undefined}
       aria-busy={loading || undefined}
       onClick={(event) => {
         // preventDefault also stops a submit button from submitting its form.

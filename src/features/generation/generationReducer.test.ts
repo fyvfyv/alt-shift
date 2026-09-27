@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import type { GenerationError } from './errors';
 import {
   type GenerationEvent,
   generationReducer,
@@ -42,6 +43,30 @@ describe('generationReducer', () => {
     const error = { kind: 'rate-limit', retryAfterSeconds: 3 } as const;
 
     expect(run([{ type: 'start' }, { type: 'error', error }])).toEqual({ status: 'error', error });
+  });
+
+  it.each<[string, GenerationEvent, GenerationError]>([
+    [
+      'a rate limit',
+      { type: 'error', error: { kind: 'rate-limit', retryAfterSeconds: 3 } },
+      { kind: 'rate-limit', retryAfterSeconds: 3 },
+    ],
+    ['an empty stream', { type: 'done' }, { kind: 'upstream' }],
+  ])('keeps the complete letter through a regenerate that fails with %s', (_, event, error) => {
+    const kept = run([{ type: 'start' }, event], { status: 'completed', text: 'Dear' });
+
+    expect(kept).toEqual({ status: 'error', error, text: 'Dear' });
+    expect(run([{ type: 'start' }, event], kept)).toEqual(kept);
+  });
+
+  it('does not bring a cut letter back when the next run fails before any text', () => {
+    const cut: PreviewState = { status: 'error', error: { kind: 'stream-cut' }, text: 'Dear' };
+    const error = { kind: 'network' } as const;
+
+    expect(run([{ type: 'start' }, { type: 'error', error }], cut)).toEqual({
+      status: 'error',
+      error,
+    });
   });
 
   it.each<[string, PreviewState]>([

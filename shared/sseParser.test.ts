@@ -1,25 +1,31 @@
+import { readFile } from 'node:fs/promises';
 import { describe, expect, it } from 'vitest';
-import { recorded } from '../../test/fixtures';
 import { createSseParser, type SseMessage } from './sseParser';
-import { decode } from './variantDecoder';
+import {
+  DONE_EVENT,
+  decode,
+  decodeTranscript,
+  encodeDelta,
+  KEEPALIVE_COMMENT,
+} from './variantDecoder';
+
+function readFixture(file: string): Promise<string> {
+  return readFile(new URL(`../server/fixtures/${file}`, import.meta.url), 'utf8');
+}
+
+const fixture: { sse: string; deltaCount: number; text: string } = {
+  sse: await readFixture('short.sse'),
+  ...JSON.parse(await readFixture('short.expected.json')),
+};
 
 function parseAll(chunks: string[]): SseMessage[] {
   const parser = createSseParser();
   return chunks.flatMap((chunk) => parser.feed(chunk));
 }
 
-function deltaTexts(messages: SseMessage[]): string[] {
-  return messages.flatMap((message) => {
-    const event = decode(message);
-    return event?.type === 'delta' ? [event.text] : [];
-  });
-}
-
 describe('createSseParser + decode', () => {
-  const fixture = recorded('short');
-
   it('turns a recorded transcript into exactly its deltas', () => {
-    const texts = deltaTexts(parseAll([fixture.sse]));
+    const texts = decodeTranscript(fixture.sse);
 
     expect(texts).toHaveLength(fixture.deltaCount);
     expect(texts.join('')).toBe(fixture.text);
@@ -62,6 +68,15 @@ describe('createSseParser + decode', () => {
     expect(parseAll(['data: complete\n\n', 'data: partial\n'])).toEqual([
       { event: 'message', data: 'complete' },
     ]);
+  });
+});
+
+describe('decodeTranscript', () => {
+  it('reads back what encodeDelta wrote, skipping comments, unknown events and the terminator', () => {
+    const texts = ['Dear', ' “Acme” team,\n\n', '🚀 "quoted" \\ done'];
+    const raw = `${KEEPALIVE_COMMENT}${texts.map(encodeDelta).join('event: ping\ndata: {}\n\n')}${DONE_EVENT}`;
+
+    expect(decodeTranscript(raw)).toEqual(texts);
   });
 });
 

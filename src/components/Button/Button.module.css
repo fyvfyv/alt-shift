@@ -21,7 +21,8 @@
   box-shadow: var(--shadow-xs), var(--ring-focus);
 }
 
-/* Loading keeps the tab stop but is inert, so it takes the disabled cursor and no hover. */
+/* aria-disabled (loading, or an action the page explains on click) keeps the tab stop, so it
+   takes the default cursor and no hover. */
 .button[aria-disabled="true"] {
   cursor: default;
 }

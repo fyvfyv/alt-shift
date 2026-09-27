@@ -3,6 +3,7 @@ import { StorageNote } from './StorageNote';
 
 const meta = {
   component: StorageNote,
+  args: { failed: true },
   decorators: [
     (Story) => (
       <div style={{ width: 413 }}>
