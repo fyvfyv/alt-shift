@@ -34,7 +34,7 @@ In funnel order; the rules behind each are in [design-decisions.md](design-decis
 - **Try an example**: the mockups' own request, so a first letter needs no typing; its bio is
   never saved as yours. *Land → first letter.*
 - **A Generate Now that names what is missing** and puts the caret there. *Form valid → generate.*
-- **A loading caption** that names the company, then "Almost there…". *Generate → complete.*
+- **A loading caption** that names the company, then "Almost there…", and a "Writing…" line under the streaming text that turns into "Still writing…" when the stream pauses; both shimmer. *Generate → complete.*
 - **Recovery without a reload**: the offline note, Try Again under a cut letter, the countdown
   after a 429, and a failed or cut Try Again that keeps your saved letter and its Copy on screen.
   *Generate → complete, on a key everyone shares.*

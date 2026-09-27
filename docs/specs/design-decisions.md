@@ -163,9 +163,12 @@ shows the whole example again, and Create New clears the ones the user didn't ed
 letter never goes out with the sample's bio.
 
 **Streaming.** Same typography and layout as the completed letter, so nothing reflows when the
-stream ends. Text is appended as it arrives: no typewriter effect, no cursor. The orb fades out
-on the first token (250ms, immediate under reduced motion). The spinner stays in the CTA until
-the stream closes, and fields are read-only without being grayed out.
+stream ends. Text is appended as it arrives, with no typewriter effect. Under the last line a
+small "Writing…" marks where the letter continues, and becomes "Still writing…" after 3 seconds
+without new text, since the live API pauses mid-letter now and then. It shimmers like the
+loading caption and goes when the letter is done. The orb fades out on the first token (250ms,
+immediate under reduced motion). The spinner stays in the CTA until the stream closes, and
+fields are read-only without being grayed out.
 
 **Announcements.** The panel is a named region ("Your letter"), not a live region, so a screen
 reader never reads the letter as it streams. One status line outside it says "Generating your
@@ -223,8 +226,10 @@ latest changes will be lost when the tab closes; the letters stay on screen.
 
 **Slow starts.** Two seconds into a run the orb gets a caption: a small "Generating" eyebrow over
 "Writing your letter for {Company}…", which becomes "Almost there…" at eight seconds; the first
-token clears both. The orb holds the panel's center with or without the caption, so the loading
-frame is unchanged until the caption is due.
+token clears both. Each line reveals left to right, then a lighter band sweeps across it every
+1.4 seconds (`ShimmerText`; static text under reduced motion and in forced colors). The orb holds
+the panel's center with or without the caption, so the loading frame is unchanged until the
+caption is due.
 
 **Cards.** The footer keeps Figma's two actions, Delete and Copy. A letter the 240px card clips
 gets a "Read more" over the end of its last, faded line, so it takes no row of its own; letters

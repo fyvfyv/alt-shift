@@ -254,6 +254,32 @@ describe('GeneratorPage', () => {
       expect(screen.getByText('Almost there…')).toBeInTheDocument();
     });
 
+    it('under a streaming letter says it is still writing once no text has come for 3 s', async () => {
+      vi.useFakeTimers({
+        toFake: ['setInterval', 'clearInterval', 'Date', 'requestAnimationFrame'],
+      });
+      const { user, fake } = await renderWithProviders(<GeneratorPage />);
+      await fillForm(user);
+      await user.click(generateButton());
+      const settle = (ms: number) => act(() => vi.advanceTimersByTimeAsync(ms));
+
+      fake.lastRun().emit('Dear Apple team,');
+      await settle(20);
+      expect(screen.getByText('Writing…')).toBeInTheDocument();
+
+      await settle(3_000);
+      expect(screen.getByText('Still writing…')).toBeInTheDocument();
+
+      fake.lastRun().emit('\n\nI built a design system.');
+      await settle(20);
+      expect(screen.getByText('Writing…')).toBeInTheDocument();
+
+      fake.lastRun().emit('\n\nSincerely,');
+      fake.lastRun().end();
+      await settle(20);
+      expect(screen.queryByText(/writing…$/i)).not.toBeInTheDocument();
+    });
+
     it('when the preview sits beside the form leaves the scroll position alone', async () => {
       vi.spyOn(HTMLElement.prototype, 'offsetTop', 'get').mockReturnValue(32);
       const scroll = vi.spyOn(Element.prototype, 'scrollIntoView');

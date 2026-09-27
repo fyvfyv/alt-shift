@@ -75,6 +75,10 @@ export const copy = {
       writing: (company: string) => `Writing your letter for ${company}…`,
       almost: 'Almost there…',
     },
+    streaming: {
+      writing: 'Writing…',
+      stalled: 'Still writing…',
+    },
     label: 'Your letter',
     kept: (title?: string) =>
       title ? `Showing your previous letter, ${title}.` : 'Your previous letter is kept.',

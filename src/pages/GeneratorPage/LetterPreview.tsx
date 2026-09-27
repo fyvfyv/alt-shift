@@ -3,6 +3,7 @@ import { Button } from '../../components/Button/Button';
 import { CopyButton } from '../../components/CopyButton/CopyButton';
 import { LetterBody } from '../../components/LetterBody/LetterBody';
 import { LoadingOrb, useOrbExit } from '../../components/LoadingOrb/LoadingOrb';
+import { ShimmerText } from '../../components/ShimmerText/ShimmerText';
 import { StorageNote } from '../../components/StorageNote/StorageNote';
 import { copy } from '../../copy';
 import {
@@ -21,6 +22,7 @@ import { SignatureField } from './SignatureField';
 
 const CAPTION_AFTER = 2;
 const SLOW_AFTER = 8;
+const STALLED_AFTER = 3;
 
 type LetterPreviewProps = {
   ref?: Ref<HTMLElement>;
@@ -62,7 +64,11 @@ function LoadingCaption({ elapsed, company }: { elapsed: number; company: string
     <div className={styles.caption}>
       <p className={`${styles.eyebrow} ${typography.smMedium}`}>{copy.preview.loading.eyebrow}</p>
       <p className={`${styles.placeholder} ${typography.lg}`}>
-        {elapsed < SLOW_AFTER ? copy.preview.loading.writing(company) : copy.preview.loading.almost}
+        <ShimmerText>
+          {elapsed < SLOW_AFTER
+            ? copy.preview.loading.writing(company)
+            : copy.preview.loading.almost}
+        </ShimmerText>
       </p>
     </div>
   );
@@ -71,6 +77,7 @@ function LoadingCaption({ elapsed, company }: { elapsed: number; company: string
 type ContentProps = Omit<LetterPreviewProps, 'ref' | 'company' | 'savedLetter'> & {
   kept: string | undefined;
   failed: RetryableError | null;
+  stalled: boolean;
 };
 
 function Content({
@@ -85,6 +92,7 @@ function Content({
   storageFailed,
   name,
   onNameChange,
+  stalled,
 }: ContentProps) {
   if (state.status === 'empty') {
     return <p className={`${styles.placeholder} ${typography.lg}`}>{copy.preview.empty}</p>;
@@ -166,6 +174,13 @@ function Content({
           </div>
         )}
         <LetterBody text={text} spacing="comfortable" />
+        {state.status === 'streaming' && (
+          <p className={`${styles.eyebrow} ${typography.smMedium}`}>
+            <ShimmerText>
+              {stalled ? copy.preview.streaming.stalled : copy.preview.streaming.writing}
+            </ShimmerText>
+          </p>
+        )}
         {cut && !complete && (
           <>
             <p className={`${styles.cutNote} ${typography.sm}`}>{copy.preview.streamCut}</p>
@@ -191,6 +206,8 @@ export function LetterPreview({ ref, company, savedLetter, ...props }: LetterPre
   const loading = state.status === 'loading';
   const orbExiting = useOrbExit(loading);
   const elapsed = useElapsed(loading);
+  const streaming = state.status === 'streaming';
+  const quiet = useElapsed(streaming, streaming ? state.text : undefined);
   const showOrb = loading || orbExiting;
   const kept = keptLetter(state, savedLetter);
   const failed = failedBeforeText(state, savedLetter);
@@ -211,7 +228,7 @@ export function LetterPreview({ ref, company, savedLetter, ...props }: LetterPre
           <LoadingCaption elapsed={elapsed} company={company} />
         </>
       ) : (
-        <Content {...props} kept={kept} failed={failed} />
+        <Content {...props} kept={kept} failed={failed} stalled={quiet >= STALLED_AFTER} />
       )}
     </section>
   );
