@@ -78,7 +78,6 @@ function LoadingCaption({ elapsed, company }: { elapsed: number; company: string
 type ContentProps = Omit<LetterPreviewProps, 'ref' | 'company' | 'savedLetter'> & {
   kept: string | undefined;
   failed: RetryableError | null;
-  stalled: boolean;
 };
 
 function Content({
@@ -94,7 +93,6 @@ function Content({
   name,
   onNameChange,
   onNextCompany,
-  stalled,
 }: ContentProps) {
   const [copiedText, setCopiedText] = useState<string>();
   if (state.status === 'empty') {
@@ -182,13 +180,6 @@ function Content({
           </div>
         )}
         <LetterBody text={text} spacing="comfortable" />
-        {state.status === 'streaming' && (
-          <p className={`${styles.eyebrow} ${typography.smMedium}`}>
-            <ShimmerText>
-              {stalled ? copy.preview.streaming.stalled : copy.preview.streaming.writing}
-            </ShimmerText>
-          </p>
-        )}
         {cut && !complete && (
           <>
             <p className={`${styles.cutNote} ${typography.sm}`}>{copy.preview.streamCut}</p>
@@ -227,6 +218,7 @@ export function LetterPreview({ ref, company, savedLetter, ...props }: LetterPre
   const streaming = state.status === 'streaming';
   const quiet = useElapsed(streaming, streaming ? state.text : undefined);
   const showOrb = loading || orbExiting;
+  const writing = streaming && !showOrb;
   const kept = keptLetter(state, savedLetter);
   const failed = failedBeforeText(state, savedLetter);
 
@@ -236,8 +228,18 @@ export function LetterPreview({ ref, company, savedLetter, ...props }: LetterPre
       ref={ref}
       className={styles.panel}
       data-layout={showOrb ? 'loading' : failed ? 'center' : undefined}
+      data-writing={writing || undefined}
       aria-label={copy.preview.label}
     >
+      {writing && (
+        <p className={`${styles.writing} ${typography.smMedium}`}>
+          <ShimmerText reveal={false}>
+            {quiet >= STALLED_AFTER
+              ? copy.preview.streaming.stalled
+              : copy.preview.streaming.writing}
+          </ShimmerText>
+        </p>
+      )}
       {showOrb ? (
         <>
           <div className={styles.orbSlot}>
@@ -246,7 +248,7 @@ export function LetterPreview({ ref, company, savedLetter, ...props }: LetterPre
           <LoadingCaption elapsed={elapsed} company={company} />
         </>
       ) : (
-        <Content {...props} kept={kept} failed={failed} stalled={quiet >= STALLED_AFTER} />
+        <Content {...props} kept={kept} failed={failed} />
       )}
     </section>
   );

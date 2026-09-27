@@ -163,10 +163,12 @@ shows the whole example again, and Create New clears the ones the user didn't ed
 letter never goes out with the sample's bio.
 
 **Streaming.** Same typography and layout as the completed letter, so nothing reflows when the
-stream ends. Text is appended as it arrives, with no typewriter effect. Under the last line a
-small "Writing…" marks where the letter continues, and becomes "Still writing…" after 3 seconds
-without new text, since the live API pauses mid-letter now and then. It shimmers like the
-loading caption and goes when the letter is done. The orb fades out on the first token (250ms,
+stream ends. Text is appended as it arrives, with no typewriter effect. While it writes, the
+panel itself shows it: a white "Writing…" chip with a pulsing brand dot sits on the panel's top
+edge above the first line, and a soft light band sweeps across the grey background every 2.4
+seconds. The chip says "Still writing…" after 3 seconds without new text, since the live API
+pauses mid-letter now and then. It sits on the edge, not in the text column, so nothing moves
+when it goes at the end. The orb fades out on the first token (250ms,
 immediate under reduced motion). The spinner stays in the CTA until the stream closes, and
 fields are read-only without being grayed out.
 

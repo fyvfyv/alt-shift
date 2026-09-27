@@ -1,4 +1,5 @@
 .panel {
+  position: relative;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -8,6 +9,79 @@
   overflow: hidden;
   background: var(--color-surface-subtle);
   border-radius: var(--radius-lg);
+  scroll-margin-top: var(--space-6);
+}
+
+/* The orb is gone by now, and the writing chip sits half above the panel's edge. */
+.panel[data-writing] {
+  overflow: visible;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .panel[data-writing] {
+    background-image: linear-gradient(
+      100deg,
+      transparent 40%,
+      color-mix(in srgb, var(--color-surface) 60%, transparent) 50%,
+      transparent 60%
+    );
+    background-size: 300% 100%;
+    animation: sheen 2.4s linear infinite;
+  }
+}
+
+@keyframes sheen {
+  from {
+    background-position: 100% 0;
+  }
+
+  to {
+    background-position: 0 0;
+  }
+}
+
+.writing {
+  position: absolute;
+  top: 0;
+  left: var(--space-6);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  color: var(--color-text-tertiary);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-xs);
+  white-space: nowrap;
+  transform: translateY(-50%);
+  animation: fade-in 240ms ease-out;
+}
+
+.writing::before {
+  width: 6px;
+  height: 6px;
+  content: "";
+  background: var(--color-brand);
+  border-radius: var(--radius-full);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .writing::before {
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.35;
+  }
 }
 
 @container page (width < 1120px) {
@@ -23,6 +97,10 @@
 @media (width < 768px) {
   .panel {
     padding: var(--space-4);
+  }
+
+  .writing {
+    left: var(--space-4);
   }
 }
 
