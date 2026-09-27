@@ -25,7 +25,7 @@ export const copy = {
     title: 'New application',
     fields: {
       jobTitle: { label: 'Job title', placeholder: 'Product manager' },
-      company: { label: 'Company', placeholder: 'Apple' },
+      company: { label: 'Company', placeholder: 'Apple', nextPlaceholder: 'Next company' },
       skills: { label: 'I am good at...', placeholder: 'HTML, CSS and doing things in time' },
       details: {
         label: 'Additional details',
@@ -39,7 +39,6 @@ export const copy = {
     generate: 'Generate Now',
     generating: 'Generating…',
     tryAgain: 'Try Again',
-    nextCompany: 'Next company',
     offlineNote: "You appear to be offline. Generating will work again once you're back.",
     hint: {
       names: { jobTitle: 'a job title', company: 'a company', skills: "what you're good at" },

@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 
-// Measured against Date.now(): background tabs throttle timers. A change of `since` restarts
-// the count.
+// Measured against Date.now(): background tabs throttle timers.
 export function useElapsed(active: boolean, since?: unknown): number {
   const [seconds, setSeconds] = useState(0);
 

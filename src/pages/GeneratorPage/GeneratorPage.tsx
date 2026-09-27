@@ -215,7 +215,7 @@ export function GeneratorPage() {
           readOnly={busy}
           cta={cta}
           note={!online && !previewSaysOffline ? copy.generator.offlineNote : hint}
-          companyPlaceholder={keptTitle ? copy.generator.nextCompany : undefined}
+          companyPlaceholder={keptTitle ? copy.generator.fields.company.nextPlaceholder : undefined}
           jobTitleRef={jobTitleRef}
         />
         <LetterPreview
