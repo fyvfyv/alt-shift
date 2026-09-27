@@ -1,6 +1,6 @@
 import type { Preview } from '@storybook/react-vite';
 import { MemoryRouter } from 'react-router';
-import { PageShell } from '../src/components/PageShell/PageShell';
+import { PageShell } from '../src/app/PageShell';
 import { GenerationProvider } from '../src/features/generation/GenerationProvider';
 import { InMemoryLetterRepository } from '../src/features/letters/inMemoryRepository';
 import { LetterStoreProvider } from '../src/features/letters/LetterStoreProvider';

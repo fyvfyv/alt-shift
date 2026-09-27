@@ -73,6 +73,14 @@ export const KeptAfterRateLimit: Story = {
   },
 };
 
+// Generate Now after an edit failed: the letter still shown was written for another job.
+export const KeptForAnotherJob: Story = {
+  args: {
+    state: { status: 'error', error: { kind: 'upstream' }, text: sampleText },
+    keptTitle: 'Product Designer, Lumen Health',
+  },
+};
+
 export const UpstreamError: Story = {
   args: { state: { status: 'error', error: { kind: 'upstream' } } },
 };
@@ -85,6 +93,11 @@ export const StreamCut: Story = {
   args: {
     state: { status: 'error', error: { kind: 'stream-cut' }, text: sampleText.slice(0, 600) },
   },
+};
+
+// A Try Again that was cut: the saved letter it was replacing stays, under the note.
+export const StreamCutPreviousKept: Story = {
+  args: { ...StreamCut.args, savedLetter: sampleText },
 };
 
 // After an edit the form's CTA is Generate Now, so the panel keeps only the note.

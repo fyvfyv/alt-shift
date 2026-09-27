@@ -54,25 +54,35 @@ test('on a phone Generate Now brings the preview under the form into view', {
   await expect(panel).toBeInViewport({ ratio: 0.5 });
 });
 
-test('a dropped stream keeps the partial letter and saves nothing', async ({ page }) => {
-  await routeMockScenario(page, 'disconnect');
-  await page.goto('/new');
-  await fillGeneratorForm(page);
-  await page.getByRole('button', { name: 'Generate Now' }).click();
+// The live API sometimes drops the connection and sometimes closes it cleanly mid-letter, with
+// or without [DONE]; either way a letter that stops mid-sentence is cut, not finished.
+const CUTS = [
+  ['disconnect', 'a dropped stream'],
+  ['truncate', 'a stream that closes mid-sentence'],
+] as const;
 
-  // The note is also the page's status line, so look for it inside the panel.
-  const panel = previewPanel(page);
-  await expect(panel.getByText('The letter was cut short.')).toBeVisible();
-  // The mock replays recorded letters, so only the greeting is known.
-  await expect(panel).toContainText('Dear ');
-  // Try Again is offered twice: under the cut letter and as the form's CTA.
-  await expect(panel.getByRole('button', { name: 'Try Again' })).toBeVisible();
-  await expect(page.locator('form').getByRole('button', { name: 'Try Again' })).toBeVisible();
+for (const [scenario, cut] of CUTS) {
+  test(`${cut} keeps the partial letter and saves nothing`, async ({ page }) => {
+    await routeMockScenario(page, scenario);
+    await page.goto('/new');
+    await fillGeneratorForm(page);
+    await page.getByRole('button', { name: 'Generate Now' }).click();
 
-  await page.getByRole('link', { name: 'Dashboard' }).click();
-  await expect(page.getByText('Your generated applications will appear here...')).toBeVisible();
-  await expect(page.getByRole('article')).toHaveCount(0);
-});
+    // The note is also the page's status line, so look for it inside the panel.
+    const panel = previewPanel(page);
+    await expect(panel.getByText('The letter was cut short.')).toBeVisible();
+    // The mock replays recorded letters, so only the greeting is known.
+    await expect(panel).toContainText('Dear ');
+    await expect(page.getByRole('button', { name: 'Copy to clipboard' })).toHaveCount(0);
+    // Try Again is offered twice: under the cut letter and as the form's CTA.
+    await expect(panel.getByRole('button', { name: 'Try Again' })).toBeVisible();
+    await expect(page.locator('form').getByRole('button', { name: 'Try Again' })).toBeVisible();
+
+    await page.getByRole('link', { name: 'Dashboard' }).click();
+    await expect(page.getByText('Your generated applications will appear here...')).toBeVisible();
+    await expect(page.getByRole('article')).toHaveCount(0);
+  });
+}
 
 test('a rate-limited request counts down before it can be retried', async ({ page }) => {
   await routeMockScenario(page, 'rate-limit');

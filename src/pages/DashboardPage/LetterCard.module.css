@@ -1,4 +1,4 @@
-/* Fixed height in every layout: the body is a preview, the fade says there is more. */
+/* Fixed height in every layout: the body is a preview. */
 .card {
   position: relative;
   display: flex;
@@ -16,34 +16,42 @@
   overflow: hidden;
 }
 
-/* Three actions do not fit a narrow card on one row; wrapping keeps them inside the card and
-   the body, not the card, gives up the height. */
-.footer {
+/* Only on a letter the preview clips. A zero-height anchor on the clipped edge, so the fade and
+   Read more sit over the last line without taking height from the preview or a third place in
+   the footer. */
+.more {
   position: relative;
+}
+
+/* Covers the last 32px of the body and the top 8px of the footer's padding. */
+.more::before {
+  position: absolute;
+  top: -32px;
+  inset-inline: 0;
+  height: 40px;
+  pointer-events: none;
+  content: "";
+  background: var(--gradient-card-fade);
+}
+
+/* Centered on the last visible line, at its end, where the text would go on; the card color
+   behind it, faded in from the left, hides the letter underneath. */
+.toggle {
+  position: absolute;
+  top: -20px;
+  inset-inline-end: 0;
+  display: flex;
+  padding-inline-start: var(--space-8);
+  background: linear-gradient(90deg, transparent, var(--color-surface-subtle) var(--space-8));
+}
+
+/* Figma's two actions. Only a card narrower than both (a 320px phone) wraps them, and then the
+   body, not the card, gives up the height. */
+.footer {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2) var(--space-4);
   align-items: center;
   justify-content: space-between;
   padding-top: var(--space-4);
-}
-
-/* Anchored to the footer so it follows a wrapped one: covers the last 32px of the body and the
-   top 8px of the footer's padding. */
-.fade {
-  position: absolute;
-  top: -32px;
-  inset-inline: 0;
-  height: 40px;
-  pointer-events: none;
-  background: var(--gradient-card-fade);
-}
-
-/* Expanded, the card grows with the letter; the fade goes with the clipping it announced. */
-.card[data-expanded] {
-  height: auto;
-}
-
-.card[data-expanded] .fade {
-  display: none;
 }

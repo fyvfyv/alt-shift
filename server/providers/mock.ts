@@ -16,7 +16,14 @@ import { type FixtureName, SAMPLES } from '../fixtures/samples.js';
 import { jsonError } from '../jsonError.js';
 import type { Provider } from './types.js';
 
-const DISCONNECT_AT = 0.4;
+// `disconnect` errors the stream here; `truncate` closes it cleanly, without [DONE], as the live
+// API now and then does mid-letter.
+const CUT_AT = 0.4;
+// The live cuts land mid-sentence, and the client takes a letter that stops on a finished
+// sentence as whole, so the mock never cuts right after one either.
+const SENTENCE_END = /[.!?…]\s*$/;
+
+type Scenario = 'complete' | 'disconnect' | 'truncate';
 
 function fixtureFor(details: string): FixtureName {
   const length = countChars(details);
@@ -51,20 +58,27 @@ function rechunk(text: string, sizes: number[]): string[] {
   return chunks;
 }
 
-async function eventsFor(request: GenerateRequest): Promise<string[]> {
+async function deltasFor(request: GenerateRequest): Promise<string[]> {
   const name = fixtureFor(request.details);
   const raw = await readFile(new URL(`../fixtures/${name}.sse`, import.meta.url), 'utf8');
   const deltas = decodeTranscript(raw);
   const text = personalize(deltas.join(''), SAMPLES[name], request);
-  return [...rechunk(text, deltas.map(countChars)).map(encodeDelta), DONE_EVENT];
+  return rechunk(text, deltas.map(countChars));
+}
+
+function cutIndex(deltas: string[]): number {
+  let index = Math.floor(deltas.length * CUT_AT);
+  while (index < deltas.length - 1 && SENTENCE_END.test(deltas.slice(0, index).join(''))) index++;
+  return index;
 }
 
 function stream(
-  events: string[],
-  { signal, disconnect }: { signal: AbortSignal; disconnect: boolean },
+  deltas: string[],
+  { signal, scenario }: { signal: AbortSignal; scenario: Scenario },
 ): ReadableStream<Uint8Array> {
   const encoder = new TextEncoder();
-  const cutAt = disconnect ? Math.floor(events.length * DISCONNECT_AT) : events.length;
+  const events = [...deltas.map(encodeDelta), DONE_EVENT];
+  const cutAt = scenario === 'complete' ? events.length : cutIndex(deltas);
   const firstDelay = Number(process.env.MOCK_FIRST_DELTA_MS ?? 1200);
   const delay = Number(process.env.MOCK_DELAY_MS ?? 40);
   let index = 0;
@@ -81,7 +95,8 @@ function stream(
         return;
       }
       if (index === cutAt) {
-        controller.error(new Error('Mock disconnect'));
+        if (scenario === 'disconnect') controller.error(new Error('Mock disconnect'));
+        else controller.close();
         return;
       }
       controller.enqueue(encoder.encode(events[index++]));
@@ -102,9 +117,9 @@ export const mockProvider: Provider = async (_input, { signal, request, headers 
     case 'invalid-token':
       return jsonError(401, 'invalid_token', 'Invalid token (mock).');
     case 'complete':
-    case 'disconnect': {
-      const events = await eventsFor(request);
-      const body = stream(events, { signal, disconnect: scenario === 'disconnect' });
+    case 'disconnect':
+    case 'truncate': {
+      const body = stream(await deltasFor(request), { signal, scenario });
       return new Response(body, { headers: { 'Content-Type': 'text/event-stream' } });
     }
     default:

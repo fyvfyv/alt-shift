@@ -3,7 +3,7 @@ import typography from '../../styles/typography.module.css';
 import { Icon, type IconName, type IconSize } from './Icon';
 
 // A record rather than a list: typecheck fails until an icon added to Icon.tsx is listed here.
-const catalogue = {
+const catalog = {
   'copy-03': true,
   'home-02': true,
   'loading-02': true,
@@ -11,7 +11,7 @@ const catalogue = {
   'repeat-03': true,
   'trash-01': true,
 } satisfies Record<IconName, true>;
-const names = Object.keys(catalogue) as IconName[];
+const names = Object.keys(catalog) as IconName[];
 const sizes: IconSize[] = [24, 20];
 
 const meta = {
@@ -24,8 +24,8 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
-// Icons take the colour of the text next to them.
-export const Catalogue: Story = {
+// Icons take the color of the text next to them.
+export const Catalog: Story = {
   render: () => (
     <div
       style={{

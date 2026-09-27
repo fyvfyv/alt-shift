@@ -15,7 +15,7 @@ export default defineConfig({
           environment: 'node',
           unstubEnvs: true,
           unstubGlobals: true,
-          include: ['server/**/*.test.ts', 'shared/**/*.test.ts', 'scripts/**/*.test.ts'],
+          include: ['server/**/*.test.ts', 'shared/**/*.test.ts'],
         },
       },
       {

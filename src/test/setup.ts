@@ -27,3 +27,16 @@ Object.defineProperty(window, 'matchMedia', {
 
 window.scrollTo = () => {};
 Element.prototype.scrollIntoView = () => {};
+globalThis.ResizeObserver = class {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+};
+// jsdom has <dialog> without its methods. Escape and the backdrop are left to the browser tests.
+HTMLDialogElement.prototype.showModal = function (this: HTMLDialogElement) {
+  this.open = true;
+};
+HTMLDialogElement.prototype.close = function (this: HTMLDialogElement) {
+  this.open = false;
+  this.dispatchEvent(new Event('close'));
+};

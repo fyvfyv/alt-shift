@@ -1,6 +1,7 @@
 import type { GenerateRequest } from '../../../shared/generation';
 import { createSseParser } from '../../../shared/sseParser';
 import { decode } from '../../../shared/variantDecoder';
+import { looksWhole } from '../letters/model';
 import { GenerationFailure } from './errors';
 
 // Throws only a GenerationFailure, or the AbortError when `signal` aborts.
@@ -64,10 +65,12 @@ function readWithin(reader: Reader, ms: number): Promise<ReadResult> {
   return Promise.race([reader.read(), timeout]).finally(() => clearTimeout(timer));
 }
 
-// The letter is complete once [DONE] arrived, so nothing the stream does afterwards can fail it.
+// Nothing after [DONE] carries text, so nothing the stream does afterwards can change the outcome.
+// One deadline for the whole drain, not per read.
 async function drain(reader: Reader): Promise<void> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
   const deadline = new Promise<typeof TIMED_OUT>((resolve) => {
-    setTimeout(() => resolve(TIMED_OUT), CLOSE_AFTER_DONE_MS);
+    timer = setTimeout(() => resolve(TIMED_OUT), CLOSE_AFTER_DONE_MS);
   });
   try {
     for (;;) {
@@ -78,26 +81,30 @@ async function drain(reader: Reader): Promise<void> {
       }
       if (result.done) return;
     }
-  } catch {}
+  } catch {
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 export const generate: GenerationPort = async function* (req, signal) {
   const reader = (await openStream(req, signal)).getReader();
   const decoder = new TextDecoder();
   const parser = createSseParser();
-  let receivedText = false;
+  let text = '';
+  const failure = () => new GenerationFailure({ kind: text ? 'stream-cut' : 'upstream' });
 
-  for (;;) {
+  read: for (;;) {
     let result: ReadResult;
     try {
       result = await readWithin(reader, IDLE_TIMEOUT_MS);
     } catch (e) {
       if (isAbort(e, signal)) throw e;
-      throw new GenerationFailure({ kind: receivedText ? 'stream-cut' : 'upstream' });
+      throw failure();
     }
     if (result === TIMED_OUT) {
       await reader.cancel();
-      throw new GenerationFailure({ kind: receivedText ? 'stream-cut' : 'upstream' });
+      throw failure();
     }
     if (result.done) break;
 
@@ -105,15 +112,16 @@ export const generate: GenerationPort = async function* (req, signal) {
       const event = decode(message);
       if (event?.type === 'done') {
         await drain(reader);
-        return;
+        break read;
       }
       if (event?.type === 'delta') {
-        receivedText = true;
+        text += event.text;
         yield event.text;
       }
     }
   }
 
-  // Without [DONE] a clean close still ends the letter, as long as some text arrived.
-  if (!receivedText) throw new GenerationFailure({ kind: 'upstream' });
+  // Neither [DONE] nor a clean close means the letter is whole: the live API now and then closes
+  // cleanly mid-sentence, with or without [DONE], so the text itself has to say it ended.
+  if (!looksWhole(text)) throw failure();
 };

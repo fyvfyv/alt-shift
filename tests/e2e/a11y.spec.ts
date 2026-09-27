@@ -30,6 +30,16 @@ test('dashboard with letters', async ({ page }) => {
   await expectNoSeriousViolations(page);
 });
 
+test('dashboard, reading a letter', async ({ page }) => {
+  await page.goto('/');
+  const filler = 'A sentence about impact. '.repeat(40).trim();
+  await seedLetters(page, lettersOf(1, { text: `Dear Acme team,\n\n${filler}` }));
+  await page.getByRole('button', { name: 'Read more' }).click();
+  await expect(page.getByRole('dialog', { name: 'Role 0, Acme' })).toBeVisible();
+
+  await expectNoSeriousViolations(page);
+});
+
 test('generator, empty', async ({ page }) => {
   await page.goto('/new');
   await expect(page.getByRole('heading', { level: 1, name: 'New application' })).toBeVisible();

@@ -50,9 +50,12 @@
   border-color: var(--color-brand);
 }
 
-.button[data-variant="primary"]:hover:not(:disabled, [aria-disabled="true"]) {
-  background: var(--color-brand-accent);
-  border-color: var(--color-brand-accent);
+/* Hover only where a pointer can hover: a tap would otherwise leave it stuck on touch screens. */
+@media (hover: hover) {
+  .button[data-variant="primary"]:hover:not(:disabled, [aria-disabled="true"]) {
+    background: var(--color-brand-accent);
+    border-color: var(--color-brand-accent);
+  }
 }
 
 /* Pressed returns to the resting green, darker than hover. */
@@ -73,8 +76,10 @@
   border-color: var(--color-border);
 }
 
-.button[data-variant="secondary"]:hover:not(:disabled, [aria-disabled="true"]) {
-  background: var(--color-surface-subtle);
+@media (hover: hover) {
+  .button[data-variant="secondary"]:hover:not(:disabled, [aria-disabled="true"]) {
+    background: var(--color-surface-subtle);
+  }
 }
 
 .button[data-variant="secondary"]:active:not(:disabled, [aria-disabled="true"]) {
@@ -99,8 +104,10 @@
   box-shadow: var(--ring-focus);
 }
 
-.button[data-variant="tertiary"]:hover:not(:disabled, [aria-disabled="true"]) {
-  color: var(--color-text-secondary);
+@media (hover: hover) {
+  .button[data-variant="tertiary"]:hover:not(:disabled, [aria-disabled="true"]) {
+    color: var(--color-text-secondary);
+  }
 }
 
 .button[data-variant="tertiary"]:is(:disabled, [aria-disabled="true"]) {

@@ -27,6 +27,10 @@ export function countChars(value: string): number {
 
 const SINGLE_LINE_FIELDS = ['jobTitle', 'company', 'skills'] as const;
 
+// An <input> can't hold a line break, and in the system prompt one would start a new instruction
+// line; the same goes for other control characters. A tab can come from a spreadsheet paste.
+const CONTROL_EXCEPT_TAB = /(?!\t)\p{Cc}/u;
+
 function invalid(message: string): ValidationResult {
   return { ok: false, message };
 }
@@ -44,6 +48,9 @@ export function validateGenerateRequest(input: unknown): ValidationResult {
       return invalid(`${field} is required.`);
     }
     value[field] = raw.trim();
+    if (CONTROL_EXCEPT_TAB.test(value[field])) {
+      return invalid(`${field} must be a single line.`);
+    }
     if (countChars(value[field]) > LIMITS.singleLine) {
       return invalid(`${field} must be at most ${LIMITS.singleLine} characters.`);
     }

@@ -13,9 +13,10 @@ type ProvidersModule = typeof import('./providers/index.js');
 export function generateMiddleware(handler: Handler) {
   return async (req: Connect.IncomingMessage, res: ServerResponse): Promise<void> => {
     const controller = new AbortController();
+    let failed = false;
     // Not req.on('close'): since Node 16 it fires once the request body is read, not on disconnect.
     res.on('close', () => {
-      if (!res.writableFinished) controller.abort();
+      if (!res.writableFinished && !failed) controller.abort();
     });
 
     try {
@@ -50,7 +51,9 @@ export function generateMiddleware(handler: Handler) {
         res.end(JSON.stringify(body));
         return;
       }
-      // No chunked terminator: the browser's read() rejects, exactly like a dropped upstream.
+      // No chunked terminator: the browser's read() rejects, exactly like a dropped upstream. The
+      // close this causes is ours, not the client leaving, so it must not abort the request.
+      failed = true;
       res.destroy();
     }
   };

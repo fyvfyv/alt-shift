@@ -5,13 +5,18 @@ import { LetterBody } from '../../components/LetterBody/LetterBody';
 import { LoadingOrb, useOrbExit } from '../../components/LoadingOrb/LoadingOrb';
 import { StorageNote } from '../../components/StorageNote/StorageNote';
 import { copy } from '../../copy';
-import type { GenerationError } from '../../features/generation/errors';
-import type { PreviewState } from '../../features/generation/generationReducer';
+import {
+  failedBeforeText,
+  keptLetter,
+  type PreviewState,
+  type RetryableError,
+} from '../../features/generation/generationReducer';
 import { useElapsed } from '../../features/generation/useElapsed';
-import { withSignature } from '../../features/letters/model';
+import { endsOnSignOff, withSignature } from '../../features/letters/model';
 import typography from '../../styles/typography.module.css';
 import utilities from '../../styles/utilities.module.css';
 import styles from './LetterPreview.module.css';
+import { cutNote } from './previewStatus';
 import { SignatureField } from './SignatureField';
 
 // Seconds into a run before the orb gets a caption, and before it admits the model is slow.
@@ -25,9 +30,14 @@ type LetterPreviewProps = {
   // Blocks every Retry and Try Again in the panel without taking them out of the tab order.
   retryDisabled: boolean;
   onRetry: () => void;
-  // The Try Again under a cut or kept letter. Off once an edit makes the next run a new letter,
-  // so the panel never offers a retry the form's CTA no longer does; the note under it stays.
+  // The Try Again beside a cut or kept letter. Off once an edit makes the next run a new letter,
+  // so the panel never offers a retry the form's CTA no longer does; the note beside it stays.
   showCutRetry: boolean;
+  // The saved letter this run regenerates. A cut or a failure leaves it on screen, with its Copy,
+  // under a note about the run.
+  savedLetter?: string;
+  // The job the kept letter was written for, when an edit has since changed the one in the form.
+  keptTitle?: string;
   storageFailed: boolean;
   // Signs the completed letter; the footer edits it in place.
   name: string;
@@ -35,8 +45,6 @@ type LetterPreviewProps = {
   // Named in the loading caption.
   company: string;
 };
-
-type RetryableError = Exclude<GenerationError, { kind: 'stream-cut' }>;
 
 function errorMessage(error: RetryableError): { title: string; body: string } {
   switch (error.kind) {
@@ -70,16 +78,25 @@ function LoadingCaption({ elapsed, company }: { elapsed: number; company: string
   );
 }
 
+type ContentProps = Omit<LetterPreviewProps, 'ref' | 'company' | 'savedLetter'> & {
+  // The complete letter on screen, if any: the one just finished, or the one a failed run kept.
+  kept: string | undefined;
+  failed: RetryableError | null;
+};
+
 function Content({
   state,
+  kept,
+  failed,
   retryCountdown,
   retryDisabled,
   onRetry,
   showCutRetry,
+  keptTitle,
   storageFailed,
   name,
   onNameChange,
-}: Omit<LetterPreviewProps, 'ref' | 'company'>) {
+}: ContentProps) {
   if (state.status === 'empty') {
     return <p className={`${styles.placeholder} ${typography.lg}`}>{copy.preview.empty}</p>;
   }
@@ -93,20 +110,18 @@ function Content({
     'aria-disabled': retryDisabled || undefined,
     onClick: retryDisabled ? undefined : onRetry,
   } as const;
-  const failure =
-    state.status === 'error' && state.error.kind !== 'stream-cut' ? state.error : null;
   // Only fixed text goes in an alert, so it is announced once; the wait beside it is a status.
-  const wait = failure?.kind === 'rate-limit' ? waitText(retryCountdown, retryDisabled) : null;
+  const wait = waitText(retryCountdown, retryDisabled);
 
-  if (failure && state.text === undefined) {
-    const { title, body } = errorMessage(failure);
+  if (failed) {
+    const { title, body } = errorMessage(failed);
     return (
       <>
         <div className={styles.error} role="alert">
           <p className={`${styles.errorTitle} ${typography.lgStrong}`}>{title}</p>
           <p className={`${styles.errorBody} ${typography.md}`}>{body}</p>
         </div>
-        {failure.kind === 'rate-limit' && (
+        {failed.kind === 'rate-limit' && (
           <p
             role="status"
             className={
@@ -123,16 +138,25 @@ function Content({
     );
   }
 
-  // A kept letter is the previous complete one, still saved, so it keeps its footer.
-  const letter = state.text ?? '';
-  const complete = state.status === 'completed' || failure !== null;
+  const complete = kept !== undefined;
+  const letter = kept ?? state.text ?? '';
   const text = complete ? withSignature(letter, name) : letter;
-  let note: ReactNode = null;
-  if (failure) {
+  // The name only ever goes under a sign-off, so without one there is nothing to offer.
+  const signable = endsOnSignOff(letter);
+  const failure =
+    state.status === 'error' && state.error.kind !== 'stream-cut' ? state.error : null;
+  const cut = state.status === 'error' && state.error.kind === 'stream-cut';
+  const retry = showCutRetry && (
+    <Button {...retryProps} className={styles.cutRetry} iconLeading="repeat-03">
+      {retryCountdown > 0 ? copy.preview.retryIn(retryCountdown) : copy.generator.tryAgain}
+    </Button>
+  );
+  let keptNote: ReactNode = null;
+  if (complete && failure) {
     const { title, body } = errorMessage(failure);
-    note = (
+    keptNote = (
       <p className={`${styles.keptNote} ${typography.sm}`}>
-        <span role="alert">{`${title}. ${body} ${copy.preview.kept}`}</span>
+        <span role="alert">{`${title}. ${body} ${copy.preview.kept(keptTitle)}`}</span>
         {failure.kind === 'rate-limit' && (
           <>
             {' '}
@@ -141,24 +165,33 @@ function Content({
         )}
       </p>
     );
-  } else if (state.status === 'error') {
-    note = <p className={`${styles.cutNote} ${typography.sm}`}>{copy.preview.streamCut}</p>;
+  } else if (complete && cut) {
+    // The page's status line announces a cut, so this note stays out of the alerts.
+    keptNote = <p className={`${styles.keptNote} ${typography.sm}`}>{cutNote(true, keptTitle)}</p>;
   }
   return (
     <>
       <div className={styles.content}>
+        {/* Above a kept letter, where the eye lands: the form may name another job by now. */}
+        {keptNote && (
+          <div className={styles.kept}>
+            {keptNote}
+            {retry}
+          </div>
+        )}
         <LetterBody text={text} spacing="comfortable" />
-        {note}
-        {note && showCutRetry && (
-          <Button {...retryProps} className={styles.cutRetry} iconLeading="repeat-03">
-            {retryCountdown > 0 ? copy.preview.retryIn(retryCountdown) : copy.generator.tryAgain}
-          </Button>
+        {/* Under a cut letter, where it marks the point the text stops. */}
+        {cut && !complete && (
+          <>
+            <p className={`${styles.cutNote} ${typography.sm}`}>{copy.preview.streamCut}</p>
+            {retry}
+          </>
         )}
       </div>
       {complete && (
         <div className={styles.footer}>
-          <div className={styles.actions}>
-            <SignatureField name={name} onChange={onNameChange} />
+          <div className={signable ? styles.actions : `${styles.actions} ${styles.copyOnly}`}>
+            {signable && <SignatureField name={name} onChange={onNameChange} />}
             <CopyButton text={text} />
           </div>
           <StorageNote failed={storageFailed} align="end" />
@@ -168,14 +201,14 @@ function Content({
   );
 }
 
-export function LetterPreview({ ref, company, ...props }: LetterPreviewProps) {
+export function LetterPreview({ ref, company, savedLetter, ...props }: LetterPreviewProps) {
   const { state } = props;
   const loading = state.status === 'loading';
   const orbExiting = useOrbExit(loading);
   const elapsed = useElapsed(loading);
   const showOrb = loading || orbExiting;
-  const centered =
-    state.status === 'error' && state.error.kind !== 'stream-cut' && state.text === undefined;
+  const kept = keptLetter(state, savedLetter);
+  const failed = failedBeforeText(state, savedLetter);
 
   // Not a live region: the page's status line says when a run starts, finishes or is cut, and an
   // error speaks through its own alert, so nothing in here is read twice or mid-stream.
@@ -183,7 +216,7 @@ export function LetterPreview({ ref, company, ...props }: LetterPreviewProps) {
     <section
       ref={ref}
       className={styles.panel}
-      data-layout={showOrb ? 'loading' : centered ? 'center' : undefined}
+      data-layout={showOrb ? 'loading' : failed ? 'center' : undefined}
       aria-label={copy.preview.label}
     >
       {showOrb ? (
@@ -194,7 +227,7 @@ export function LetterPreview({ ref, company, ...props }: LetterPreviewProps) {
           <LoadingCaption elapsed={elapsed} company={company} />
         </>
       ) : (
-        <Content {...props} />
+        <Content {...props} kept={kept} failed={failed} />
       )}
     </section>
   );

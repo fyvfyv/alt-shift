@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { AppHeader } from '../AppHeader/AppHeader';
+import { AppHeader } from './AppHeader';
 import styles from './PageShell.module.css';
 
 // Rendered once by the layout route, so the header is not re-mounted on every navigation.

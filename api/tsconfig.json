@@ -1,0 +1,8 @@
+{
+  // Vercel type-checks the function against the nearest tsconfig and reads this file before
+  // resolving `extends`: without a local `module` it forces NodeNext with strict off. Its checker
+  // has no realpath, so under pnpm it can't resolve undici-types, where @types/node gets Request
+  // and Response; the DOM lib supplies them. tsconfig.server.json still keeps DOM out of `tsc -b`.
+  "extends": "../tsconfig.server.json",
+  "compilerOptions": { "module": "esnext", "lib": ["ES2023", "DOM"] }
+}

@@ -13,7 +13,8 @@ export default defineConfig({
     trace: 'retain-on-failure',
   },
   // The long journeys (@desktop) check nothing that depends on the viewport, so they run once, on
-  // desktop; a check of the stacked phone layout (@phone) runs only on the phone.
+  // desktop; a check of the stacked phone layout (@phone) runs only on the phone, 360 wide: the
+  // most common Android width.
   projects: [
     { name: 'setup', testMatch: /\.setup\.ts$/ },
     {
@@ -24,7 +25,7 @@ export default defineConfig({
     },
     {
       name: 'mobile',
-      use: { ...devices['Desktop Chrome'], viewport: { width: 375, height: 812 }, hasTouch: true },
+      use: { ...devices['Desktop Chrome'], viewport: { width: 360, height: 800 }, hasTouch: true },
       grepInvert: /@desktop/,
       dependencies: ['setup'],
     },

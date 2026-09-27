@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import type { GenerationError } from './errors';
 import {
+  failedBeforeText,
   type GenerationEvent,
   generationReducer,
   initialPreviewState,
+  keptLetter,
   type PreviewState,
 } from './generationReducer';
 
@@ -81,5 +83,45 @@ describe('generationReducer', () => {
     ];
 
     for (const event of events) expect(generationReducer(state, event)).toBe(state);
+  });
+});
+
+const upstream = { kind: 'upstream' } as const;
+const cut = { kind: 'stream-cut' } as const;
+
+describe('keptLetter', () => {
+  it.each<[string, PreviewState, string | undefined]>([
+    ['a completed letter', { status: 'completed', text: 'Dear' }, 'Dear'],
+    [
+      'a letter kept through a failed regenerate',
+      { status: 'error', error: upstream, text: 'Dear' },
+      'Dear',
+    ],
+    ['a cut letter', { status: 'error', error: cut, text: 'Dear' }, undefined],
+    ['a letter still streaming', { status: 'streaming', text: 'Dear' }, undefined],
+  ])('for %s is %j', (_, state, expected) => {
+    expect(keptLetter(state)).toBe(expected);
+  });
+
+  it.each<[string, PreviewState]>([
+    ['a cut regenerate', { status: 'error', error: cut, text: 'Sec' }],
+    ['a regenerate that failed after a cut one', { status: 'error', error: upstream }],
+  ])('for %s is the saved letter it was replacing', (_, state) => {
+    expect(keptLetter(state, 'First draft')).toBe('First draft');
+  });
+});
+
+describe('failedBeforeText', () => {
+  it.each<[string, PreviewState, typeof upstream | null]>([
+    ['a failure with nothing on screen', { status: 'error', error: upstream }, upstream],
+    ['a failure over a kept letter', { status: 'error', error: upstream, text: 'Dear' }, null],
+    ['a cut letter', { status: 'error', error: cut, text: 'Dear' }, null],
+    ['a completed letter', { status: 'completed', text: 'Dear' }, null],
+  ])('for %s is %j', (_, state, expected) => {
+    expect(failedBeforeText(state)).toBe(expected);
+  });
+
+  it('is null when a saved letter can stand in for the missing one', () => {
+    expect(failedBeforeText({ status: 'error', error: upstream }, 'First draft')).toBeNull();
   });
 });

@@ -7,6 +7,6 @@ describe('statusMessage', () => {
     ['an error without a letter', { status: 'error', error: { kind: 'upstream' } }],
     ['a kept letter', { status: 'error', error: { kind: 'network' }, text: 'Dear' }],
   ])('leaves %s to its alert', (_, state) => {
-    expect(statusMessage(state)).toBe('');
+    expect(statusMessage(state, true)).toBe('');
   });
 });

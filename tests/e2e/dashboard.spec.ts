@@ -7,18 +7,18 @@ async function rightEdge(locator: Locator): Promise<number> {
   return box.x + box.width;
 }
 
-test('a clipped letter keeps every card action inside the card and grows on Read more', async ({
-  page,
-}) => {
+test('Read more opens a clipped letter whole over the page and moves no card', async ({ page }) => {
   await page.goto('/');
-  const filler = 'A sentence about impact. '.repeat(40);
+  const filler = 'A sentence about impact. '.repeat(40).trim();
   await seedLetters(
     page,
-    lettersOf(1).map((l) => ({ ...l, text: `${l.text}\n\n${filler}` })),
+    lettersOf(2).map((l) => ({ ...l, text: `${l.text}\n\n${filler}` })),
   );
 
-  const card = page.getByRole('article');
-  await expect(card.getByRole('button', { name: 'Read more' })).toBeVisible();
+  // The second card: the right-hand one wherever the grid has two columns.
+  const card = page.getByRole('article').nth(1);
+  const readMore = card.getByRole('button', { name: 'Read more' });
+  await expect(readMore).toBeVisible();
 
   // 24px is the card padding: an action past it is clipped by the card, not scrolled to.
   const contentEdge = (await rightEdge(card)) - 24;
@@ -26,15 +26,25 @@ test('a clipped letter keeps every card action inside the card and grows on Read
     expect(await rightEdge(card.getByRole('button', { name }))).toBeLessThanOrEqual(contentEdge);
   }
 
-  const collapsedHeight = (await card.boundingBox())?.height ?? 0;
-  await card.getByRole('button', { name: 'Read more' }).click();
-  await expect(card.getByRole('button', { name: 'Show less' })).toHaveAttribute(
-    'aria-expanded',
-    'true',
-  );
-  await expect
-    .poll(async () => (await card.boundingBox())?.height)
-    .toBeGreaterThan(collapsedHeight);
+  const before = await card.boundingBox();
+  await readMore.click();
+  const reader = page.getByRole('dialog');
+  await expect(reader).toContainText(filler);
+  await expect(reader.getByRole('button', { name: 'Copy to clipboard' })).toBeVisible();
+  expect(await card.boundingBox()).toEqual(before);
+  const viewport = page.viewportSize();
+  expect(await rightEdge(reader)).toBeLessThanOrEqual(viewport?.width ?? 0);
+
+  await page.keyboard.press('Escape');
+  await expect(reader).toHaveCount(0);
+  await expect(readMore).toBeFocused();
+
+  // A click inside the reader keeps it open; one on the backdrop closes it.
+  await readMore.click();
+  await reader.getByRole('heading').click();
+  await expect(reader).toBeVisible();
+  await page.mouse.click(4, 4);
+  await expect(reader).toHaveCount(0);
 });
 
 test('reaching the goal swaps the dots for a badge and hides the banner', async ({ page }) => {
@@ -70,7 +80,7 @@ test('Try an example ends with a saved letter written for the example job', {
   await expect(panel).toContainText('Dear Apple team,');
   await expect(page.getByRole('button', { name: 'Copy to clipboard' })).toBeVisible();
   await expect(panel).toContainText('Product manager');
-  await expect(panel).not.toContainText('Northwind');
+  await expect(panel).toContainText('HTML and CSS');
 
   await page.getByRole('link', { name: 'Dashboard' }).click();
   await expect(page.getByRole('article', { name: 'Product manager, Apple' })).toBeVisible();

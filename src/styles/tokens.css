@@ -39,6 +39,8 @@
   --color-brand-accent: #099250; /* logomark, primary hover */
   --color-control-disabled: #d0d5dd;
   --color-scrollbar-thumb: #d0d5dd;
+  /* behind the letter reader; the heading color, dimmed, so no new palette entry */
+  --color-backdrop: color-mix(in srgb, var(--color-text-primary) 60%, transparent);
 
   /* progress indicator */
   --color-progress: #101828;

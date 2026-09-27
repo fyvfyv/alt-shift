@@ -56,15 +56,13 @@ What the file does not have, and what that meant for me:
   the brand green of `4:10721` and ignores clicks and submits, but stays in the tab order: focus
   stays on it from Generate Now through to Try Again instead of being dropped at the top of the
   page.
-- **So is a CTA that can't run yet.** On an incomplete or over-limit form, while the browser is
-  offline and while a rate-limit countdown runs, Generate Now (or Try Again) is `aria-disabled`:
-  the gray of `2:1483`, no hover, still in the tab order. A click or Enter on an invalid form
-  says under the button what to fix and moves the caret there: the empty required fields by name
-  ("Add a job title, a company and what you're good at to generate."), or "Shorten the field over
-  its limit to generate." when nothing is missing but a field runs over. The next edit or Create
-  New clears it. The mockups mark no field as required, so the button has to say it. Offline or
-  counting down, a click does nothing: the note under the button or the countdown already says
-  why.
+- **So is a CTA that can't run yet.** On an incomplete or over-limit form, offline, or during a
+  rate-limit countdown, Generate Now (or Try Again) is `aria-disabled`: the gray of `2:1483`,
+  still in the tab order. The mockups mark no field as required, so on an invalid form a click or
+  Enter says under the button what to fix ("Add a job title, a company and what you're good at to
+  generate.", or "Shorten the field over its limit to generate.") and moves the caret there; the
+  next edit clears it. Offline or counting down, a click does nothing: the note or the countdown
+  already says why.
 - **The tab title follows the h1:** "New application · Alt+Shift" until both job fields are
   filled, then "{Job title}, {Company} · Alt+Shift".
 
@@ -73,19 +71,25 @@ What the file does not have, and what that meant for me:
 The page is normal document flow: 1120px content column, 32px top, 120px bottom (the 32px bottom
 in `4:10610` is a slip), header 48px tall, 32px to the body.
 
-Generator: two equal columns with a 32px gap. Figma pins the form column at `max-height: 600`
-while the preview grows with the letter to 620, leaving the CTA 19px above the panel's bottom
-(`4:11014`). I stretch the row instead: the form column has `min-height: 600px` and no maximum,
-the textarea absorbs the difference, and the CTA bottom lines up with the panel.
+Generator: two equal columns with a 32px gap. The form column stays at 600px, as in `4:11014`,
+and the preview grows with the letter beside it. Real letters run to about 1000px; a form
+stretched to match would turn the textarea into a mostly empty box and push Try Again below the
+fold, so the CTA stays in the first screen and doesn't move while the letter streams. An empty or
+loading preview fills the 600px row. Side by side, the line under the CTA hangs below the form
+instead of growing the row, so pressing the gray CTA never moves the panel.
 
 Dashboard: `repeat(2, 1fr)` grid, 24px rows, 16px columns, cards fixed at 240px tall.
+
+Header: below 390px the logo is the one item that gives up width, down to 109px at 320, so the
+Home button stays on screen. Its width follows the page, not the space the counter leaves, so it
+doesn't jump when the dots turn into the check badge at 5/5.
 
 Breakpoints. Content-driven ones are container queries on the page column; values that belong to
 the screen are viewport queries.
 
 | Query | Why | Change |
 |---|---|---|
-| gutter | always | `clamp(16px, (100% − 1120px) / 2, 160px)`, content centred |
+| gutter | always | `clamp(16px, (100% − 1120px) / 2, 160px)`, content centered |
 | container < 1120px | two 544px columns no longer fit | generator stacks: form, then preview (min 320px); textarea keeps 236px; on start the preview scrolls into view |
 | container < 656px | two cards would drop below ~320px | dashboard goes to one column, cards stay 240px |
 | viewport < 768px | small screens | page padding 24/48, header shows "3/5" without the suffix, banner and preview padding shrink |
@@ -103,6 +107,11 @@ Fonts: Fixel Display for headings and Fixel Text for everything else. They are o
 font; the two families differ only in width (Text 87.5, Display 100), so both `@font-face`
 rules point at the same file.
 
+The textarea scrollbar follows `4:10610`: a 4px thumb inset 12px from the top and 8px from the
+right. On a desktop pointer its 11px gutter is always reserved and taken back from the right
+padding, so the text wraps at the designed width whether or not the scrollbar shows. Touch
+browsers keep their overlay scrollbar and Firefox its thin one.
+
 ## Inconsistencies and what I built
 
 | # | Mockups | Decision |
@@ -112,17 +121,17 @@ rules point at the same file.
 | 3 | `4:11014` says "4/5" in the header text, but header dots, banner bars and caption say 3 | One count drives all four. After a successful generation from 3, it is 4 |
 | 4 | Input values in placeholder gray in `4:10610` only | Values are always primary text |
 | 5 | Char counter reads `0/1200` with ~165 characters typed | Live count of characters (code points, so an emoji counts once) |
-| 6 | Form column fixed at 600/601 while the preview grows | Row stretches, CTA aligns with the panel bottom (see Layout) |
+| 6 | Form column fixed at 600/601 while the preview grows | Kept as designed: the form stays 600, the preview grows (see Layout) |
 | 7 | Second home button left of the logo, only in `4:12292` | One home button, in the right cluster |
 | 8 | Banner subtitle with "today" (`4:12036`) and without (`4:11014`) | Without: nothing in the product implies a daily quota |
 | 9 | Error ring on an unfocused textarea (`4:10610`) | Error border whenever invalid, ring only while focused, matching the focus ring |
 | 10 | Copy button on the empty preview | Hidden until the letter is complete |
 | 11 | Trailing spaces in "Create New " and the banner subtitle | Trimmed |
-| 12 | Paragraph gap 28 in the preview, 18 in cards | Both kept: one letter renderer with a `paragraphGap` prop |
+| 12 | Paragraph gap 28 in the preview, 18 in cards | Both kept: one letter renderer with a `spacing` prop (`compact` 18 for cards, `comfortable` 28 for the preview) |
 | 13 | Header dots (8×8) and banner bars (32×8) | One progress component with two variants |
 | 14 | Icon strokes hard-coded per SVG, always equal to the adjacent label | `currentColor`; the logo and check badge keep their fills |
 | 15 | Primary button border same color as its fill | Every variant keeps the 1px border so all share one box model |
-| 16 | Card text clipped, an ellipsis on a line that is itself faded out | Fade only, no ellipsis: CSS can't line-clamp across paragraphs |
+| 16 | Card text clipped, an ellipsis on a line that is itself faded out | Fade only, and only on a clipped letter; Read more takes the ellipsis's place at the end of the faded line. CSS can't line-clamp across paragraphs |
 | 17 | Preview placeholder is `nowrap` | Wraps; required once the panel is narrower than the string |
 | 18 | Generator title is `nowrap`; long titles overflow | Ellipsis with the full text in `title`; wraps on phones |
 | 19 | Title divider padding 12 (generator) vs 16 (dashboard) | Both kept, set by the title size |
@@ -140,18 +149,18 @@ is replaced by a full-width panel in the preview-panel style that says what the 
 one-line pitch in lg strong ("Tell Alt+Shift the job, the company and what you're good at, and it
 writes the cover letter."), then "Your generated applications will appear here...", then one
 secondary action, "Try an example", and under it a small trust note: no sign-up, the details go
-to the generation service only to write the letter, and the letters stay in this browser. The
-note is derived from the code (the client posts the four fields, the proxy logs lengths and
-status but no text, letters live in `localStorage`) and has to stay true to it. Create New left
-the panel: three on one screen was two too many, and the panel's job is the path that needs no
+to the generation service only to write the letter, and the letters stay in this browser, all
+true of the code as it stands. Create New left the panel: three on one screen was two too many, and the panel's job is the path that needs no
 typing.
 
 "Try an example" opens the generator with the mockups' own sample (Product manager at Apple, the
-placeholder skills, the details from `4:10541`), handed over in history state. The job fields
-always take it (clicking the example is the user's choice); the profile fields only when still
-empty, so a saved bio is never replaced by the sample. The fields read it on the first render and
-save it like typed input, and the page then clears it from history, so a reload or Back never
-applies it again over later edits.
+placeholder skills, the details from `4:10541`, finished from the letter in `4:11014`), handed over
+in history state and cleared from it after the first render, so a reload or Back never applies it
+again over later edits. The job fields always take it; the profile fields only when empty, so a
+saved bio is never replaced by the sample. The sample's skills and details are never saved as the
+user's profile: the tab's draft keeps them next to the job until they are edited, so a reload
+shows the whole example again, and Create New clears the ones the user didn't edit, so their next
+letter never goes out with the sample's bio.
 
 **Streaming.** Same typography and layout as the completed letter, so nothing reflows when the
 stream ends. Text is appended as it arrives: no typewriter effect, no cursor. The orb fades out
@@ -160,13 +169,13 @@ the stream closes, and fields are read-only without being grayed out.
 
 **Announcements.** The panel is a named region ("Your letter"), not a live region, so a screen
 reader never reads the letter as it streams. One status line outside it says "Generating your
-letter…" when a run starts (streaming says the same, so it is not repeated), "Your letter is
-ready. Copy it or add your name below it, or use Try Again for another version." when it
-completes, and "The letter was cut short." when the stream breaks. Every other error speaks
-through its own alert, which holds fixed text only. Status lines that can change (the offline
-note and the hint under the CTA, a field's error, the storage note) stay mounted, empty and off
-screen until they have something to say, because a status is announced when its text changes,
-not when it is inserted already holding it.
+letter…" when a run starts (streaming says the same, so it is not repeated), "Your letter is ready.
+Copy it, or use Try Again for another version." when it completes, and "The letter was cut short."
+when it is cut. Every
+other error speaks through its own alert, which holds fixed text only. Status lines that can change
+(the offline note and the hint under the CTA, a field's error, the storage note) stay mounted, empty
+and off screen until they have something to say, because a status is announced when its text
+changes, not when it is inserted already holding it.
 
 **Errors.** Inside the preview panel, neutral colors: the product has no toast or red-surface
 pattern and I didn't add one. Each maps to what the live API returns:
@@ -176,29 +185,30 @@ pattern and I didn't add one. Each maps to what the live API returns:
 | 429 `rate_limit_exceeded` + `Retry-After` | Too many requests | The generation service is at its limit right now. You can try again in {n}s. | "Retry in {n}s", inert, counts down to "Retry" |
 | 401 `invalid_token`, 400 `invalid_request`, 403 `forbidden`, 5xx `upstream_error` (including the proxy's own 504 when the model sends nothing for 20 s), a non-stream reply, a stream that ends or goes quiet for 30 s before any text | Generation failed | Something went wrong on our side. Your inputs are safe. | Retry |
 | The request never reached the server, or the browser is offline | You appear to be offline | Check your connection and try again. | Retry, inert until the browser is back online |
-| Connection drops mid-letter, or goes quiet for 30 s after text arrived | received text stays | "The letter was cut short." in error red under it | Try Again under the note; the form's CTA becomes Try Again too. After an edit the panel's button goes and the note stays |
-| Any of the first three on a run started over a finished letter (Try Again, or Generate Now after an edit), before any text | the previous letter stays, with Copy and the signature | "{Title}. {Body} Your previous letter is kept." in tertiary gray under it, then the countdown on a 429 | Try Again under the note, "Retry in {n}s" while counting down. After an edit the button goes and the note stays |
+| Connection drops mid-letter, goes quiet for 30 s after text arrived, or the stream ends (with or without `[DONE]`) mid-sentence | received text stays | "The letter was cut short." in error red under it | Try Again under the note; the form's CTA becomes Try Again too. After an edit the panel's button goes and the note stays |
+| Any of the first three on a run started over a finished letter (Try Again, or Generate Now after an edit), before any text | the previous letter stays, with Copy and the signature | "{Title}. {Body} Your previous letter is kept." in tertiary gray above it, or "{Title}. {Body} Showing your previous letter, {Job title}, {Company}." when an edit has changed the job since; then the countdown on a 429 | Try Again under the note, "Retry in {n}s" while counting down. After an edit the button goes and the note stays |
 
 A 400 is folded into "Generation failed" on purpose: the form blocks anything the server would
 reject, so a 400 means a bug, not a user mistake.
 
-The note under a kept letter is tertiary, not error red: the letter above it is fine, and it is
-still saved. On a 429 the seconds tick outside the accessibility tree (the button's label carries
-them), and "You can try again now." is announced once when the wait ends, unless the button is
-still blocked. Every button in the panel follows the form's CTA: inert while the form is invalid,
-the browser is offline or a countdown runs.
+The note over a kept letter is tertiary, not error red: the letter below it is fine, and it is still
+saved. It sits above the letter because after an edit the page title already names the new job, and
+a note at the letter's end would be below the fold. A Try Again that is cut keeps the saved letter
+the same way, under "The letter was cut short. Your previous letter is kept.", and so does a
+failure after it. On a 429 the seconds tick outside the accessibility tree (the button's label
+carries them), and "You can try again now." is announced once when the wait ends, unless the
+button is still blocked. Every button in the panel follows the form's CTA: inert while the form is
+invalid, the browser is offline or a countdown runs.
 
-**Offline.** While the browser reports no connection, Generate Now, Try Again and Retry are inert
-(gray, focusable, a click does nothing) and a line under the CTA says why ("You appear to be
-offline. Generating will work again once you're back."). The line is a status that stays mounted,
-so the change is announced, and it stays empty while the preview already shows the offline error,
-so nothing is said twice. Everything comes back on the `online` event.
+**Offline.** While the browser reports no connection, every generate button is inert and a status
+under the CTA says why ("You appear to be offline. Generating will work again once you're back."),
+unless the preview already shows the offline error. Everything comes back on the `online` event.
 
 **Interactive states.** All from the existing palette: primary hover uses the logomark green,
 secondary hover and active use the two light grays, text fields get a darker gray border on hover
-(not while read-only during a run). Keyboard focus reuses the designed green ring on every
-control, shown on `:focus-visible` only. A button that can't act right now uses the gray from
-`2:1483` through `aria-disabled` and keeps its tab stop; nothing in the app is natively disabled.
+(not while read-only during a run). Keyboard focus reuses the designed green ring on every control,
+shown on `:focus-visible` only. Nothing in the app is natively disabled. Hover styles apply only
+where the pointer can hover, so a tap does not leave a button in its hover color.
 
 **Arrival focus.** Arriving on the generator with an empty job puts the caret in Job title, except
 on touch-only devices (`(hover: none) and (pointer: coarse)`), where it would open the on-screen
@@ -211,25 +221,30 @@ refuses. Delete is immediate with no confirmation
 last one. When the browser refuses to save (full or blocked storage), a one-line status says the
 latest changes will be lost when the tab closes; the letters stay on screen.
 
-**Slow starts.** Two seconds into a run the orb gets a caption below it: a small "Generating"
-eyebrow in tertiary gray over "Writing your letter for {Company}…" in the placeholder style. After
-eight seconds the second line becomes "Almost there…"; the first token clears both. The seconds
-are counted against the clock, so a throttled background tab stays right. The orb holds the
-panel's centre with or without the caption and never moves, so the loading frame is unchanged
-until the caption is due.
+**Slow starts.** Two seconds into a run the orb gets a caption: a small "Generating" eyebrow over
+"Writing your letter for {Company}…", which becomes "Almost there…" at eight seconds; the first
+token clears both. The orb holds the panel's center with or without the caption, so the loading
+frame is unchanged until the caption is due.
 
-**Cards.** A letter that does not fit the 240px card gets a "Read more" between Delete and Copy;
-it grows the card in place and turns into "Show less". Letters that fit show no button. Where the
-three actions do not fit one row (cards under ~400px: phones, and two-up tablets), the footer
-wraps and the preview gives up the row; the card stays 240px.
+**Cards.** The footer keeps Figma's two actions, Delete and Copy. A letter the 240px card clips
+gets a "Read more" over the end of its last, faded line, so it takes no row of its own; letters
+that fit show neither. Clipping is measured again whenever the card or its text changes size (a
+resize, the webfont swap, a signature added in another tab). Read more opens the whole letter in a
+dialog over the page, at most 640px wide, with Close and Copy; Escape or a click outside closes it
+and focus returns to Read more. A card grown in place would jump to a row of its own from the right
+column, or leave a hole beside its neighbor, and run the letter in lines 1000px long. Only a card
+narrower than Delete and Copy together (a 320px phone) wraps the footer; the preview gives up a
+line and the card stays 240px.
 
-**Signature.** A completed letter that ends on a bare sign-off ("Sincerely,") gets the user's name
-under it, on screen and when copied. The name is entered once from the preview footer ("Add your
-name", then "Change name") and kept in the profile, so every card signs the same way, in every
-tab. The field replaces the button: its label is spoken, not shown, and doubles as the
-placeholder. Enter or leaving it saves, Escape cancels, and closing it from the keyboard puts
-focus back on the button. It takes up to 300 characters, the form's single-line limit, made hard
-because a field that saves on blur has nowhere to show an error.
+**Signature.** A letter that ends on a bare closing ("Sincerely,", as the prompt asks, or one the
+model picks instead, "Warmly," or "З повагою," included) gets the user's name under it, on screen
+and when copied; a letter the model signed itself keeps its own. The name is entered once from the
+preview footer ("Add your name", then "Change name") and kept in the profile, so every card signs
+the same way, in every tab. The field replaces the button: its label is spoken, not shown, and
+doubles as the placeholder. Enter or leaving it saves, Escape cancels, and closing it from the
+keyboard puts focus back on the button. It takes up to 300 characters, the form's single-line
+limit, made hard because a field that saves on blur has nowhere to show an error. "Add your name"
+is offered only under a closing, the one place the name goes.
 
 **Banner copy.** The subtitle follows the count: "Generate your first job application to get hired
 faster" at 0, "One more job application and you hit your goal" at 4, the mockup's line in between.
@@ -241,11 +256,9 @@ however many letters there are.
 2s per turn, and the orb exits immediately.
 
 **Not found and crashes.** Unknown URLs render the shell with "This page doesn't exist." and a
-link to the dashboard. A render crash replaces only the page: the header stays, so the way home
-still works. The crash arrives like a page: an h1 "Something went wrong" that takes focus, the
-document title "Something went wrong · Alt+Shift", and "This page stopped working." in an alert
-with a full reload as its action, because in-memory state may be what broke. Navigating away
-gives the next page a fresh try.
+link to the dashboard. A render crash replaces only the page, so the header and its way home stay:
+an h1 "Something went wrong" takes focus over "This page stopped working." and a full reload,
+because in-memory state may be what broke. Navigating away gives the next page a fresh try.
 
 ## Product rules
 
@@ -256,25 +269,25 @@ gives the next page a fresh try.
   replaces it (same card, same count, same place in the list: the original `createdAt` is kept).
   Editing any field after completion turns the CTA back into Generate Now, and the next run is a
   new letter. A failed Try Again keeps the same id, so the next success still replaces the letter.
-- **Create New on the generator** (the banner's button) resets the page in place: empty job
-  title and company, empty preview, focus in Job title. What you are good at and your details
-  stay, because the next letter is for another job, not another person. Navigating to the same
-  URL would do nothing visible.
+- **Create New on the generator** (the banner's button) resets the page in place: empty job title
+  and company, empty preview, focus in Job title. What you are good at and your details stay,
+  because the next letter is for another job, not another person; only an example's bio the user
+  never edited goes with its job. Navigating to the same URL would do nothing visible.
 - **Leaving mid-stream** cancels the request and saves nothing; a half letter is not a letter. No
   confirmation dialog: nothing is lost that one click can't regenerate, and the form is kept.
-- **The form survives a reload.** The job (title, company) is per tab; its stored copy is
-  forgotten once the letter is saved and written again on the next edit of any field. Skills,
+- **The form survives a reload.** The job (title, company) is per tab, with an example's
+  unedited bio beside it; its stored copy is forgotten once the letter is saved and written again
+  on the next edit of any field. Skills,
   details and the signature name are a profile shared by every tab and kept in step across them;
   a page that only reads it never writes it.
-- **During errors** the CTA is Generate Now, or Try Again under a cut or kept letter until a field
-  is edited; it and the panel's buttons are inert while the rate-limit countdown runs or the
-  browser is offline, so they never offer something that is certain to fail. A regenerate that
-  fails before it starts never takes away the letter you already have; a successful one replaces
-  it.
+- **During errors** the CTA stays Try Again, until a field is edited, while a letter is on screen
+  or this visit's letter is already saved; the letter store, not the screen, answers the last one,
+  so the next run replaces that letter. A regenerate that fails never takes away the letter you
+  already have; a successful one replaces it.
 - **Letters live in this browser** and sync across its tabs. No accounts: nothing in the design
   implies one.
 
-How these rules are meant to move conversion: [README → Conversion](../../README.md#conversion).
+How these rules are meant to move conversion: [conversion.md](conversion.md).
 
 ## Box-sizing rule
 

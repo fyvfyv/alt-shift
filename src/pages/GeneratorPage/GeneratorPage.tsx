@@ -10,6 +10,7 @@ import { usePageMeta } from '../../app/usePageMeta';
 import { Button } from '../../components/Button/Button';
 import { GoalBanner } from '../../components/GoalBanner/GoalBanner';
 import { copy } from '../../copy';
+import { keptLetter } from '../../features/generation/generationReducer';
 import { useCountdown } from '../../features/generation/useCountdown';
 import { useGeneration } from '../../features/generation/useGeneration';
 import { useGeneratorFields } from '../../features/generation/useGeneratorFields';
@@ -72,9 +73,20 @@ export function GeneratorPage() {
   // id), so a failed attempt never inflates the count; only an edit starts a new one.
   // The id the next run writes under; null means a new letter.
   const [candidateId, setCandidateId] = useState<string | null>(null);
+  // The id the last run wrote under. Unlike the candidate, an edit keeps it: the letter that run
+  // was regenerating stays on screen until the next run.
+  const [runId, setRunId] = useState<string | null>(null);
+  // Asked of the store, not of the preview state: a cut Try Again drops the saved letter from the
+  // state, yet it stays on screen, and the next run must still replace it, not add a new one.
+  const savedLetter = useLetterStore((s) =>
+    runId === null ? undefined : s.letters.find((l) => l.id === runId)?.text,
+  );
+  // The job of the last letter that finished. After an edit, a run that fails before any text
+  // keeps that letter on screen under the form's new title, so the note has to name it.
+  const [shownTitle, setShownTitle] = useState<string>();
 
   // Arrival: put the caret where typing starts, and drop the hand-over from history so a reload
-  // or Back never applies it again over later edits (the fields saved it like typed input).
+  // or Back never applies it again over later edits (the tab's draft has it by then).
   // Declared after usePageMeta so the field wins over its h1 focus.
   // biome-ignore lint/correctness/useExhaustiveDependencies: runs once, on arrival
   useEffect(() => {
@@ -92,13 +104,13 @@ export function GeneratorPage() {
   const busy = state.status === 'loading' || state.status === 'streaming';
   // A letter on screen: complete, cut short, or the previous one kept through a regenerate that
   // failed before any text. After an edit the next run is a new letter; if it fails before any
-  // text, the letter still shown is the previous one, which is what the note under it says.
+  // text, the letter still shown is the previous one, which is what the note above it says.
   const hasLetter =
     state.status === 'completed' || (state.status === 'error' && state.text !== undefined);
-  const hasSavedLetter =
-    state.status === 'completed' ||
-    (state.status === 'error' && state.error.kind !== 'stream-cut' && state.text !== undefined);
-  const tryAgain = hasLetter && candidateId !== null;
+  const hasSavedLetter = keptLetter(state, savedLetter) !== undefined;
+  // While there is a candidate, the last run wrote under its id, so `savedLetter` is its letter.
+  const tryAgain = candidateId !== null && (hasLetter || savedLetter !== undefined);
+  const keptTitle = shownTitle !== letterTitle ? shownTitle : undefined;
   const blocked = retryCountdown > 0 || !online;
   const canGenerate = validateGenerateRequest(values).ok && !blocked;
   const previewSaysOffline = state.status === 'error' && state.error.kind === 'network';
@@ -128,6 +140,7 @@ export function GeneratorPage() {
     if (blocked) return;
     const id = candidateId ?? crypto.randomUUID();
     setCandidateId(id);
+    setRunId(id);
     // Stacked, the preview starts below the fold: bring it up so the stream is visible.
     const form = formRef.current;
     const preview = previewRef.current;
@@ -137,6 +150,7 @@ export function GeneratorPage() {
 
     const text = await generate(request.value);
     if (text === undefined) return;
+    setShownTitle(copy.letter.title(request.value.jobTitle, request.value.company));
     forgetJob();
     await addLetter(
       createLetter({ id, jobTitle: request.value.jobTitle, company: request.value.company, text }),
@@ -163,6 +177,7 @@ export function GeneratorPage() {
     abort();
     resetJob();
     setCandidateId(null);
+    setRunId(null);
     setHint(undefined);
     jobTitleRef.current?.focus({ preventScroll: true });
     window.scrollTo({ top: 0 });
@@ -230,6 +245,8 @@ export function GeneratorPage() {
           retryDisabled={!canGenerate}
           onRetry={retryFromPanel}
           showCutRetry={tryAgain}
+          savedLetter={savedLetter}
+          keptTitle={keptTitle}
           storageFailed={storageFailed}
           name={profile.name}
           onNameChange={setName}
@@ -238,7 +255,7 @@ export function GeneratorPage() {
       {/* The one line a screen reader hears as a run starts, finishes or is cut: the panel is not
           live, so the letter is never read out as it streams. */}
       <p role="status" className={utilities.visuallyHidden}>
-        {statusMessage(state)}
+        {statusMessage(state, savedLetter !== undefined)}
       </p>
       {hasSavedLetter && <GoalBanner count={count} action={createNew} reachedAction={createNew} />}
     </>

@@ -139,6 +139,28 @@ describe('handle', () => {
     expect(lines).toContainEqual({ event: 'generate_cancelled', provider: 'mock' });
   });
 
+  it('logs leaving before upstream answers as a 499 generate line, not a cancel', async () => {
+    const controller = new AbortController();
+    const provider = vi.fn<Provider>(async (_input, { signal }) => {
+      controller.abort();
+      throw signal.reason;
+    });
+
+    await expect(
+      handle(post(validBody, { signal: controller.signal }), provider, 'mock'),
+    ).rejects.toThrow();
+
+    const lines = vi.mocked(console.info).mock.calls.map(([line]) => JSON.parse(String(line)));
+    expect(lines).toEqual([
+      expect.objectContaining({
+        event: 'generate',
+        provider: 'mock',
+        status: 499,
+        requestId: null,
+      }),
+    ]);
+  });
+
   it('hands the provider the validated request and the incoming headers', async () => {
     const provider = vi.fn<Provider>(async () => new Response(''));
     const request = post(

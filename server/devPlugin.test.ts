@@ -1,3 +1,4 @@
+import { once } from 'node:events';
 import { createServer, request, type Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -10,6 +11,7 @@ const body = JSON.stringify({ jobTitle: 'Engineer', company: 'Acme', skills: 'Go
 
 let server: Server;
 let providerSignal: AbortSignal;
+let responseClosed: Promise<unknown>;
 
 const spyProvider: Provider = (input, ctx) => {
   providerSignal = ctx.signal;
@@ -18,6 +20,9 @@ const spyProvider: Provider = (input, ctx) => {
 
 async function listen(): Promise<number> {
   server = createServer(generateMiddleware((req) => handle(req, spyProvider, 'mock')));
+  server.on('request', (_req, res) => {
+    responseClosed = once(res, 'close');
+  });
   await new Promise<void>((resolve) => server.listen(0, resolve));
   return (server.address() as AddressInfo).port;
 }
@@ -73,5 +78,8 @@ describe('generateMiddleware', () => {
 
   it('destroys the socket instead of ending cleanly when the stream breaks', async () => {
     expect(await send('disconnect')).toBe('error');
+    await responseClosed;
+    // The middleware's own destroy is not the client leaving, so nothing is logged as cancelled.
+    expect(providerSignal.aborted).toBe(false);
   });
 });

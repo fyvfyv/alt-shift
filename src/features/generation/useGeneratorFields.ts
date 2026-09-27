@@ -5,8 +5,10 @@ import { readFields, writeFields } from '../storedFields';
 
 type Job = Pick<GenerateRequest, 'jobTitle' | 'company'>;
 
-// Per tab: the job survives a reload, but two tabs never overwrite each other's applications.
-const JOB_KEY = 'alt-shift.draft';
+// Per tab: the job survives a reload, but two tabs never overwrite each other's applications. A
+// handed-over bio still on screen is kept here too, never in the profile, so a reload right after
+// Try an example shows the whole example again without making its bio the user's.
+const DRAFT_KEY = 'alt-shift.draft';
 
 const EMPTY_JOB: Job = { jobTitle: EMPTY_REQUEST.jobTitle, company: EMPTY_REQUEST.company };
 
@@ -23,32 +25,37 @@ function prefillPatch(prefill: unknown): Partial<GenerateRequest> {
   return patch;
 }
 
-function readJob(): Job {
-  return readFields(() => sessionStorage, JOB_KEY, ['jobTitle', 'company']);
+// What arrives on mount: a hand-over replaces the draft; without one the draft comes back whole.
+function arrival(prefill: unknown): { job: Job; fill: Partial<GenerateRequest> } {
+  const draft = readFields(() => sessionStorage, DRAFT_KEY, FIELDS);
+  const handedOver = prefillPatch(prefill);
+  const fill = Object.keys(handedOver).length > 0 ? handedOver : draft;
+  return {
+    job: {
+      jobTitle: handedOver.jobTitle ?? draft.jobTitle,
+      company: handedOver.company ?? draft.company,
+    },
+    fill: { skills: fill.skills || undefined, details: fill.details || undefined },
+  };
 }
 
 // `prefill` (a job handed over by a link) is read on mount only, so the first render already shows
 // it. The job fields always take it (the link is the user's choice); the profile fields only when
-// still empty, so a saved bio is never replaced by an example.
+// still empty, so a saved bio is never replaced by an example, and only on screen until edited.
 export function useGeneratorFields({ prefill }: { prefill?: unknown } = {}) {
-  const prefilled = prefillPatch(prefill);
-  const [job, setJob] = useState<Job>(() => {
-    const stored = readJob();
-    return {
-      jobTitle: prefilled.jobTitle ?? stored.jobTitle,
-      company: prefilled.company ?? stored.company,
-    };
-  });
-  const { profile, setProfile } = useProfile({
-    skills: prefilled.skills,
-    details: prefilled.details,
-  });
+  const [arrived] = useState(() => arrival(prefill));
+  const [job, setJob] = useState<Job>(arrived.job);
+  const { profile, fill, setProfile, dropFill } = useProfile(arrived.fill);
   // Set once the letter is saved: the draft stays forgotten until the next edit of any field.
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    if (!saved) writeFields(() => sessionStorage, JOB_KEY, job);
-  }, [job, saved]);
+    if (saved) return;
+    const draft: Record<string, string> = { ...job };
+    if (fill.skills) draft.skills = fill.skills;
+    if (fill.details) draft.details = fill.details;
+    writeFields(() => sessionStorage, DRAFT_KEY, draft);
+  }, [job, fill.skills, fill.details, saved]);
 
   const values: GenerateRequest = {
     jobTitle: job.jobTitle,
@@ -71,15 +78,18 @@ export function useGeneratorFields({ prefill }: { prefill?: unknown } = {}) {
     }
   }
 
+  // The next letter is for another job, so a handed-over bio the user never edited leaves with the
+  // job it came with; a field they edited is theirs and stays.
   function resetJob() {
     setJob(EMPTY_JOB);
+    dropFill();
   }
 
   // Forgets the stored copy only; the next edit of any field saves it again.
   function forgetJob() {
     setSaved(true);
     try {
-      sessionStorage.removeItem(JOB_KEY);
+      sessionStorage.removeItem(DRAFT_KEY);
     } catch {}
   }
 

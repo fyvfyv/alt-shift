@@ -1,4 +1,3 @@
-/// <reference lib="dom" />
 import type { Page } from '@playwright/test';
 import type { Letter } from '../../src/features/letters/model';
 
@@ -14,7 +13,7 @@ export async function fillGeneratorForm(page: Page, details = ''): Promise<void>
 // The mock provider picks its fault from this header; the app never sends it itself.
 export async function routeMockScenario(
   page: Page,
-  scenario: 'disconnect' | 'rate-limit',
+  scenario: 'disconnect' | 'truncate' | 'rate-limit',
 ): Promise<void> {
   await page.route('**/api/generate', (route) =>
     route.continue({ headers: { ...route.request().headers(), 'x-mock-scenario': scenario } }),

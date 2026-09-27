@@ -639,6 +639,80 @@ describe('GeneratorPage', () => {
       expect(store.getState().letters.map((l) => l.text)).toEqual(['Dear Apple']);
     });
 
+    it('a new letter that fails before any text names the job of the letter still shown, above it', async () => {
+      const { user, fake } = await renderWithProviders(<GeneratorPage />);
+      await fillForm(user);
+      await generateLetter(user, fake, 'For Apple');
+      await user.clear(field.company());
+      await user.type(field.company(), 'Google');
+
+      await user.click(generateButton());
+      fake.lastRun().fail({ kind: 'upstream' });
+
+      const alert = await screen.findByRole('alert');
+      expect(alert).toHaveTextContent('Showing your previous letter, Designer, Apple.');
+      expect(
+        alert.compareDocumentPosition(screen.getByText('For Apple')) &
+          Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy();
+    });
+
+    it('a cut Try Again keeps the saved letter on screen with its Copy, through a failure after it', async () => {
+      const { user, fake, store } = await renderWithProviders(<GeneratorPage />);
+      await fillForm(user);
+      await generateLetter(user, fake, 'First draft');
+
+      await user.click(tryAgainButton());
+      fake.lastRun().emit('Sec');
+      fake.lastRun().fail({ kind: 'stream-cut' });
+      expect(
+        await previewPanel().findByText('The letter was cut short. Your previous letter is kept.'),
+      ).toBeInTheDocument();
+      expect(
+        announced('The letter was cut short. Your previous letter is kept.'),
+      ).toBeInTheDocument();
+      expect(previewPanel().getByText('First draft')).toBeInTheDocument();
+      expect(previewPanel().queryByText('Sec')).not.toBeInTheDocument();
+      expect(previewPanel().getByRole('button', { name: 'Copy to clipboard' })).toBeInTheDocument();
+
+      await user.click(previewPanel().getByRole('button', { name: 'Try Again' }));
+      fake.lastRun().fail({ kind: 'upstream' });
+
+      expect(await screen.findByRole('alert')).toHaveTextContent('Your previous letter is kept.');
+      expect(previewPanel().getByText('First draft')).toBeInTheDocument();
+      expect(previewPanel().getByRole('button', { name: 'Copy to clipboard' })).toBeInTheDocument();
+      // Still a regenerate: the form's CTA would replace the saved letter, not add one.
+      expect(screen.queryByRole('button', { name: 'Generate Now' })).not.toBeInTheDocument();
+      await user.click(previewPanel().getByRole('button', { name: 'Try Again' }));
+      fake.lastRun().emit('Second draft');
+      fake.lastRun().end();
+      await screen.findByText('Second draft');
+      await waitFor(() =>
+        expect(store.getState().letters.map((l) => l.text)).toEqual(['Second draft']),
+      );
+    });
+
+    it('after an edit keeps the letter a cut Try Again left on screen, naming its job', async () => {
+      const { user, fake } = await renderWithProviders(<GeneratorPage />);
+      await fillForm(user);
+      await generateLetter(user, fake, 'First draft');
+      await user.click(tryAgainButton());
+      fake.lastRun().emit('Sec');
+      fake.lastRun().fail({ kind: 'stream-cut' });
+      await previewPanel().findByText('First draft');
+
+      await user.clear(field.company());
+      await user.type(field.company(), 'Google');
+
+      expect(previewPanel().getByText('First draft')).toBeInTheDocument();
+      expect(
+        previewPanel().getByText(
+          'The letter was cut short. Showing your previous letter, Designer, Apple.',
+        ),
+      ).toBeInTheDocument();
+      expect(generateButton()).toBeInTheDocument();
+    });
+
     it('after an edit under a cut letter drops the panel Try Again and offers Generate Now', async () => {
       const { user, fake } = await renderWithProviders(<GeneratorPage />);
       await fillForm(user);

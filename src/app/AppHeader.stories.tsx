@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { sampleLetters } from '../../../.storybook/storyData';
+import { sampleLetters } from '../../.storybook/storyData';
 import { AppHeader } from './AppHeader';
 
 const meta = {

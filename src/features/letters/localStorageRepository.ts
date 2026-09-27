@@ -30,11 +30,11 @@ export class LocalStorageLetterRepository implements LetterRepository {
   }
 
   async list(): Promise<Letter[]> {
-    return this.#read();
+    return this.#read().letters;
   }
 
   async save(letter: Letter): Promise<void> {
-    const letters = this.#read();
+    const letters = this.#readForWrite();
     const index = letters.findIndex((l) => l.id === letter.id);
     if (index === -1) letters.push(letter);
     else letters[index] = letter;
@@ -42,7 +42,7 @@ export class LocalStorageLetterRepository implements LetterRepository {
   }
 
   async remove(id: string): Promise<void> {
-    const letters = this.#read();
+    const letters = this.#readForWrite();
     const kept = letters.filter((l) => l.id !== id);
     if (kept.length !== letters.length) this.#write(kept);
   }
@@ -61,19 +61,29 @@ export class LocalStorageLetterRepository implements LetterRepository {
     return this.#storage ?? globalThis.localStorage;
   }
 
-  // Anything unreadable counts as no letters; malformed entries are dropped one by one so a
-  // single bad record never hides the rest.
-  #read(): Letter[] {
+  // A payload from a newer version is left untouched for the tab that wrote it: an old tab still
+  // open after a deploy must not replace it with its own format.
+  #readForWrite(): Letter[] {
+    const { letters, newer } = this.#read();
+    if (newer) throw new StorageError('unavailable');
+    return letters;
+  }
+
+  // A newer version reads as no letters, and so does anything unreadable, which the next save
+  // overwrites. Malformed entries are dropped one by one, so one bad record never hides the rest.
+  #read(): { letters: Letter[]; newer: boolean } {
+    const none = { letters: [], newer: false };
     try {
       const raw = this.#storageArea().getItem(KEY);
-      if (raw === null) return [];
+      if (raw === null) return none;
       const envelope: unknown = JSON.parse(raw);
-      if (typeof envelope !== 'object' || envelope === null) return [];
+      if (typeof envelope !== 'object' || envelope === null) return none;
       const { version, letters } = envelope as { version?: unknown; letters?: unknown };
-      if (version !== VERSION || !Array.isArray(letters)) return [];
-      return letters.filter(isLetter);
+      if (typeof version === 'number' && version > VERSION) return { letters: [], newer: true };
+      if (version !== VERSION || !Array.isArray(letters)) return none;
+      return { letters: letters.filter(isLetter), newer: false };
     } catch {
-      return [];
+      return none;
     }
   }
 

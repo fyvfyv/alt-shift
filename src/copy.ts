@@ -1,3 +1,5 @@
+import { EXAMPLE_REQUEST } from '../shared/example';
+
 // Every user-facing string lives here, except index.html's meta tags: crawlers and link previews
 // read them without running the app.
 export const copy = {
@@ -78,11 +80,13 @@ export const copy = {
       almost: 'Almost there…',
     },
     label: 'Your letter',
-    kept: 'Your previous letter is kept.',
+    // Names the job once an edit has moved the form to another one, so the letter is not taken
+    // for the new job's.
+    kept: (title?: string) =>
+      title ? `Showing your previous letter, ${title}.` : 'Your previous letter is kept.',
     status: {
       generating: 'Generating your letter…',
-      ready:
-        'Your letter is ready. Copy it or add your name below it, or use Try Again for another version.',
+      ready: 'Your letter is ready. Copy it, or use Try Again for another version.',
     },
   },
 
@@ -99,18 +103,13 @@ export const copy = {
     copyFailed: "Couldn't copy",
     delete: 'Delete',
     readMore: 'Read more',
-    showLess: 'Show less',
+    close: 'Close',
   },
 
   example: {
     label: 'Try an example',
-    request: {
-      jobTitle: 'Product manager',
-      company: 'Apple',
-      skills: 'HTML, CSS and doing things in time',
-      details:
-        'I want to help you build awesome solutions to accomplish your goals and vision. I can create intuitive and aesthetically pleasing devices that are very easy to use.',
-    },
+    // In shared/, not here: the server records the mock's short letter from the same values.
+    request: EXAMPLE_REQUEST,
   },
 
   goal: {

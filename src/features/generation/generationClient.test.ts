@@ -13,6 +13,8 @@ const request: GenerateRequest = {
 };
 
 const encoder = new TextEncoder();
+// A whole letter, as far as the client can tell: it ends on the sign-off the prompt asks for.
+const LETTER = 'Dear Apple team,\n\nSincerely,';
 
 type StreamScript = {
   chunks: Uint8Array[];
@@ -70,7 +72,7 @@ describe('generate', () => {
   afterEach(() => vi.useRealTimers());
 
   it('posts the form fields as JSON to the proxy', async () => {
-    stubStream({ chunks: [encoder.encode(encodeDelta('Dear') + DONE_EVENT)] });
+    stubStream({ chunks: [encoder.encode(encodeDelta(LETTER) + DONE_EVENT)] });
 
     await collect();
 
@@ -108,15 +110,18 @@ describe('generate', () => {
     expect(await failure(collect())).toEqual({ kind: 'network' });
   });
 
-  it('yields every recorded delta', async () => {
-    const fixture = recorded('short');
-    stubStream({ chunks: [encoder.encode(fixture.sse)] });
+  it.each(['short', 'medium', 'long'] as const)(
+    'yields every delta of the recorded %s letter and completes',
+    async (name) => {
+      const fixture = recorded(name);
+      stubStream({ chunks: [encoder.encode(fixture.sse)] });
 
-    const texts = await collect();
+      const texts = await collect();
 
-    expect(texts).toHaveLength(fixture.deltaCount);
-    expect(texts.join('')).toBe(fixture.text);
-  });
+      expect(texts).toHaveLength(fixture.deltaCount);
+      expect(texts.join('')).toBe(fixture.text);
+    },
+  );
 
   describe('after [DONE]', () => {
     it.each([
@@ -125,10 +130,10 @@ describe('generate', () => {
       ['sends more before closing', [': bye\n\n'], 'close' as const],
     ])('completes without cancelling when the upstream %s', async (_, trailing, ending) => {
       const onCancel = vi.fn();
-      const chunks = [encodeDelta('Dear') + DONE_EVENT, ...trailing].map((c) => encoder.encode(c));
+      const chunks = [encodeDelta(LETTER) + DONE_EVENT, ...trailing].map((c) => encoder.encode(c));
       stubStream({ chunks, ending, onCancel });
 
-      expect(await collect()).toEqual(['Dear']);
+      expect(await collect()).toEqual([LETTER]);
       expect(onCancel).not.toHaveBeenCalled();
     });
 
@@ -136,7 +141,7 @@ describe('generate', () => {
       vi.useFakeTimers();
       const onCancel = vi.fn();
       stubStream({
-        chunks: [encoder.encode(encodeDelta('Dear') + DONE_EVENT)],
+        chunks: [encoder.encode(encodeDelta(LETTER) + DONE_EVENT)],
         ending: 'open',
         onCancel,
       });
@@ -144,7 +149,7 @@ describe('generate', () => {
       const texts = collect();
       await vi.advanceTimersByTimeAsync(2_000);
 
-      expect(await texts).toEqual(['Dear']);
+      expect(await texts).toEqual([LETTER]);
       expect(onCancel).toHaveBeenCalled();
     });
   });
@@ -173,15 +178,25 @@ describe('generate', () => {
     expect((await collect()).join('')).toBe(fixture.text);
   });
 
+  // The live API does this now and then: the stream ends cleanly, the letter mid-sentence.
+  it.each([
+    ['[DONE]', DONE_EVENT],
+    ['a clean close alone', ''],
+  ])('maps %s after a letter without its sign-off to stream-cut', async (_, ending) => {
+    stubStream({ chunks: [encoder.encode(encodeDelta('Dear Apple team,\n\nI build') + ending)] });
+
+    expect(await failure(collect())).toEqual({ kind: 'stream-cut' });
+  });
+
   it('decodes UTF-8 sequences split across chunks', async () => {
     const fixture = recorded('medium');
-    const multibyte = ' ’é — 🚀';
-    const sse = fixture.sse.replace(DONE_EVENT, encodeDelta(multibyte) + DONE_EVENT);
+    const multibyte = ' ’é — 🚀\n\n';
+    const sse = encodeDelta(multibyte) + fixture.sse;
     // One byte per chunk splits every multibyte character, whatever the recording contains.
     const chunks = [...encoder.encode(sse)].map((byte) => Uint8Array.of(byte));
     stubStream({ chunks });
 
-    expect((await collect()).join('')).toBe(fixture.text + multibyte);
+    expect((await collect()).join('')).toBe(multibyte + fixture.text);
   });
 
   it('maps a clean close with nothing received to upstream', async () => {

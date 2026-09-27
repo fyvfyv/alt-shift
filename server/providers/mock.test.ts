@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { GenerateRequest } from '../../shared/generation';
-import { decodeTranscript } from '../../shared/variantDecoder';
+import { DONE_EVENT, decodeTranscript } from '../../shared/variantDecoder';
 import { type FixtureName, SAMPLES } from '../fixtures/samples';
 import { mockProvider } from './mock';
 
@@ -121,6 +121,21 @@ describe('mockProvider', () => {
     expect(deltas).toBeGreaterThan(0);
     expect(deltas).toBeLessThan(deltaCount);
   });
+
+  // The client takes a letter that stops on a finished sentence as whole; at 40% the medium
+  // recording happens to end one.
+  it.each(['short', 'medium', 'long'] as const)(
+    'closes the %s letter cleanly mid-sentence, without [DONE], on the truncate scenario',
+    async (name) => {
+      const sse = (await readAll(await start(SAMPLES[name], 'truncate'))).join('');
+
+      const deltas = decodeTranscript(sse);
+      expect(deltas.length).toBeGreaterThan(0);
+      expect(deltas.length).toBeLessThan((await expected(name)).deltaCount);
+      expect(sse).not.toContain(DONE_EVENT);
+      expect(deltas.join('').trimEnd()).not.toMatch(/[.!?…]$/);
+    },
+  );
 
   it('answers the rate-limit scenario with 429 and a Retry-After', async () => {
     const response = await call(SAMPLES.short, 'rate-limit');

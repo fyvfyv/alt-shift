@@ -29,11 +29,16 @@ describe('LocalStorageLetterRepository', () => {
     expect(await repo.list()).toEqual([]);
   });
 
-  it('lists nothing for an unknown envelope version', async () => {
+  it('reads a newer envelope version as empty and never writes over it', async () => {
     const { storage, repo } = setup();
-    storage.setItem(KEY, JSON.stringify({ version: 2, letters: [letter] }));
+    const newer = JSON.stringify({ version: 2, letters: [letter] });
+    storage.setItem(KEY, newer);
+    const other = createLetter({ jobTitle: 'Engineer', company: 'Acme', text: 'Dear Acme' });
 
     expect(await repo.list()).toEqual([]);
+    await expect(repo.save(other)).rejects.toMatchObject({ kind: 'unavailable' });
+    await expect(repo.remove(letter.id)).rejects.toMatchObject({ kind: 'unavailable' });
+    expect(storage.getItem(KEY)).toBe(newer);
   });
 
   it('drops a malformed entry and keeps the valid ones', async () => {

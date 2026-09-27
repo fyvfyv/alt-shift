@@ -1,4 +1,5 @@
-/* minmax(0, 1fr): a long nowrap title must not widen its column. */
+/* minmax(0, 1fr): a long nowrap title must not widen its column. The preview stretches to the
+   form's 600px row when empty and grows past it with a letter; the form keeps its own height. */
 .body {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

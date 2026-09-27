@@ -1,4 +1,4 @@
-/* Absorbs whatever height the form column has left, so the CTA lines up with the preview panel. */
+/* Absorbs the height the 600px form column has left: 236 in the design. */
 .field {
   flex: 1 1 0;
 }
@@ -11,13 +11,32 @@
   resize: none;
 }
 
+/* Figma 4:10610: a 4px thumb inset 12 from the top and 8 from the right outer edge. The track's
+   margin gives the top inset; the thumb's transparent border paints 4px of the 11px scrollbar and
+   the elliptical radius rounds those 4px. Where that scrollbar takes layout space (a desktop
+   pointer; touch browsers overlay theirs), its gutter is reserved and the padding gives it back
+   (1 + 11 + 2 = the designed 14), so the text wraps at the same width with or without it. */
+@supports selector(::-webkit-scrollbar) {
+  @media (hover: hover) and (pointer: fine) {
+    .textarea {
+      padding-right: 2px;
+      scrollbar-gutter: stable;
+    }
+  }
+}
+
 .textarea::-webkit-scrollbar {
-  width: 4px;
+  width: 11px;
+}
+
+.textarea::-webkit-scrollbar-track {
+  margin-block: 11px;
 }
 
 .textarea::-webkit-scrollbar-thumb {
-  background: var(--color-scrollbar-thumb);
-  border-radius: var(--radius-sm);
+  background: var(--color-scrollbar-thumb) padding-box;
+  border-right: 7px solid transparent;
+  border-radius: 2px 9px 9px 2px / 2px;
 }
 
 @supports not selector(::-webkit-scrollbar) {

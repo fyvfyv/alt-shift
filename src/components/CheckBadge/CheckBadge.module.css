@@ -1,0 +1,5 @@
+/* Never squeezed: an overflowing header should show as overflow, not as the goal reward
+   collapsing to a dot. */
+.badge {
+  flex: none;
+}
