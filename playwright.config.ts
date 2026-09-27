@@ -12,8 +12,8 @@ export default defineConfig({
     baseURL: `http://localhost:${PORT}`,
     trace: 'retain-on-failure',
   },
-  // A journey whose checks do not depend on the viewport runs once, on desktop (@desktop); a
-  // check of the stacked phone layout runs only on the phone (@phone).
+  // The long journeys (@desktop) check nothing that depends on the viewport, so they run once, on
+  // desktop; a check of the stacked phone layout (@phone) runs only on the phone.
   projects: [
     { name: 'setup', testMatch: /\.setup\.ts$/ },
     {

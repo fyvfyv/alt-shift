@@ -1,4 +1,4 @@
-import { Component, createRef, type ReactNode } from 'react';
+import { Component, type ReactNode } from 'react';
 import { Button } from '../components/Button/Button';
 import { EmptyPanel } from '../components/EmptyPanel/EmptyPanel';
 import { PageTitle } from '../components/PageTitle/PageTitle';
@@ -14,44 +14,33 @@ type State = { crashed: boolean };
 
 export class AppErrorBoundary extends Component<Props, State> {
   state: State = { crashed: false };
-  private heading = createRef<HTMLHeadingElement>();
-  // A fresh try that crashes again commits over the panel already on screen, so only this flag
-  // tells it apart from a plain re-render of that panel.
-  private retrying = false;
 
   static getDerivedStateFromError(): State {
     return { crashed: true };
   }
 
-  componentDidMount() {
-    if (this.state.crashed) this.announceCrash();
-  }
-
-  componentDidUpdate(previous: Props, previousState: State) {
-    if (!this.state.crashed) {
-      this.retrying = false;
-    } else if (!previousState.crashed || this.retrying) {
-      this.retrying = false;
-      this.announceCrash();
-    } else if (previous.resetKey !== this.props.resetKey) {
-      this.retrying = true;
+  componentDidUpdate(previous: Props) {
+    if (this.state.crashed && previous.resetKey !== this.props.resetKey) {
       this.setState({ crashed: false });
     }
   }
 
   // The crashed page took its h1, its document title and often the focused element with it, so
-  // the panel arrives like a page: its own title, and focus on its heading.
-  private announceCrash() {
+  // the panel arrives like a page: its own title, and focus on its heading. React mounts the
+  // panel afresh on every caught error, a fresh try that crashes again included, so this ref
+  // callback runs once per crash.
+  private announceCrash = (heading: HTMLHeadingElement | null) => {
+    if (!heading) return;
     document.title = copy.documentTitle(copy.crash.title);
-    this.heading.current?.focus();
-  }
+    heading.focus();
+  };
 
   render() {
     if (!this.state.crashed) return this.props.children;
     // A full reload, not client-side navigation: in-memory state may be what broke.
     return (
       <>
-        <PageTitle ref={this.heading} size="lg">
+        <PageTitle ref={this.announceCrash} size="lg">
           {copy.crash.title}
         </PageTitle>
         <div role="alert">

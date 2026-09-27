@@ -70,7 +70,7 @@ API.
 | `typecheck` | `tsc -b` over app, server and tests |
 | `lint` / `format` / `check` | Biome |
 | `test` / `test:watch` / `test:coverage` | Vitest: `node` project for `server/`, `shared/`, `scripts/`; `jsdom` project for `src/` |
-| `test:e2e` | Playwright against the mock provider on port 4173, desktop 1440×900 and mobile 375×812; journeys whose checks don't depend on the width run on desktop only |
+| `test:e2e` | Playwright against the mock provider on port 4173, desktop 1440×900 and mobile 375×812; the two long journeys, whose checks don't depend on the width, run on desktop only |
 | `storybook` / `build-storybook` | Component and page catalogue |
 | `record:fixture <short\|medium\|long>` | Records a real API response into `server/fixtures/` (needs `.env.local`; costs one request) |
 
@@ -189,10 +189,17 @@ the mock and the fixture recorder encode and parse with it, so a change to the f
 The endpoint and auth live in `server/providers/variant.ts`.
 
 The prompt fixes the greeting ("Dear {Company} team,") and a bare "Sincerely," as the last line,
-which the signature goes under. All three first recordings opened with "I am writing to express my
-interest" or "I am excited to apply", so the prompt now names the role in the first sentence,
-rules out those two openers, and asks for 3 short paragraphs without details and 4 or 5 with them.
-The fixtures were re-recorded with it.
+which the signature goes under. The openers took four tries. All three first recordings opened
+with "I am writing to express my interest" or "I am excited to apply". Banning those made every
+letter open with years of experience. Requiring the role in the first sentence made every letter
+open with "As a {role}". Asking for a concrete example when the details had none made the model
+invent one ("a 40% increase in loading speed"). The prompt now opens the first paragraph with the
+strongest example the details actually contain, names the role later in that paragraph, asks for
+no results at all when the details are empty, and requires every number to come from the input. I
+ran each version against six requests on the live API, including one without details and one
+without years of experience, and re-recorded the fixtures with the last one. On thin input (the
+short sample only says "four years building design systems") the model can still lead with the
+tenure; pushing harder produced invented results, which is worse.
 
 ## Hidden instructions found
 
@@ -263,8 +270,9 @@ In funnel order, each with the step it is meant to move.
 - **A failed Try Again keeps your letter.** A regenerate that fails before any text leaves the
   previous letter, its Copy and its signature on screen, with the error as a note under it.
   *Failed → still copied, on a key everyone shares.*
-- **A prompt without stock openers, sized to the input.** The first sentence names the role and
-  starts from your skills or details; 3 short paragraphs without details, 4 or 5 with them.
+- **A prompt without stock openers, sized to the input.** The letter opens with the strongest
+  example your details contain, names the role and company in the same paragraph, and states no
+  result or number you didn't give; 3 short paragraphs without details, 4 or 5 with them.
   *Complete → copied, with fewer Try Again runs on the shared key.*
 - **A signature.** "Add your name" under a finished letter; the name goes under "Sincerely," on
   screen, on every card and in what Copy puts on the clipboard. *Copied → ready to send.*

@@ -16,64 +16,160 @@ event: delta
 data: {"text":",\n\n"}
 
 event: delta
-data: {"text":"With"}
+data: {"text":"I"}
 
 event: delta
-data: {"text":" eight"}
+data: {"text":" own"}
 
 event: delta
-data: {"text":" years"}
+data: {"text":" the"}
 
 event: delta
-data: {"text":" of"}
+data: {"text":" shipment"}
 
 event: delta
-data: {"text":" experience"}
+data: {"text":" tracking"}
 
 event: delta
-data: {"text":" building"}
+data: {"text":" platform"}
 
 event: delta
-data: {"text":" backend"}
+data: {"text":" at"}
 
 event: delta
-data: {"text":" systems"}
+data: {"text":" my"}
 
 event: delta
-data: {"text":" specifically"}
+data: {"text":" current"}
 
 event: delta
-data: {"text":" for"}
-
-event: delta
-data: {"text":" marketplaces"}
-
-event: delta
-data: {"text":" and"}
-
-event: delta
-data: {"text":" logistics"}
+data: {"text":" company"}
 
 event: delta
 data: {"text":","}
 
 event: delta
+data: {"text":" where"}
+
+event: delta
 data: {"text":" I"}
 
 event: delta
-data: {"text":" am"}
+data: {"text":" developed"}
 
 event: delta
-data: {"text":" well"}
+data: {"text":" a"}
 
 event: delta
-data: {"text":"-pre"}
+data: {"text":" set"}
 
 event: delta
-data: {"text":"pared"}
+data: {"text":" of"}
 
 event: delta
-data: {"text":" for"}
+data: {"text":" Go"}
+
+event: delta
+data: {"text":" services"}
+
+event: delta
+data: {"text":" that"}
+
+event: delta
+data: {"text":" efficiently"}
+
+event: delta
+data: {"text":" process"}
+
+event: delta
+data: {"text":" carrier"}
+
+event: delta
+data: {"text":" events"}
+
+event: delta
+data: {"text":" through"}
+
+event: delta
+data: {"text":" Kafka"}
+
+event: delta
+data: {"text":","}
+
+event: delta
+data: {"text":" reconcile"}
+
+event: delta
+data: {"text":" them"}
+
+event: delta
+data: {"text":" against"}
+
+event: delta
+data: {"text":" Postgre"}
+
+event: delta
+data: {"text":"SQL"}
+
+event: delta
+data: {"text":","}
+
+event: delta
+data: {"text":" and"}
+
+event: delta
+data: {"text":" expose"}
+
+event: delta
+data: {"text":" a"}
+
+event: delta
+data: {"text":" real"}
+
+event: delta
+data: {"text":"-time"}
+
+event: delta
+data: {"text":" API"}
+
+event: delta
+data: {"text":" that"}
+
+event: delta
+data: {"text":" serves"}
+
+event: delta
+data: {"text":" forty"}
+
+event: delta
+data: {"text":" thousand"}
+
+event: delta
+data: {"text":" merchants"}
+
+event: delta
+data: {"text":"."}
+
+event: delta
+data: {"text":" I'm"}
+
+event: delta
+data: {"text":" eager"}
+
+event: delta
+data: {"text":" to"}
+
+event: delta
+data: {"text":" bring"}
+
+event: delta
+data: {"text":" this"}
+
+event: delta
+data: {"text":" expertise"}
+
+event: delta
+data: {"text":" to"}
 
 event: delta
 data: {"text":" the"}
@@ -91,91 +187,73 @@ event: delta
 data: {"text":" role"}
 
 event: delta
-data: {"text":"."}
+data: {"text":" at"}
 
 event: delta
-data: {"text":" My"}
+data: {"text":" Harbor"}
 
 event: delta
-data: {"text":" proven"}
+data: {"text":" Logistics"}
 
 event: delta
-data: {"text":" track"}
+data: {"text":","}
 
 event: delta
-data: {"text":" record"}
+data: {"text":" where"}
 
 event: delta
-data: {"text":" includes"}
+data: {"text":" I"}
 
 event: delta
-data: {"text":" owning"}
+data: {"text":" can"}
 
 event: delta
-data: {"text":" a"}
+data: {"text":" support"}
 
 event: delta
-data: {"text":" shipment"}
+data: {"text":" your"}
 
 event: delta
-data: {"text":" tracking"}
-
-event: delta
-data: {"text":" platform"}
-
-event: delta
-data: {"text":" composed"}
-
-event: delta
-data: {"text":" of"}
-
-event: delta
-data: {"text":" Go"}
-
-event: delta
-data: {"text":" services"}
-
-event: delta
-data: {"text":" that"}
-
-event: delta
-data: {"text":" process"}
-
-event: delta
-data: {"text":" carrier"}
-
-event: delta
-data: {"text":" events"}
-
-event: delta
-data: {"text":" using"}
-
-event: delta
-data: {"text":" Kafka"}
+data: {"text":" routing"}
 
 event: delta
 data: {"text":" and"}
 
 event: delta
-data: {"text":" maintain"}
+data: {"text":" warehouse"}
 
 event: delta
-data: {"text":" accuracy"}
+data: {"text":" systems"}
 
 event: delta
-data: {"text":" through"}
+data: {"text":" with"}
 
 event: delta
-data: {"text":" Postgre"}
+data: {"text":" my"}
 
 event: delta
-data: {"text":"SQL"}
+data: {"text":" background"}
+
+event: delta
+data: {"text":" in"}
+
+event: delta
+data: {"text":" building"}
+
+event: delta
+data: {"text":" reliable"}
+
+event: delta
+data: {"text":" backend"}
+
+event: delta
+data: {"text":" solutions"}
 
 event: delta
 data: {"text":".\n\n"}
 
 event: delta
-data: {"text":"At"}
+data: {"text":"In"}
 
 event: delta
 data: {"text":" my"}
@@ -223,28 +301,19 @@ event: delta
 data: {"text":" to"}
 
 event: delta
-data: {"text":" an"}
-
-event: delta
 data: {"text":" event"}
 
 event: delta
 data: {"text":"-driven"}
 
 event: delta
-data: {"text":" service"}
-
-event: delta
-data: {"text":" model"}
+data: {"text":" services"}
 
 event: delta
 data: {"text":" without"}
 
 event: delta
-data: {"text":" inc"}
-
-event: delta
-data: {"text":"urring"}
+data: {"text":" any"}
 
 event: delta
 data: {"text":" downtime"}
@@ -256,121 +325,13 @@ event: delta
 data: {"text":" This"}
 
 event: delta
-data: {"text":" hands"}
+data: {"text":" not"}
 
 event: delta
-data: {"text":"-on"}
+data: {"text":" only"}
 
 event: delta
-data: {"text":" experience"}
-
-event: delta
-data: {"text":" with"}
-
-event: delta
-data: {"text":" distributed"}
-
-event: delta
-data: {"text":" systems"}
-
-event: delta
-data: {"text":" has"}
-
-event: delta
-data: {"text":" sharpen"}
-
-event: delta
-data: {"text":"ed"}
-
-event: delta
-data: {"text":" my"}
-
-event: delta
-data: {"text":" ability"}
-
-event: delta
-data: {"text":" to"}
-
-event: delta
-data: {"text":" create"}
-
-event: delta
-data: {"text":" resilient"}
-
-event: delta
-data: {"text":" solutions"}
-
-event: delta
-data: {"text":"."}
-
-event: delta
-data: {"text":" Implement"}
-
-event: delta
-data: {"text":"ing"}
-
-event: delta
-data: {"text":" id"}
-
-event: delta
-data: {"text":"empot"}
-
-event: delta
-data: {"text":"ent"}
-
-event: delta
-data: {"text":" consumers"}
-
-event: delta
-data: {"text":" was"}
-
-event: delta
-data: {"text":" a"}
-
-event: delta
-data: {"text":" critical"}
-
-event: delta
-data: {"text":" improvement"}
-
-event: delta
-data: {"text":" stemming"}
-
-event: delta
-data: {"text":" from"}
-
-event: delta
-data: {"text":" a"}
-
-event: delta
-data: {"text":" past"}
-
-event: delta
-data: {"text":" issue"}
-
-event: delta
-data: {"text":" with"}
-
-event: delta
-data: {"text":" duplicated"}
-
-event: delta
-data: {"text":" deliveries"}
-
-event: delta
-data: {"text":","}
-
-event: delta
-data: {"text":" showcasing"}
-
-event: delta
-data: {"text":" my"}
-
-event: delta
-data: {"text":" commitment"}
-
-event: delta
-data: {"text":" to"}
+data: {"text":" improved"}
 
 event: delta
 data: {"text":" system"}
@@ -379,25 +340,37 @@ event: delta
 data: {"text":" reliability"}
 
 event: delta
-data: {"text":".\n\n"}
-
-event: delta
-data: {"text":"I"}
+data: {"text":" but"}
 
 event: delta
 data: {"text":" also"}
 
 event: delta
-data: {"text":" reduced"}
+data: {"text":" enhanced"}
+
+event: delta
+data: {"text":" performance"}
+
+event: delta
+data: {"text":" by"}
+
+event: delta
+data: {"text":" reducing"}
 
 event: delta
 data: {"text":" the"}
 
 event: delta
-data: {"text":" p"}
+data: {"text":" "}
 
 event: delta
 data: {"text":"99"}
+
+event: delta
+data: {"text":"th"}
+
+event: delta
+data: {"text":" percentile"}
 
 event: delta
 data: {"text":" latency"}
@@ -406,7 +379,7 @@ event: delta
 data: {"text":" of"}
 
 event: delta
-data: {"text":" our"}
+data: {"text":" the"}
 
 event: delta
 data: {"text":" tracking"}
@@ -430,6 +403,9 @@ event: delta
 data: {"text":" to"}
 
 event: delta
+data: {"text":" just"}
+
+event: delta
 data: {"text":" "}
 
 event: delta
@@ -442,52 +418,25 @@ event: delta
 data: {"text":"."}
 
 event: delta
-data: {"text":" This"}
+data: {"text":" Sol"}
 
 event: delta
-data: {"text":" significant"}
+data: {"text":"ving"}
 
 event: delta
-data: {"text":" performance"}
+data: {"text":" the"}
 
 event: delta
-data: {"text":" enhancement"}
+data: {"text":" issue"}
 
 event: delta
-data: {"text":" demonstrates"}
+data: {"text":" of"}
 
 event: delta
-data: {"text":" my"}
+data: {"text":" duplicated"}
 
 event: delta
-data: {"text":" focus"}
-
-event: delta
-data: {"text":" on"}
-
-event: delta
-data: {"text":" optimizing"}
-
-event: delta
-data: {"text":" user"}
-
-event: delta
-data: {"text":" experience"}
-
-event: delta
-data: {"text":" and"}
-
-event: delta
-data: {"text":" system"}
-
-event: delta
-data: {"text":" efficiency"}
-
-event: delta
-data: {"text":"."}
-
-event: delta
-data: {"text":" Furthermore"}
+data: {"text":" deliveries"}
 
 event: delta
 data: {"text":","}
@@ -496,7 +445,64 @@ event: delta
 data: {"text":" I"}
 
 event: delta
-data: {"text":" established"}
+data: {"text":" introduced"}
+
+event: delta
+data: {"text":" id"}
+
+event: delta
+data: {"text":"empot"}
+
+event: delta
+data: {"text":"ent"}
+
+event: delta
+data: {"text":" consumers"}
+
+event: delta
+data: {"text":" that"}
+
+event: delta
+data: {"text":" have"}
+
+event: delta
+data: {"text":" since"}
+
+event: delta
+data: {"text":" stabilized"}
+
+event: delta
+data: {"text":" the"}
+
+event: delta
+data: {"text":" system"}
+
+event: delta
+data: {"text":" against"}
+
+event: delta
+data: {"text":" similar"}
+
+event: delta
+data: {"text":" failures"}
+
+event: delta
+data: {"text":".\n\n"}
+
+event: delta
+data: {"text":"Furthermore"}
+
+event: delta
+data: {"text":","}
+
+event: delta
+data: {"text":" I"}
+
+event: delta
+data: {"text":" set"}
+
+event: delta
+data: {"text":" up"}
 
 event: delta
 data: {"text":" observ"}
@@ -505,16 +511,13 @@ event: delta
 data: {"text":"ability"}
 
 event: delta
-data: {"text":" practices"}
+data: {"text":" tools"}
 
 event: delta
-data: {"text":" by"}
+data: {"text":" that"}
 
 event: delta
-data: {"text":" setting"}
-
-event: delta
-data: {"text":" up"}
+data: {"text":" include"}
 
 event: delta
 data: {"text":" tracing"}
@@ -535,49 +538,58 @@ event: delta
 data: {"text":","}
 
 event: delta
-data: {"text":" which"}
+data: {"text":" thereby"}
 
 event: delta
-data: {"text":" are"}
+data: {"text":" improving"}
 
 event: delta
-data: {"text":" essential"}
+data: {"text":" our"}
 
 event: delta
-data: {"text":" for"}
+data: {"text":" team's"}
 
 event: delta
-data: {"text":" monitoring"}
+data: {"text":" ability"}
+
+event: delta
+data: {"text":" to"}
+
+event: delta
+data: {"text":" monitor"}
+
+event: delta
+data: {"text":" system"}
+
+event: delta
+data: {"text":" health"}
 
 event: delta
 data: {"text":" and"}
 
 event: delta
-data: {"text":" maintaining"}
+data: {"text":" troubleshoot"}
 
 event: delta
-data: {"text":" high"}
+data: {"text":" effectively"}
 
 event: delta
-data: {"text":" service"}
+data: {"text":"."}
 
 event: delta
-data: {"text":" quality"}
+data: {"text":" As"}
 
 event: delta
-data: {"text":".\n\n"}
+data: {"text":" part"}
 
 event: delta
-data: {"text":"Apart"}
+data: {"text":" of"}
 
 event: delta
-data: {"text":" from"}
+data: {"text":" my"}
 
 event: delta
-data: {"text":" technical"}
-
-event: delta
-data: {"text":" contributions"}
+data: {"text":" responsibilities"}
 
 event: delta
 data: {"text":","}
@@ -586,10 +598,79 @@ event: delta
 data: {"text":" I"}
 
 event: delta
-data: {"text":" actively"}
+data: {"text":" run"}
+
+event: delta
+data: {"text":" the"}
+
+event: delta
+data: {"text":" on"}
+
+event: delta
+data: {"text":"-call"}
+
+event: delta
+data: {"text":" rotation"}
+
+event: delta
+data: {"text":" for"}
+
+event: delta
+data: {"text":" six"}
+
+event: delta
+data: {"text":" engineers"}
+
+event: delta
+data: {"text":","}
+
+event: delta
+data: {"text":" ensuring"}
+
+event: delta
+data: {"text":" that"}
+
+event: delta
+data: {"text":" our"}
+
+event: delta
+data: {"text":" immediate"}
+
+event: delta
+data: {"text":" support"}
+
+event: delta
+data: {"text":" structures"}
+
+event: delta
+data: {"text":" are"}
+
+event: delta
+data: {"text":" robust"}
+
+event: delta
+data: {"text":" and"}
+
+event: delta
+data: {"text":" efficient"}
+
+event: delta
+data: {"text":".\n\n"}
+
+event: delta
+data: {"text":"As"}
+
+event: delta
+data: {"text":" a"}
 
 event: delta
 data: {"text":" mentor"}
+
+event: delta
+data: {"text":" to"}
+
+event: delta
+data: {"text":" two"}
 
 event: delta
 data: {"text":" mid"}
@@ -601,7 +682,52 @@ event: delta
 data: {"text":" engineers"}
 
 event: delta
+data: {"text":","}
+
+event: delta
+data: {"text":" I"}
+
+event: delta
+data: {"text":" am"}
+
+event: delta
+data: {"text":" committed"}
+
+event: delta
+data: {"text":" to"}
+
+event: delta
+data: {"text":" fostering"}
+
+event: delta
+data: {"text":" growth"}
+
+event: delta
 data: {"text":" and"}
+
+event: delta
+data: {"text":" technical"}
+
+event: delta
+data: {"text":" excellence"}
+
+event: delta
+data: {"text":" within"}
+
+event: delta
+data: {"text":" the"}
+
+event: delta
+data: {"text":" team"}
+
+event: delta
+data: {"text":"."}
+
+event: delta
+data: {"text":" I"}
+
+event: delta
+data: {"text":" also"}
 
 event: delta
 data: {"text":" contribute"}
@@ -622,61 +748,52 @@ event: delta
 data: {"text":" records"}
 
 event: delta
-data: {"text":"."}
+data: {"text":" and"}
 
 event: delta
-data: {"text":" My"}
+data: {"text":" participate"}
 
 event: delta
-data: {"text":" passion"}
+data: {"text":" in"}
+
+event: delta
+data: {"text":" the"}
+
+event: delta
+data: {"text":" interview"}
+
+event: delta
+data: {"text":" process"}
 
 event: delta
 data: {"text":" for"}
 
 event: delta
-data: {"text":" hard"}
+data: {"text":" new"}
 
 event: delta
-data: {"text":" correctness"}
+data: {"text":" developers"}
 
 event: delta
-data: {"text":" problems"}
+data: {"text":","}
+
+event: delta
+data: {"text":" further"}
+
+event: delta
+data: {"text":" advancing"}
+
+event: delta
+data: {"text":" team"}
+
+event: delta
+data: {"text":" cohesion"}
 
 event: delta
 data: {"text":" and"}
 
 event: delta
-data: {"text":" clear"}
-
-event: delta
-data: {"text":" communication"}
-
-event: delta
-data: {"text":" aligns"}
-
-event: delta
-data: {"text":" with"}
-
-event: delta
-data: {"text":" teams"}
-
-event: delta
-data: {"text":" that"}
-
-event: delta
-data: {"text":" integrate"}
-
-event: delta
-data: {"text":" operations"}
-
-event: delta
-data: {"text":" into"}
-
-event: delta
-data: {"text":" their"}
-
-event: delta
-data: {"text":" product"}
+data: {"text":" skill"}
 
 event: delta
 data: {"text":" development"}
@@ -688,43 +805,52 @@ event: delta
 data: {"text":" I"}
 
 event: delta
-data: {"text":" am"}
+data: {"text":" look"}
 
 event: delta
-data: {"text":" eager"}
-
-event: delta
-data: {"text":" to"}
-
-event: delta
-data: {"text":" leverage"}
-
-event: delta
-data: {"text":" my"}
-
-event: delta
-data: {"text":" background"}
+data: {"text":" forward"}
 
 event: delta
 data: {"text":" to"}
 
 event: delta
-data: {"text":" enhance"}
+data: {"text":" potentially"}
 
 event: delta
-data: {"text":" routing"}
+data: {"text":" bringing"}
+
+event: delta
+data: {"text":" this"}
+
+event: delta
+data: {"text":" blend"}
+
+event: delta
+data: {"text":" of"}
+
+event: delta
+data: {"text":" experience"}
 
 event: delta
 data: {"text":" and"}
 
 event: delta
-data: {"text":" warehouse"}
+data: {"text":" my"}
 
 event: delta
-data: {"text":" systems"}
+data: {"text":" passion"}
 
 event: delta
-data: {"text":" at"}
+data: {"text":" for"}
+
+event: delta
+data: {"text":" operational"}
+
+event: delta
+data: {"text":" excellence"}
+
+event: delta
+data: {"text":" to"}
 
 event: delta
 data: {"text":" Harbor"}
