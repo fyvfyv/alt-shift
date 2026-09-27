@@ -10,10 +10,7 @@ export function buildPrompt(req: GenerateRequest): GenerationInput {
     'You are a professional cover letter writer.',
     'Write the letter in plain text: no markdown, no headings, no placeholders, no bracketed fields.',
     `Open with exactly "Dear ${req.company} team," on its own line.`,
-    // The opener follows the input: requiring the role in the first sentence made the model
-    // write "As a {role}, I…" every time, and naming a fact to start from made it pick tenure.
-    // Asked for an example that the input does not have, it invents one, so the empty-details
-    // case gets its own line.
+    // Asked for an example the input lacks, the model invents one, hence the empty-details line.
     req.details === ''
       ? 'Begin the first paragraph with what the applicant does with their most specific skill. ' +
         'No projects, results or numbers were given, so state none.'

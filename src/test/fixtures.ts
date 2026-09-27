@@ -5,7 +5,6 @@ import medium from '../../server/fixtures/medium.sse?raw';
 import shortExpected from '../../server/fixtures/short.expected.json?raw';
 import short from '../../server/fixtures/short.sse?raw';
 
-// Transcripts recorded from the live Variant API by `pnpm record:fixture`: the wire contract.
 const fixtures = {
   short: { sse: short, expected: shortExpected },
   medium: { sse: medium, expected: mediumExpected },

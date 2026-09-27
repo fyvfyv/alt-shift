@@ -26,9 +26,8 @@ export function TextField({ label, hideLabel = false, error, ...inputProps }: Te
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? errorId : undefined}
       />
-      {/* A description is read when the field gains focus, not when it changes under the caret.
-          The status stays mounted (off screen and empty while valid), so an error that appears
-          while typing is spoken once, from the same text that is shown. */}
+      {/* A description isn't re-read while typing, so the error also goes through a status,
+          kept mounted because one inserted with its text already is skipped. */}
       <p
         id={errorId}
         role="status"

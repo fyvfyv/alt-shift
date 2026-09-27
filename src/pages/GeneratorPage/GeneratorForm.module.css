@@ -1,6 +1,3 @@
-/* 600px tall, as designed, whatever the letter beside it: the preview grows with a real letter
-   (about 1000px) while the textarea keeps its 236 and the CTA stays in the first screen, still
-   under the pointer as the letter streams. */
 .form {
   display: flex;
   flex-direction: column;
@@ -16,7 +13,6 @@
   gap: var(--space-4);
 }
 
-/* Stacked, the form no longer has a preview to line up with, so it takes only what it needs. */
 @container page (width < 1120px) {
   .form {
     min-height: 0;
@@ -33,8 +29,6 @@
   color: var(--color-text-tertiary);
 }
 
-/* Side by side, the note hangs below the CTA instead of growing the row, which would stretch the
-   preview panel beside it the moment the gray CTA is pressed. */
 @container page (width >= 1120px) {
   .form {
     position: relative;

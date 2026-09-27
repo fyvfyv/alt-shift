@@ -1,4 +1,3 @@
-/* Figma strokes sit inside the box, so every bordered size uses Figma padding minus the 1px border. */
 .button {
   display: inline-flex;
   flex: none;
@@ -21,8 +20,6 @@
   box-shadow: var(--shadow-xs), var(--ring-focus);
 }
 
-/* aria-disabled (loading, or an action the page explains on click) keeps the tab stop, so it
-   takes the default cursor and no hover. */
 .button[aria-disabled="true"] {
   cursor: default;
 }
@@ -31,7 +28,7 @@
   width: 100%;
 }
 
-/* min-height, not height: the loading state swaps the label for a spinner without a 4px jump. */
+/* min-height: the spinner is 4px shorter than the label line; the box must not shrink. */
 .button[data-size="xl"] {
   gap: var(--space-3);
   min-height: 60px;
@@ -50,7 +47,7 @@
   border-color: var(--color-brand);
 }
 
-/* Hover only where a pointer can hover: a tap would otherwise leave it stuck on touch screens. */
+/* Touch screens leave :hover stuck after a tap. */
 @media (hover: hover) {
   .button[data-variant="primary"]:hover:not(:disabled, [aria-disabled="true"]) {
     background: var(--color-brand-accent);
@@ -58,7 +55,6 @@
   }
 }
 
-/* Pressed returns to the resting green, darker than hover. */
 .button[data-variant="primary"]:active:not(:disabled, [aria-disabled="true"]) {
   background: var(--color-brand);
   border-color: var(--color-brand);
@@ -91,7 +87,6 @@
   border-color: var(--color-border-subtle);
 }
 
-/* Bare text + icon. The radius exists only to shape the focus ring. */
 .button[data-variant="tertiary"] {
   gap: var(--space-2);
   color: var(--color-text-tertiary);

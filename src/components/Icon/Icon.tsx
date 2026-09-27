@@ -5,8 +5,6 @@ import Plus from '../../assets/icons/plus.svg?react';
 import Repeat03 from '../../assets/icons/repeat-03.svg?react';
 import Trash01 from '../../assets/icons/trash-01.svg?react';
 
-// Strokes are `currentColor`: an icon always takes the color of the text next to it. Stroke widths
-// scale with the viewBox, so one file serves both sizes (2 at 24px renders as 1.667 at 20px).
 const icons = {
   'copy-03': Copy03,
   'home-02': Home02,
@@ -24,7 +22,6 @@ type IconProps = {
   size: IconSize;
 };
 
-// Decorative: every icon sits next to a label or inside a control with an aria-label.
 export function Icon({ name, size }: IconProps) {
   const Svg = icons[name];
   return <Svg width={size} height={size} aria-hidden focusable={false} />;

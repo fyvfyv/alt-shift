@@ -1,7 +1,6 @@
 import type { Letter } from './model';
 import type { LetterRepository, StorageError } from './repository';
 
-// For tests and Storybook: the same contract as localStorage, with failures on demand.
 export class InMemoryLetterRepository implements LetterRepository {
   #letters: Letter[];
   #writeError: StorageError | null = null;

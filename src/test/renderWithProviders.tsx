@@ -11,14 +11,11 @@ import { createLetterStore } from '../features/letters/store';
 import { createFakePort } from './fakeGenerationPort';
 
 type Options = {
-  // A string, or an entry with history state (a prefilled job).
   url?: InitialEntry;
   letters?: Letter[];
   repository?: LetterRepository;
 };
 
-// Mirrors main.tsx: the store is hydrated before the first render. Generation goes through a
-// fake port the test drives.
 export async function renderWithProviders(
   ui: ReactNode,
   { url = '/', letters = [], repository = new InMemoryLetterRepository(letters) }: Options = {},

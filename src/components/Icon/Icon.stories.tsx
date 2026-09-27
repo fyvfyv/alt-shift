@@ -2,7 +2,6 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import typography from '../../styles/typography.module.css';
 import { Icon, type IconName, type IconSize } from './Icon';
 
-// A record rather than a list: typecheck fails until an icon added to Icon.tsx is listed here.
 const catalog = {
   'copy-03': true,
   'home-02': true,
@@ -24,7 +23,6 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
-// Icons take the color of the text next to them.
 export const Catalog: Story = {
   render: () => (
     <div

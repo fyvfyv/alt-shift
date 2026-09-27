@@ -9,24 +9,20 @@ import styles from './LetterReader.module.css';
 type LetterReaderProps = {
   title: string;
   text: string;
-  // Called once the dialog has closed: by Close, Escape or a click on the backdrop.
   onClose: () => void;
 };
 
-// The whole letter in a modal over the dashboard. A card that grew in place instead would move
-// to a row of its own, or leave a hole beside its neighbor, and run lines too long to read.
 export function LetterReader({ title, text, onClose }: LetterReaderProps) {
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
 
-  // Mounted means open. The check keeps a second run of the effect from calling it twice.
   useEffect(() => {
     const dialog = ref.current;
     if (dialog && !dialog.open) dialog.showModal();
   }, []);
 
-  // A click on the backdrop lands on the dialog itself, outside its box. So does one on its own
-  // scrollbar, but inside the box, and that one must not close it.
+  // A backdrop click targets the dialog itself, outside its box. A click on its scrollbar
+  // targets it too, but inside, and must not close it.
   function closeOnBackdrop(event: MouseEvent<HTMLDialogElement>) {
     const dialog = event.currentTarget;
     if (event.target !== dialog) return;

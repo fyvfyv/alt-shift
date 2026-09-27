@@ -9,7 +9,6 @@ import { LetterReader } from './LetterReader';
 
 type LetterCardProps = {
   letter: Letter;
-  // The profile name: signs a letter that ends on a bare closing, on screen and when copied.
   signature?: string;
   onDelete: () => void;
   deleteRef?: Ref<HTMLButtonElement>;
@@ -23,9 +22,7 @@ export function LetterCard({ letter, signature = '', onDelete, deleteRef }: Lett
   const [overflows, setOverflows] = useState(false);
   const [reading, setReading] = useState(false);
 
-  // Whether the preview clips the letter changes with the card's width (a resize, a rotation),
-  // the webfont swapping in and the signature line, so it is re-measured whenever the preview or
-  // the text inside it changes size.
+  // Observe the text too: a font swap or a signature grows it inside the fixed-height body.
   useLayoutEffect(() => {
     const body = bodyRef.current;
     if (!body) return;

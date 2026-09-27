@@ -1,6 +1,4 @@
-// Mounts the /api/generate handler on the Vite dev server, so `pnpm dev` runs the same proxy
-// code as the Vercel function without `vercel dev`. The handler is loaded through Vite's SSR
-// module graph: edits to server code apply without a restart, and vite.config stays import-light.
+// ssrLoadModule, not an import: server edits apply without a restart, vite.config stays light.
 
 import type { ServerResponse } from 'node:http';
 import { type Connect, loadEnv, type Plugin } from 'vite';
@@ -43,7 +41,6 @@ export function generateMiddleware(handler: Handler) {
     } catch (error) {
       if (!controller.signal.aborted) console.error('[generate]', error);
       if (!res.headersSent && !res.destroyed) {
-        // A throw before streaming is a 500, as it would be on Vercel, not a network error.
         const body: ApiErrorBody = {
           error: { code: 'upstream_error', message: 'The generation handler failed.' },
         };
@@ -51,8 +48,8 @@ export function generateMiddleware(handler: Handler) {
         res.end(JSON.stringify(body));
         return;
       }
-      // No chunked terminator: the browser's read() rejects, exactly like a dropped upstream. The
-      // close this causes is ours, not the client leaving, so it must not abort the request.
+      // No chunked terminator, so the browser's read() fails like a dropped upstream; `failed`
+      // keeps this self-inflicted close from aborting the request.
       failed = true;
       res.destroy();
     }
@@ -64,7 +61,7 @@ export function generateApiPlugin(): Plugin {
     name: 'alt-shift:generate-api',
     apply: 'serve',
     config(_config, { mode }) {
-      // Server-only env (the token) never gets a VITE_ prefix; values already in the shell win.
+      // '' loads unprefixed vars too (the token has no VITE_ prefix); shell values still win.
       Object.assign(process.env, loadEnv(mode, process.cwd(), ''));
     },
     async configureServer(server) {

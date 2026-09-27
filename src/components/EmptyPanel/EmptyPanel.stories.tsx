@@ -21,7 +21,6 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
-// The empty dashboard: a pitch above the line, one action, a note on where the text goes.
 export const WithHeadingAndNote: Story = {
   args: {
     heading: copy.dashboard.pitch,

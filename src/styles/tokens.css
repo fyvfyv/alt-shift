@@ -1,72 +1,48 @@
-/*
- * Semantic tokens only: components never reference raw palette values.
- *
- * Breakpoints (custom properties cannot be used in queries, so they live here
- * as documentation and are repeated literally at the call sites):
- * - container `page` < 1120px: the generator's two 544px columns stop fitting,
- *   form and preview stack.
- * - container `page` < 656px: two letter cards drop below ~320px each, the
- *   dashboard grid goes to one column.
- * - viewport < 768px: page padding, header counter copy, banner and preview
- *   padding shrink; these belong to the viewport, not to a component's box.
- * - viewport < 480px: the two-up field row stacks and the generator title wraps.
- */
 :root {
-  /* surfaces */
-  --color-surface: #ffffff; /* page, inputs, secondary + icon buttons */
-  --color-surface-subtle: #f2f4f7; /* preview panel, letter cards */
-  --color-surface-brand-subtle: #edfcf2; /* goal banner */
+  --color-surface: #ffffff;
+  --color-surface-subtle: #f2f4f7;
+  --color-surface-brand-subtle: #edfcf2;
 
-  /* text */
-  --color-text-primary: #101828; /* headings, input values */
-  --color-text-secondary: #344054; /* field labels, secondary-button label */
-  --color-text-tertiary: #475467; /* char counter, tertiary buttons */
-  --color-text-quaternary: #667085; /* meta counter, letter body, subtitles */
-  --color-text-placeholder: #667085; /* input placeholders, empty title, empty preview */
+  --color-text-primary: #101828;
+  --color-text-secondary: #344054;
+  --color-text-tertiary: #475467;
+  --color-text-quaternary: #667085;
+  --color-text-placeholder: #667085;
   --color-text-disabled: #98a2b3;
   --color-text-on-brand: #ffffff;
   --color-text-error: #f04438;
 
-  /* borders */
   --color-border: #d0d5dd;
-  --color-border-subtle: #eaecf0; /* title divider */
-  --color-border-hover: #98a2b3; /* text controls */
+  --color-border-subtle: #eaecf0;
+  --color-border-hover: #98a2b3;
   --color-border-focus: #73e2a3;
   --color-border-error: #fda29b;
 
-  /* brand and control states */
-  --color-brand: #087443; /* primary button */
-  --color-brand-accent: #099250; /* logomark, primary hover */
+  --color-brand: #087443;
+  --color-brand-accent: #099250;
   --color-control-disabled: #d0d5dd;
   --color-scrollbar-thumb: #d0d5dd;
-  /* behind the letter reader; the heading color, dimmed, so no new palette entry */
   --color-backdrop: color-mix(in srgb, var(--color-text-primary) 60%, transparent);
 
-  /* progress indicator */
   --color-progress: #101828;
   --opacity-progress-inactive: 0.24;
 
-  /* rings and shadows */
   --shadow-xs: 0 1px 2px 0 rgb(16 24 40 / 0.05);
   --ring-focus: 0 0 0 4px #d3f8df;
   --ring-error: 0 0 0 4px #fee4e2;
   --shadow-orb: inset 0 -2px 32px 0 rgb(16 24 40 / 0.08);
 
-  /* gradients */
   --gradient-orb-highlight: radial-gradient(
     51.88px circle at 59.375px 17.5px,
     #ffffff 0%,
     rgb(255 255 255 / 0.16) 100%
   );
   --gradient-orb-base: radial-gradient(circle farthest-corner at 0 0, #ffffff 0%, #d0d5dd 100%);
-  /* Ends in the card surface, so the clipped text fades into the card itself. */
   --gradient-card-fade: linear-gradient(180deg, transparent, var(--color-surface-subtle));
 
-  /* font families; sizes live in typography.module.css */
   --font-text: "Fixel Text", system-ui, sans-serif;
   --font-display: "Fixel Display", system-ui, sans-serif;
 
-  /* spacing: the name is the value divided by 4 */
   --space-1: 4px;
   --space-1-5: 6px;
   --space-2: 8px;
@@ -81,9 +57,8 @@
   --space-30: 120px;
   --space-40: 160px;
 
-  /* radii */
-  --radius-sm: 4px; /* progress dots and bars, tertiary-button focus ring */
-  --radius-md: 6px; /* inputs, textarea, buttons */
-  --radius-lg: 12px; /* preview panel, letter cards, goal banner */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 12px;
   --radius-full: 9999px;
 }

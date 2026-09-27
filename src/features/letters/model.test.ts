@@ -34,7 +34,7 @@ describe('looksWhole', () => {
     expect(looksWhole(`${BODY}${ending}`)).toBe(true);
   });
 
-  // The endings of the letters the live API cut short, and a cut right after the greeting.
+  // Real live-API cut endings, plus a bare greeting.
   it.each([
     'Dear team,\n\nI excel in building fast, accessible user interfaces',
     `${BODY}I build scalable and`,

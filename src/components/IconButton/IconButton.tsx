@@ -6,7 +6,6 @@ import styles from './IconButton.module.css';
 
 type IconButtonProps = Omit<ComponentProps<typeof Link>, 'children'> & {
   icon: IconName;
-  // Required: the icon is the only content.
   'aria-label': string;
 };
 

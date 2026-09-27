@@ -2,7 +2,6 @@ import type { GenerationPort } from '../src/features/generation/generationClient
 import type { Letter } from '../src/features/letters/model';
 import { recorded } from '../src/test/fixtures';
 
-// Real letters recorded from the Variant API, so stories show true lengths and paragraphing.
 export const sampleText = recorded('medium').text;
 
 export function sampleLetters(count: number): Letter[] {
@@ -16,7 +15,6 @@ export function sampleLetters(count: number): Letter[] {
   }));
 }
 
-// Honours abort like the real client, so cancel paths behave in stories.
 export function createStoryPort(delayMs: number): GenerationPort {
   return async function* (_request, signal) {
     for (const word of sampleText.split(/(?<=\s)/)) {

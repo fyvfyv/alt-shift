@@ -15,8 +15,6 @@ type FakeRun = {
   fail(error: GenerationError): void;
 };
 
-// A port the test drives: every call starts a run that yields exactly what the test emits, and
-// throws the AbortError once its signal aborts, as the real client does.
 export function createFakePort() {
   const runs: FakeRun[] = [];
 

@@ -7,9 +7,7 @@ import styles from './GoalBanner.module.css';
 
 type GoalBannerProps = {
   count: number;
-  // The page decides what "Create New" does: a link on the dashboard, a reset on the generator.
   action: ReactNode;
-  // Figma drops the banner at the goal; a page keeps it only by offering a next step here.
   reachedAction?: ReactNode;
 };
 

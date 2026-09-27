@@ -1,7 +1,5 @@
 import { EXAMPLE_REQUEST } from '../shared/example';
 
-// Every user-facing string lives here, except index.html's meta tags: crawlers and link previews
-// read them without running the app.
 export const copy = {
   documentTitle: (page: string) => `${page} · Alt+Shift`,
 
@@ -18,8 +16,7 @@ export const copy = {
     empty: 'Your generated applications will appear here...',
     pitch:
       "Tell Alt+Shift the job, the company and what you're good at, and it writes the cover letter.",
-    // Keep it true to the code: the client posts the four fields, the proxy logs no field text,
-    // and letters live in localStorage.
+    // Privacy claim: keep true to what the client sends, the proxy logs and where letters live.
     trust:
       'No sign-up. Your details go to the generation service only to write the letter; the letters stay in this browser.',
   },
@@ -43,7 +40,6 @@ export const copy = {
     generating: 'Generating…',
     tryAgain: 'Try Again',
     offlineNote: "You appear to be offline. Generating will work again once you're back.",
-    // Under a gray Generate Now once it is pressed: what keeps the request from going out.
     hint: {
       names: { jobTitle: 'a job title', company: 'a company', skills: "what you're good at" },
       missing: (names: readonly string[]) => {
@@ -80,8 +76,6 @@ export const copy = {
       almost: 'Almost there…',
     },
     label: 'Your letter',
-    // Names the job once an edit has moved the form to another one, so the letter is not taken
-    // for the new job's.
     kept: (title?: string) =>
       title ? `Showing your previous letter, ${title}.` : 'Your previous letter is kept.',
     status: {
@@ -108,7 +102,6 @@ export const copy = {
 
   example: {
     label: 'Try an example',
-    // In shared/, not here: the server records the mock's short letter from the same values.
     request: EXAMPLE_REQUEST,
   },
 

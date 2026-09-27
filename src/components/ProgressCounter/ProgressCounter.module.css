@@ -5,7 +5,6 @@
   color: var(--color-text-quaternary);
 }
 
-/* Phones keep the "3/5" and the dots; the accessible name still carries the full phrase. */
 @media (width < 768px) {
   .suffix {
     display: none;

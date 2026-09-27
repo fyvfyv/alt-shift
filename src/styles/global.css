@@ -57,9 +57,9 @@
   body {
     min-height: 100dvh;
     font-family: var(--font-text);
-    font-size: 1rem; /* 16px */
+    font-size: 1rem;
     font-weight: 400;
-    line-height: 1.5rem; /* 24px */
+    line-height: 1.5rem;
     color: var(--color-text-primary);
     background: var(--color-surface);
     -webkit-font-smoothing: antialiased;
@@ -67,7 +67,6 @@
   }
 
   /* biome-ignore-start lint/complexity/noImportantStyles: from inside a layer only !important outranks unlayered component animations */
-  /* Loading indicators opt out with data-motion="essential" and bring their own reduced variant. */
   @media (prefers-reduced-motion: reduce) {
     *:not([data-motion="essential"]),
     *::before,

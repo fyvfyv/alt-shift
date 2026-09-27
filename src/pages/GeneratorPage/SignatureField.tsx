@@ -11,12 +11,11 @@ type SignatureFieldProps = {
   onChange: (name: string) => void;
 };
 
-// A button that opens into a one-line field: Enter or leaving it saves, Escape cancels.
 export function SignatureField({ name, onChange }: SignatureFieldProps) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
   const buttonRef = useRef<HTMLButtonElement>(null);
-  // Enter and Escape close the field themselves; the blur its unmount fires must not save again.
+  // The blur the field's unmount fires must not save again (after Escape it would save the draft).
   const closed = useRef(false);
 
   function open() {
@@ -32,7 +31,6 @@ export function SignatureField({ name, onChange }: SignatureFieldProps) {
     setEditing(false);
   }
 
-  // Closing from the keyboard returns focus to the button; a click elsewhere keeps its target.
   function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
     if (event.key !== 'Enter' && event.key !== 'Escape') return;
     event.preventDefault();
@@ -47,8 +45,6 @@ export function SignatureField({ name, onChange }: SignatureFieldProps) {
       </Button>
     );
   }
-  // The field replaces the button just clicked, so its label is spoken, not shown. The cap is the
-  // form's single-line limit made hard: a field that saves on blur has nowhere to show an error.
   return (
     <div className={styles.editor}>
       <TextField

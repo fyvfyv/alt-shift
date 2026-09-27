@@ -6,7 +6,6 @@ type ProgressDotsProps = {
   variant?: 'dots' | 'bars';
 };
 
-// Purely visual: the adjacent text carries the same number for assistive technology.
 export function ProgressDots({ count, total, variant = 'dots' }: ProgressDotsProps) {
   return (
     <div className={styles.track} data-variant={variant} aria-hidden>

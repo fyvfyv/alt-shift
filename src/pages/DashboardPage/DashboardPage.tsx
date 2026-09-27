@@ -22,8 +22,7 @@ export function DashboardPage() {
   const titleRef = useRef<HTMLHeadingElement>(null);
   const deleteButtons = useRef(new Map<string, HTMLButtonElement>());
 
-  // A deleted card takes its focused button with it. The removal is committed before focus moves
-  // to the card that slides into its place, or to the page title when there is none.
+  // flushSync: remove the card before focus() so it scrolls to where the next card lands.
   function handleDelete(id: string, index: number) {
     const next = letters[index + 1];
     flushSync(() => void remove(id));
@@ -45,8 +44,6 @@ export function DashboardPage() {
         </PageTitle>
         <StorageNote failed={storageFailed} />
         {letters.length === 0 ? (
-          // Create New is already in the title row and the banner; the panel offers the path that
-          // needs no typing.
           <EmptyPanel
             heading={copy.dashboard.pitch}
             text={copy.dashboard.empty}

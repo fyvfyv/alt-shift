@@ -15,7 +15,6 @@ type ProviderEnv = {
   GENERATION_API_TOKEN?: string;
 };
 
-// Deployments always hit the real API; a fresh clone without a token runs offline on the mock.
 export function resolveProvider(env: ProviderEnv): ProviderName {
   if (env.VERCEL_ENV) return 'variant';
   const override = env.GENERATION_PROVIDER;

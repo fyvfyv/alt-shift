@@ -1,5 +1,4 @@
-/* Centered over the page and no wider than a comfortable line of the letter. The margin undoes
-   the global reset, which would otherwise pin the dialog to the top left. */
+/* margin: auto restores the dialog centering that the global reset's margin: 0 removes. */
 .reader {
   width: min(640px, 100% - 2 * var(--space-4));
   max-width: none;
@@ -29,7 +28,6 @@
   overflow-wrap: anywhere;
 }
 
-/* Close and Copy stay in reach while a long letter scrolls under them. */
 .footer {
   position: sticky;
   bottom: 0;

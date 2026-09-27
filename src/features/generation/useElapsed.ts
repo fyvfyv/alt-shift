@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 
-// Whole seconds since `active` became true, 0 while inactive. Ticks against the clock, so a
-// throttled tab stays right.
+// Measured against Date.now(): background tabs throttle timers.
 export function useElapsed(active: boolean): number {
   const [seconds, setSeconds] = useState(0);
 

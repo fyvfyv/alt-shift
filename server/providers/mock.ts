@@ -1,8 +1,3 @@
-// Offline stand-in for the Variant API: replays transcripts recorded from the real API
-// (`pnpm record:fixture`) at a realistic pace, plus the failure modes the UI has to handle.
-// The recorded job title and company are swapped for the request's so the letter reads as the
-// user's own; the text is then re-chunked to the recorded delta sizes so pacing stays realistic.
-
 import { readFile } from 'node:fs/promises';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { countChars, type GenerateRequest } from '../../shared/generation.js';
@@ -16,11 +11,9 @@ import { type FixtureName, SAMPLES } from '../fixtures/samples.js';
 import { jsonError } from '../jsonError.js';
 import type { Provider } from './types.js';
 
-// `disconnect` errors the stream here; `truncate` closes it cleanly, without [DONE], as the live
-// API now and then does mid-letter.
+// The live API now and then closes cleanly mid-letter, without [DONE]; `truncate` mimics that.
 const CUT_AT = 0.4;
-// The live cuts land mid-sentence, and the client takes a letter that stops on a finished
-// sentence as whole, so the mock never cuts right after one either.
+// The client takes a letter ending on a full sentence as whole, so never cut right after one.
 const SENTENCE_END = /[.!?…]\s*$/;
 
 type Scenario = 'complete' | 'disconnect' | 'truncate';

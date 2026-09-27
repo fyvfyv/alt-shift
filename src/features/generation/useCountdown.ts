@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 
-// Restarts whenever `key` changes, so a second 429 with the same Retry-After restarts it.
-// Ticks against the clock, so a throttled tab stays right.
+// Counts against Date.now(): background tabs throttle timers.
 export function useCountdown(seconds: number, key: unknown): number {
   const [left, setLeft] = useState(seconds);
   const [startedFor, setStartedFor] = useState(key);

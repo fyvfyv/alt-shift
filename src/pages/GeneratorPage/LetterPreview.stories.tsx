@@ -31,7 +31,6 @@ type Story = StoryObj<typeof meta>;
 
 export const Empty: Story = {};
 
-// The caption under the orb appears after 2 s and changes at 8 s.
 export const Loading: Story = { args: { state: { status: 'loading' } } };
 
 export const Streaming: Story = {
@@ -60,7 +59,6 @@ export const RateLimitOver: Story = {
   args: { state: { status: 'error', error: { kind: 'rate-limit', retryAfterSeconds: 24 } } },
 };
 
-// A Try Again that hit the limit: the previous letter, still saved, stays with its Copy.
 export const KeptAfterRateLimit: Story = {
   args: {
     state: {
@@ -73,7 +71,6 @@ export const KeptAfterRateLimit: Story = {
   },
 };
 
-// Generate Now after an edit failed: the letter still shown was written for another job.
 export const KeptForAnotherJob: Story = {
   args: {
     state: { status: 'error', error: { kind: 'upstream' }, text: sampleText },
@@ -95,12 +92,10 @@ export const StreamCut: Story = {
   },
 };
 
-// A Try Again that was cut: the saved letter it was replacing stays, under the note.
 export const StreamCutPreviousKept: Story = {
   args: { ...StreamCut.args, savedLetter: sampleText },
 };
 
-// After an edit the form's CTA is Generate Now, so the panel keeps only the note.
 export const StreamCutAfterEdit: Story = {
   args: { ...StreamCut.args, showCutRetry: false },
 };

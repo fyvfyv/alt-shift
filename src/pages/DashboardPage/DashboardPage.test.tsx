@@ -1,6 +1,5 @@
 import { screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { copy } from '../../copy';
 import { InMemoryLetterRepository } from '../../features/letters/inMemoryRepository';
 import { StorageError } from '../../features/letters/repository';
 import { lettersOf } from '../../test/letters';
@@ -15,36 +14,19 @@ const banner = () => screen.queryByRole('region', { name: 'Hit your goal' });
 afterEach(() => vi.restoreAllMocks());
 
 describe('DashboardPage', () => {
-  it('says what the product is, with the goal banner, before the first letter', async () => {
-    await renderWithProviders(<DashboardPage />);
-
-    expect(cards()).toHaveLength(0);
-    expect(screen.getByText(copy.dashboard.pitch)).toBeInTheDocument();
-    expect(screen.getByText('Your generated applications will appear here...')).toBeInTheDocument();
-    expect(screen.getByText(copy.dashboard.trust)).toBeInTheDocument();
-    expect(banner()).toHaveTextContent('0 out of 5');
-  });
-
-  it('lists every letter, newest first, with the banner while under the goal', async () => {
-    await renderWithProviders(<DashboardPage />, { letters: lettersOf(4) });
-
-    expect(cards().map((c) => c.getAttribute('aria-label'))).toEqual([
-      'Role 3, Acme',
-      'Role 2, Acme',
-      'Role 1, Acme',
-      'Role 0, Acme',
-    ]);
-    expect(banner()).toHaveTextContent('4 out of 5');
-  });
-
-  it('re-opens the goal when a delete takes the count below it', async () => {
+  it('lists letters newest first and re-opens the goal when a delete takes the count below it', async () => {
     const { user } = await renderWithProviders(<DashboardPage />, { letters: lettersOf(5) });
     expect(banner()).not.toBeInTheDocument();
 
     await user.click(deleteIn('Role 2, Acme'));
 
-    expect(cards()).toHaveLength(4);
-    expect(banner()).toBeInTheDocument();
+    expect(cards().map((c) => c.getAttribute('aria-label'))).toEqual([
+      'Role 4, Acme',
+      'Role 3, Acme',
+      'Role 1, Acme',
+      'Role 0, Acme',
+    ]);
+    expect(banner()).toHaveTextContent('4 out of 5');
   });
 
   it('moves focus to the next card after a delete, and to the title after the last one', async () => {

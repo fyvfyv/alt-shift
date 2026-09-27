@@ -1,7 +1,6 @@
 import { expect, test as setup } from '@playwright/test';
 
-// Locally reuseExistingServer can hand the suite a dev server started with a real token; that
-// would burn the API's rate limit and fail every mock-timing assertion, so stop before any test runs.
+// reuseExistingServer may pick up a dev server on the real API; stop before it burns the rate limit.
 setup('the dev server generates with the mock provider', async ({ request }) => {
   const response = await request.post('/api/generate', {
     data: { jobTitle: 'Product Designer', company: 'Acme', skills: 'Prototyping', details: '' },

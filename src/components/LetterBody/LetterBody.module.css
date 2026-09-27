@@ -4,7 +4,6 @@
   color: var(--color-text-quaternary);
 }
 
-/* The mockups space paragraphs differently: 28 in the preview, 18 on dashboard cards. */
 .body[data-spacing="compact"] {
   gap: var(--space-4-5);
 }
@@ -13,7 +12,6 @@
   gap: var(--space-7);
 }
 
-/* Single line breaks inside a paragraph (a signature block) are kept. */
 .paragraph {
   white-space: pre-wrap;
 }

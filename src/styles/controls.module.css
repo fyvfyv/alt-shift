@@ -5,7 +5,6 @@
   min-width: 0;
 }
 
-/* Each control sets its own height and padding. */
 .control {
   width: 100%;
   color: var(--color-text-primary);
@@ -23,22 +22,19 @@
   opacity: 1;
 }
 
-/* Hover never overrides the focus or error border, and a read-only field (locked during a run)
-   does not offer it. Only where a pointer can hover: a tap would leave it stuck on touch screens. */
+/* Hover devices only: on touch screens a tap leaves :hover stuck. */
 @media (hover: hover) {
   .control:hover:not(:focus, :read-only, [aria-invalid="true"]) {
     border-color: var(--color-border-hover);
   }
 }
 
-/* Text controls show the ring on any focus, mouse included, as in the filled + focus mockup. */
 .control:focus {
   outline: none;
   border-color: var(--color-border-focus);
   box-shadow: var(--shadow-xs), var(--ring-focus);
 }
 
-/* Invalid: the border always, the ring only while focused. */
 .control[aria-invalid="true"] {
   border-color: var(--color-border-error);
 }

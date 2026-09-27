@@ -3,7 +3,6 @@ import type { Letter } from './model';
 import { type LetterRepository, StorageError } from './repository';
 
 export type LetterState = {
-  // Newest first; the store owns the ordering.
   letters: Letter[];
   lastStorageError: StorageError | null;
   hydrate(): Promise<void>;
@@ -17,8 +16,6 @@ function newestFirst(letters: Letter[]): Letter[] {
   return letters.toSorted((a, b) => b.createdAt - a.createdAt);
 }
 
-// Memory is updated first and never rolled back: a failed write leaves the letter on screen
-// for this session and surfaces `lastStorageError` so the UI can say it wasn't saved.
 export function createLetterStore({ repository }: { repository: LetterRepository }): LetterStore {
   return createStore<LetterState>()((set, get) => {
     async function relist() {
@@ -45,7 +42,6 @@ export function createLetterStore({ repository }: { repository: LetterRepository
       },
 
       add(letter) {
-        // Re-adding (Try Again) replaces the text but keeps the letter's place in the list.
         const existing = get().letters.find((l) => l.id === letter.id);
         const next = existing ? { ...letter, createdAt: existing.createdAt } : letter;
         const others = get().letters.filter((l) => l.id !== letter.id);

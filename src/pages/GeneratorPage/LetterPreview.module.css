@@ -15,7 +15,6 @@
     min-height: 320px;
   }
 
-  /* Room for the caption under the orb, so the orb does not shift when it appears. */
   .panel[data-layout="loading"] {
     min-height: 360px;
   }
@@ -34,8 +33,6 @@
   text-align: center;
 }
 
-/* Rows 1 and 3 split the free space, so the orb holds the panel's center whether or not the
-   caption below it is showing. */
 .panel[data-layout="loading"] {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -77,7 +74,6 @@
   color: var(--color-text-error);
 }
 
-/* Over a kept letter, with room to set it apart: the note and its Try Again are about the run. */
 .kept {
   display: flex;
   flex-direction: column;
@@ -85,7 +81,6 @@
   padding-bottom: var(--space-2);
 }
 
-/* Tertiary, not error red: the letter below it is fine, the note is about the retry. */
 .keptNote {
   color: var(--color-text-tertiary);
 }
@@ -114,8 +109,6 @@
   gap: var(--space-2);
 }
 
-/* Signature on the left, Copy on the right. A 320px phone has no room for both on one row, so
-   Copy wraps under the signature, as it does on the dashboard card, rather than being clipped. */
 .actions {
   display: flex;
   flex-wrap: wrap;

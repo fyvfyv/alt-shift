@@ -1,4 +1,3 @@
-/* Fixed height in every layout: the body is a preview. */
 .card {
   position: relative;
   display: flex;
@@ -16,14 +15,10 @@
   overflow: hidden;
 }
 
-/* Only on a letter the preview clips. A zero-height anchor on the clipped edge, so the fade and
-   Read more sit over the last line without taking height from the preview or a third place in
-   the footer. */
 .more {
   position: relative;
 }
 
-/* Covers the last 32px of the body and the top 8px of the footer's padding. */
 .more::before {
   position: absolute;
   top: -32px;
@@ -34,8 +29,6 @@
   background: var(--gradient-card-fade);
 }
 
-/* Centered on the last visible line, at its end, where the text would go on; the card color
-   behind it, faded in from the left, hides the letter underneath. */
 .toggle {
   position: absolute;
   top: -20px;
@@ -45,8 +38,6 @@
   background: linear-gradient(90deg, transparent, var(--color-surface-subtle) var(--space-8));
 }
 
-/* Figma's two actions. Only a card narrower than both (a 320px phone) wraps them, and then the
-   body, not the card, gives up the height. */
 .footer {
   display: flex;
   flex-wrap: wrap;

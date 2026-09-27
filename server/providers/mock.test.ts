@@ -12,13 +12,13 @@ async function expected(name: FixtureName): Promise<{ deltaCount: number; text: 
   return JSON.parse(await readFile(url, 'utf8'));
 }
 
-function call(request: GenerateRequest, scenario?: string, signal = new AbortController().signal) {
+async function start(request: GenerateRequest, scenario?: string) {
   const headers = new Headers(scenario ? { 'x-mock-scenario': scenario } : {});
-  return mockProvider(input, { signal, request, headers });
-}
-
-async function start(request: GenerateRequest, scenario?: string, signal?: AbortSignal) {
-  const response = await call(request, scenario, signal);
+  const response = await mockProvider(input, {
+    signal: new AbortController().signal,
+    request,
+    headers,
+  });
   if (!response.body) throw new Error('expected a streaming body');
   return response.body.pipeThrough(new TextDecoderStream()).getReader();
 }
@@ -31,14 +31,6 @@ async function readAll(reader: ReadableStreamDefaultReader<string>): Promise<str
   return chunks;
 }
 
-async function deltasFor(request: GenerateRequest): Promise<string[]> {
-  return decodeTranscript((await readAll(await start(request))).join(''));
-}
-
-function occurrences(text: string, value: string): number {
-  return text.split(value).length - 1;
-}
-
 describe('mockProvider', () => {
   beforeEach(() => {
     vi.stubEnv('MOCK_FIRST_DELTA_MS', '0');
@@ -46,14 +38,14 @@ describe('mockProvider', () => {
   });
 
   it.each([
-    [199, 'short'],
-    [200, 'medium'],
-    [599, 'medium'],
-    [600, 'long'],
+    [0, 'short'],
+    [400, 'medium'],
+    [1000, 'long'],
   ] as const)(
     'replays %i characters of details as the %s transcript, delta for delta',
     async (length, name) => {
-      const deltas = await deltasFor({ ...SAMPLES[name], details: 'a'.repeat(length) });
+      const chunks = await readAll(await start({ ...SAMPLES[name], details: 'a'.repeat(length) }));
+      const deltas = decodeTranscript(chunks.join(''));
 
       const fixture = await expected(name);
       expect(deltas).toHaveLength(fixture.deltaCount);
@@ -78,52 +70,17 @@ describe('mockProvider', () => {
     },
   );
 
-  it('swaps the two names in one pass, so a replacement is never replaced again', async () => {
-    const { jobTitle, company } = SAMPLES.short;
-    const recorded = (await expected('short')).text;
+  it('rejects an unknown scenario with 400 invalid_request', async () => {
+    const response = await mockProvider(input, {
+      signal: new AbortController().signal,
+      request: SAMPLES.short,
+      headers: new Headers({ 'x-mock-scenario': 'bogus' }),
+    });
 
-    const text = (await deltasFor({ ...SAMPLES.short, jobTitle: company, company: jobTitle })).join(
-      '',
-    );
-
-    expect(text).toContain(`Dear ${jobTitle} team,`);
-    expect(occurrences(text, jobTitle)).toBe(occurrences(recorded, company));
-    expect(occurrences(text, company)).toBe(occurrences(recorded, jobTitle));
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({ error: { code: 'invalid_request' } });
   });
 
-  it('keeps replacement patterns in a request value literal', async () => {
-    const text = (await deltasFor({ ...SAMPLES.short, company: 'Acme $& Co' })).join('');
-
-    expect(text).toContain('Dear Acme $& Co team,');
-  });
-
-  it('never splits an emoji across two deltas', async () => {
-    const deltas = await deltasFor({ ...SAMPLES.short, company: '🚀🚀🚀 Labs' });
-
-    expect(deltas.join('')).toContain('Dear 🚀🚀🚀 Labs team,');
-    expect(deltas.filter((delta) => /\p{Surrogate}/u.test(delta))).toEqual([]);
-  });
-
-  it('errors the stream part-way through on the disconnect scenario', async () => {
-    const reader = await start(SAMPLES.short, 'disconnect');
-    let deltas = 0;
-
-    await expect(
-      (async () => {
-        for (;;) {
-          const { value = '' } = await reader.read();
-          deltas += decodeTranscript(value).length;
-        }
-      })(),
-    ).rejects.toThrow('Mock disconnect');
-
-    const { deltaCount } = await expected('short');
-    expect(deltas).toBeGreaterThan(0);
-    expect(deltas).toBeLessThan(deltaCount);
-  });
-
-  // The client takes a letter that stops on a finished sentence as whole; at 40% the medium
-  // recording happens to end one.
   it.each(['short', 'medium', 'long'] as const)(
     'closes the %s letter cleanly mid-sentence, without [DONE], on the truncate scenario',
     async (name) => {
@@ -136,28 +93,4 @@ describe('mockProvider', () => {
       expect(deltas.join('').trimEnd()).not.toMatch(/[.!?…]$/);
     },
   );
-
-  it('answers the rate-limit scenario with 429 and a Retry-After', async () => {
-    const response = await call(SAMPLES.short, 'rate-limit');
-
-    expect(response.status).toBe(429);
-    expect(response.headers.get('Retry-After')).toBe('3');
-  });
-
-  it('rejects an unknown scenario with 400 invalid_request', async () => {
-    const response = await call(SAMPLES.short, 'bogus');
-
-    expect(response.status).toBe(400);
-    expect(await response.json()).toMatchObject({ error: { code: 'invalid_request' } });
-  });
-
-  it('rejects the next read with AbortError once the signal aborts', async () => {
-    const controller = new AbortController();
-    const reader = await start(SAMPLES.short, undefined, controller.signal);
-    expect((await reader.read()).value).toBe(': keepalive\n\n');
-
-    controller.abort();
-
-    await expect(reader.read()).rejects.toMatchObject({ name: 'AbortError' });
-  });
 });

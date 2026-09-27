@@ -3,7 +3,6 @@ import type { GenerationPort } from './generationClient';
 
 const GenerationContext = createContext<GenerationPort | null>(null);
 
-// The port is injected so tests and Storybook can stream from an async generator instead of fetch.
 export function GenerationProvider({
   port,
   children,

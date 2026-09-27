@@ -61,16 +61,13 @@ export class LocalStorageLetterRepository implements LetterRepository {
     return this.#storage ?? globalThis.localStorage;
   }
 
-  // A payload from a newer version is left untouched for the tab that wrote it: an old tab still
-  // open after a deploy must not replace it with its own format.
+  // Never overwrite a newer version's payload: an old tab open after a deploy would destroy it.
   #readForWrite(): Letter[] {
     const { letters, newer } = this.#read();
     if (newer) throw new StorageError('unavailable');
     return letters;
   }
 
-  // A newer version reads as no letters, and so does anything unreadable, which the next save
-  // overwrites. Malformed entries are dropped one by one, so one bad record never hides the rest.
   #read(): { letters: Letter[]; newer: boolean } {
     const none = { letters: [], newer: false };
     try {

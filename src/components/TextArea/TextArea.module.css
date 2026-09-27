@@ -1,9 +1,7 @@
-/* Absorbs the height the 600px form column has left: 236 in the design. */
 .field {
   flex: 1 1 0;
 }
 
-/* Figma: padding 12/14 inside the stroke (not the input's 8/12). */
 .textarea {
   flex: 1 1 0;
   min-height: 236px;
@@ -11,11 +9,9 @@
   resize: none;
 }
 
-/* Figma 4:10610: a 4px thumb inset 12 from the top and 8 from the right outer edge. The track's
-   margin gives the top inset; the thumb's transparent border paints 4px of the 11px scrollbar and
-   the elliptical radius rounds those 4px. Where that scrollbar takes layout space (a desktop
-   pointer; touch browsers overlay theirs), its gutter is reserved and the padding gives it back
-   (1 + 11 + 2 = the designed 14), so the text wraps at the same width with or without it. */
+/* The thumb takes no margin, so a transparent border with a padding-box background narrows it.
+   Where the scrollbar takes space, its gutter is reserved and padding-right gives it back.
+   The standard scrollbar-* props stay behind @supports not: in Chrome they disable these rules. */
 @supports selector(::-webkit-scrollbar) {
   @media (hover: hover) and (pointer: fine) {
     .textarea {

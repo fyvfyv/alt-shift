@@ -12,9 +12,6 @@ export default defineConfig({
     baseURL: `http://localhost:${PORT}`,
     trace: 'retain-on-failure',
   },
-  // The long journeys (@desktop) check nothing that depends on the viewport, so they run once, on
-  // desktop; a check of the stacked phone layout (@phone) runs only on the phone, 360 wide: the
-  // most common Android width.
   projects: [
     { name: 'setup', testMatch: /\.setup\.ts$/ },
     {
@@ -31,9 +28,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    // Faster than the dev defaults: holdGeneration keeps the loading state for as long as a check
-    // needs, and a letter of about 250 deltas still streams for over two seconds, long enough to
-    // see it grow.
+    // At 10 ms a delta the long transcript still streams for ~3 s, long enough to see it grow.
     command: `GENERATION_PROVIDER=mock MOCK_DELAY_MS=10 MOCK_FIRST_DELTA_MS=300 pnpm dev --port ${PORT} --strictPort`,
     url: `http://localhost:${PORT}`,
     reuseExistingServer: !process.env.CI,

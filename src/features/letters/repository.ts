@@ -5,7 +5,7 @@ export interface LetterRepository {
   // Upserts by id.
   save(letter: Letter): Promise<void>;
   remove(id: string): Promise<void>;
-  // Fires when another tab changes the letters.
+  // Fires only for changes made in another tab.
   subscribe?(onChange: () => void): () => void;
 }
 

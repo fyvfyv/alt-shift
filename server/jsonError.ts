@@ -8,8 +8,6 @@ type ErrorCode =
 
 export type ApiErrorBody = { error: { code: ErrorCode; message: string } };
 
-// Mirrors the Variant API's envelope, so the proxy's own errors look like upstream's on the wire.
-// The browser reads only the status and headers.
 export function jsonError(
   status: number,
   code: ErrorCode,

@@ -4,7 +4,6 @@
   animation: spin 1s linear infinite;
 }
 
-/* Still turning, just slower: a frozen spinner would read as a hung app. */
 @media (prefers-reduced-motion: reduce) {
   .spinner {
     animation-duration: 2s;

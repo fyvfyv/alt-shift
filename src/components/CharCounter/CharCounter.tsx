@@ -6,8 +6,8 @@ import utilities from '../../styles/utilities.module.css';
 
 type CharCounterProps = { id: string; count: number; limit: number };
 
-// The visible count is described to the field (aria-describedby), not announced: read on every
-// keystroke it would drown the typing. A separate status speaks only when the limit is crossed.
+// Not a live region: it would speak on every keystroke. The status below speaks only when the
+// limit is crossed.
 export function CharCounter({ id, count, limit }: CharCounterProps) {
   const over = count > limit;
   const [announcement, setAnnouncement] = useState(() => ({ over, text: '' }));

@@ -8,8 +8,7 @@ const DEFAULT_FIRST_BYTE_TIMEOUT_MS = 20_000;
 const FORWARDED_HEADERS = ['Content-Type', 'Retry-After', 'X-Request-Id'];
 
 export const variantProvider: Provider = async (input, { signal }) => {
-  // Bounds only the wait for response headers: the timer is cleared before the body streams, so a
-  // slow model mid-letter is never cut off, but one that never starts does not hang the function.
+  // Bounds only the wait for headers; AbortSignal.timeout would also cut a slow body mid-letter.
   const firstByte = new AbortController();
   const timer = setTimeout(
     () => firstByte.abort(new Error('First byte timeout')),

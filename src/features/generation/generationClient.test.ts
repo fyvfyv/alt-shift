@@ -13,8 +13,9 @@ const request: GenerateRequest = {
 };
 
 const encoder = new TextEncoder();
-// A whole letter, as far as the client can tell: it ends on the sign-off the prompt asks for.
+// Ends on a sign-off, so looksWhole() lets it complete.
 const LETTER = 'Dear Apple team,\n\nSincerely,';
+const CUT = 'Dear Apple team,\n\nI build';
 
 type StreamScript = {
   chunks: Uint8Array[];
@@ -178,46 +179,31 @@ describe('generate', () => {
     expect((await collect()).join('')).toBe(fixture.text);
   });
 
-  // The live API does this now and then: the stream ends cleanly, the letter mid-sentence.
-  it.each([
-    ['[DONE]', DONE_EVENT],
-    ['a clean close alone', ''],
-  ])('maps %s after a letter without its sign-off to stream-cut', async (_, ending) => {
-    stubStream({ chunks: [encoder.encode(encodeDelta('Dear Apple team,\n\nI build') + ending)] });
+  it.each<[string, GenerationError['kind'], string[], StreamScript['ending']]>([
+    ['[DONE] after a cut letter', 'stream-cut', [encodeDelta(CUT) + DONE_EVENT], 'close'],
+    ['a clean close after a cut letter', 'stream-cut', [encodeDelta(CUT)], 'close'],
+    [
+      'a stream error after deltas',
+      'stream-cut',
+      [encodeDelta(CUT)],
+      new TypeError('network error'),
+    ],
+    ['a clean close with nothing received', 'upstream', [KEEPALIVE_COMMENT], 'close'],
+    ['a stream error before any delta', 'upstream', [], new TypeError('network error')],
+  ])('maps %s to %s', async (_, kind, chunks, ending) => {
+    stubStream({ chunks: chunks.map((c) => encoder.encode(c)), ending });
 
-    expect(await failure(collect())).toEqual({ kind: 'stream-cut' });
+    expect(await failure(collect())).toEqual({ kind });
   });
 
   it('decodes UTF-8 sequences split across chunks', async () => {
     const fixture = recorded('medium');
     const multibyte = ' ’é — 🚀\n\n';
     const sse = encodeDelta(multibyte) + fixture.sse;
-    // One byte per chunk splits every multibyte character, whatever the recording contains.
     const chunks = [...encoder.encode(sse)].map((byte) => Uint8Array.of(byte));
     stubStream({ chunks });
 
     expect((await collect()).join('')).toBe(multibyte + fixture.text);
-  });
-
-  it('maps a clean close with nothing received to upstream', async () => {
-    stubStream({ chunks: [encoder.encode(KEEPALIVE_COMMENT)] });
-
-    expect(await failure(collect())).toEqual({ kind: 'upstream' });
-  });
-
-  it('maps a stream error after deltas to stream-cut', async () => {
-    stubStream({
-      chunks: [encoder.encode(encodeDelta('Dear'))],
-      ending: new TypeError('network error'),
-    });
-
-    expect(await failure(collect())).toEqual({ kind: 'stream-cut' });
-  });
-
-  it('maps a stream error before any delta to upstream', async () => {
-    stubStream({ chunks: [], ending: new TypeError('network error') });
-
-    expect(await failure(collect())).toEqual({ kind: 'upstream' });
   });
 
   it('rethrows the AbortError when aborted mid-stream', async () => {

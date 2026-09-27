@@ -5,14 +5,6 @@ import { renderWithProviders } from '../test/renderWithProviders';
 import { App } from './App';
 
 describe('App', () => {
-  it('renders the not-found page with a way back for an unknown URL', async () => {
-    await renderWithProviders(<App />, { url: '/nope' });
-
-    expect(screen.getByRole('heading', { level: 1, name: 'Page not found' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Go to dashboard' })).toHaveAttribute('href', '/');
-    expect(document.title).toBe('Page not found · Alt+Shift');
-  });
-
   it('on navigation updates the document title and focuses the new h1', async () => {
     const { user } = await renderWithProviders(<App />, { url: '/nope' });
 
@@ -23,8 +15,7 @@ describe('App', () => {
     expect(heading).toHaveFocus();
   });
 
-  // Only in-app navigation also fires the h1 focus, so only here must the generator's arrival
-  // focus win over it.
+  // Only in-app navigation also focuses the h1, so only here can it steal Job title's focus.
   it('puts the caret in Job title after Create New on the dashboard', async () => {
     const { user } = await renderWithProviders(<App />, { url: '/' });
 

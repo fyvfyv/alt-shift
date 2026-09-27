@@ -27,7 +27,6 @@ async function listen(): Promise<number> {
   return (server.address() as AddressInfo).port;
 }
 
-// Resolves with how the response stream ended: a clean 'end' or an 'error' from a destroyed socket.
 async function send(scenario: string, onFirstChunk?: (destroy: () => void) => void) {
   const port = await listen();
   return new Promise<'end' | 'error'>((resolve) => {
@@ -79,7 +78,6 @@ describe('generateMiddleware', () => {
   it('destroys the socket instead of ending cleanly when the stream breaks', async () => {
     expect(await send('disconnect')).toBe('error');
     await responseClosed;
-    // The middleware's own destroy is not the client leaving, so nothing is logged as cancelled.
     expect(providerSignal.aborted).toBe(false);
   });
 });

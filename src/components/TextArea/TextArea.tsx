@@ -12,14 +12,12 @@ type TextAreaProps = Omit<
 > & {
   label: string;
   value: string;
-  // A soft limit: typing past it is allowed and shown as an error, so pasted text is never cut.
   limit: number;
 };
 
 export function TextArea({ label, value, limit, ...textareaProps }: TextAreaProps) {
   const id = useId();
   const counterId = `${id}-counter`;
-  // Counted trimmed, like the validation rule, so the counter and the Generate button agree.
   const count = countChars(value.trim());
   return (
     <div className={`${controls.field} ${styles.field}`}>

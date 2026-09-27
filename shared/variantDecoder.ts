@@ -1,8 +1,5 @@
-// The one module that knows Variant's payloads: the client decodes with it, and the mock and the
-// fixture recorder encode and parse with it, so a wire format change is one edit.
-// The stream may open with a `: keepalive` comment (the live API sends one when the first token is
-// slow), then `event: delta` + `data: {"text":"…"}` per chunk, then a bare `data: [DONE]`. The
-// terminator is not in the published spec, but the live API sends it.
+// Beyond its published spec the live API opens with `: keepalive` when the first token is slow
+// and ends with a bare `data: [DONE]`.
 
 import { createSseParser, type SseMessage } from './sseParser.js';
 

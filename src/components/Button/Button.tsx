@@ -11,7 +11,6 @@ export type ButtonSize = 'xl' | 'md';
 
 type OwnProps = {
   variant?: ButtonVariant;
-  // Ignored by `tertiary`, which has no box.
   size?: ButtonSize;
   fullWidth?: boolean;
   iconLeading?: IconName;
@@ -22,13 +21,10 @@ type OwnProps = {
 type AsButton = OwnProps &
   Omit<ComponentProps<'button'>, keyof OwnProps> & {
     to?: never;
-    // Swaps the label for a spinner (the label stays for screen readers) and ignores clicks.
-    // Not `disabled`: focus stays on the button, so keyboard users are not dropped at the top
-    // of the page when a run starts, and aria-disabled tells them why nothing happens.
+    // Not `disabled`: disabling the focused button drops keyboard focus to the page.
     loading?: boolean;
   };
 
-// Navigation that looks like a button is still a link: same classes, rendered as <a>.
 type AsLink = OwnProps & Omit<ComponentProps<typeof Link>, keyof OwnProps> & { loading?: never };
 
 type ButtonProps = AsButton | AsLink;
@@ -71,8 +67,7 @@ export function Button(props: ButtonProps) {
     );
   }
 
-  // A caller's aria-disabled only paints and announces the state: the click still fires (a submit
-  // still submits), so the page can say what is missing. Only `loading` swallows it.
+  // A caller's aria-disabled still fires the click, so the page can say what is missing.
   const { type = 'button', onClick, 'aria-disabled': ariaDisabled, ...buttonProps } = rest;
   return (
     <button

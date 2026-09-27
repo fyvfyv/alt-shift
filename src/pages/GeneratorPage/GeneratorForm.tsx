@@ -10,15 +10,12 @@ import styles from './GeneratorForm.module.css';
 
 type GeneratorFormProps = {
   ref?: Ref<HTMLFormElement>;
-  // The job, or undefined while it is incomplete: the h1 then shows the placeholder title.
   title?: string;
   values: GenerateRequest;
   onChange: (patch: Partial<GenerateRequest>) => void;
   onSubmit: () => void;
-  // Fields stay focusable and selectable while a letter streams, but can't change under it.
   readOnly: boolean;
   cta: ReactNode;
-  // One line under the CTA for whatever keeps it from working right now.
   note?: string;
   jobTitleRef: Ref<HTMLInputElement>;
 };
@@ -29,8 +26,7 @@ function lengthError(value: string): string | undefined {
     : undefined;
 }
 
-// Enter alone already submits from the single-line fields; the modifier makes it work from the
-// textarea too, and preventDefault keeps the browser's own submission from doubling it.
+// preventDefault: a single-line field also submits natively on Ctrl+Enter, which would run twice.
 function submitOnModifierEnter(event: KeyboardEvent<HTMLFormElement>) {
   if (event.key !== 'Enter' || !(event.metaKey || event.ctrlKey)) return;
   event.preventDefault();
@@ -105,8 +101,7 @@ export function GeneratorForm({
         onChange={(event) => onChange({ details: event.target.value })}
       />
       {cta}
-      {/* Mounted even when there is nothing to say (off screen and empty, so it takes no room):
-          a status is announced when its text changes, not when it is inserted with it. */}
+      {/* Always mounted: a status is announced when its text changes, not when it is inserted. */}
       <p
         role="status"
         className={note ? `${styles.note} ${typography.sm}` : utilities.visuallyHidden}

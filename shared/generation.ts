@@ -1,5 +1,3 @@
-// Shared by the form and the /api/generate proxy, so the form never submits what the server rejects.
-
 export type GenerateRequest = {
   jobTitle: string;
   company: string;
@@ -18,7 +16,7 @@ export const EMPTY_REQUEST: GenerateRequest = {
 
 type ValidationResult = { ok: true; value: GenerateRequest } | { ok: false; message: string };
 
-// Code points, not UTF-16 units: an emoji counts as one character, matching what the user sees.
+// Code points, not UTF-16 units: an emoji counts as one character.
 export function countChars(value: string): number {
   let count = 0;
   for (const _ of value) count++;
@@ -27,8 +25,7 @@ export function countChars(value: string): number {
 
 const SINGLE_LINE_FIELDS = ['jobTitle', 'company', 'skills'] as const;
 
-// An <input> can't hold a line break, and in the system prompt one would start a new instruction
-// line; the same goes for other control characters. A tab can come from a spreadsheet paste.
+// A line break would add an instruction line to the system prompt; a pasted tab is harmless.
 const CONTROL_EXCEPT_TAB = /(?!\t)\p{Cc}/u;
 
 function invalid(message: string): ValidationResult {

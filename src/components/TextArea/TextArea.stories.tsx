@@ -6,7 +6,6 @@ import { TextArea } from './TextArea';
 
 const { details } = copy.generator.fields;
 
-// TextArea is controlled: the counter needs the value.
 function ControlledTextArea({ value, ...props }: ComponentProps<typeof TextArea>) {
   const [current, setCurrent] = useState(value);
   return <TextArea {...props} value={current} onChange={(e) => setCurrent(e.target.value)} />;

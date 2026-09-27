@@ -29,37 +29,22 @@ describe('useGeneratorFields', () => {
     });
   });
 
-  it('resetJob clears the job fields and keeps the profile', () => {
-    const { result } = renderHook(() => useGeneratorFields());
-    act(() => result.current.update(fields));
-
-    act(() => result.current.resetJob());
-
-    expect(result.current.values).toEqual({ ...EMPTY_REQUEST, ...skills });
-  });
-
-  it('forgetJob removes the stored job but keeps the profile and the values in memory', () => {
+  it('forgetJob drops only the stored job, and a later profile edit saves the job again', () => {
     sessionStorage.setItem(DRAFT_KEY, JSON.stringify(job));
     localStorage.setItem(PROFILE_KEY, JSON.stringify(skills));
-    const { result } = renderHook(() => useGeneratorFields());
+    const first = renderHook(() => useGeneratorFields());
 
-    act(() => result.current.forgetJob());
+    act(() => first.result.current.forgetJob());
 
     expect(sessionStorage.getItem(DRAFT_KEY)).toBeNull();
-    expect(localStorage.getItem(PROFILE_KEY)).not.toBeNull();
-    expect(result.current.values).toEqual(fields);
-  });
-
-  it('saves the forgotten job again when only a profile field is edited', () => {
-    sessionStorage.setItem(DRAFT_KEY, JSON.stringify(job));
-    const first = renderHook(() => useGeneratorFields());
-    act(() => first.result.current.forgetJob());
+    expect(JSON.parse(localStorage.getItem(PROFILE_KEY) ?? 'null')).toEqual(skills);
+    expect(first.result.current.values).toEqual(fields);
 
     act(() => first.result.current.update({ details: 'Now at Apple' }));
     first.unmount();
 
     const second = renderHook(() => useGeneratorFields());
-    expect(second.result.current.values).toEqual({ ...job, skills: '', details: 'Now at Apple' });
+    expect(second.result.current.values).toEqual({ ...fields, details: 'Now at Apple' });
   });
 
   it('shows a prefill on the first render: the job replaces the draft, the profile fills only empty fields', () => {
@@ -84,12 +69,10 @@ describe('useGeneratorFields', () => {
     act(() => result.current.setName('Oleg'));
 
     expect(renders[0]).toEqual({ ...job, skills: 'Figma', details: 'Ten years' });
-    // The tab's draft keeps only the part of the hand-over on screen.
     expect(JSON.parse(sessionStorage.getItem(DRAFT_KEY) ?? 'null')).toEqual({
       ...job,
       details: 'Ten years',
     });
-    // The handed-over bio is shown, never saved to the profile, even when the profile is.
     expect(JSON.parse(localStorage.getItem(PROFILE_KEY) ?? 'null')).toEqual({
       skills: 'Figma',
       details: '',
@@ -119,21 +102,14 @@ describe('useGeneratorFields', () => {
       details: '',
       name: '',
     });
-    // Nor does a reload bring the dropped bio back.
     expect(sessionStorage.getItem(DRAFT_KEY)).toBeNull();
   });
 
-  it('starts empty from corrupt JSON in either storage', () => {
+  it('starts empty from corrupt storage and keeps working when storage throws', () => {
     sessionStorage.setItem(DRAFT_KEY, '{"jobTitle":');
     localStorage.setItem(PROFILE_KEY, '[1,2');
+    expect(renderHook(() => useGeneratorFields()).result.current.values).toEqual(EMPTY_REQUEST);
 
-    const { result } = renderHook(() => useGeneratorFields());
-
-    expect(result.current.values).toEqual(EMPTY_REQUEST);
-    expect(result.current.profile.name).toBe('');
-  });
-
-  it('keeps working when storage throws', () => {
     const denied = () => {
       throw new DOMException('denied', 'SecurityError');
     };

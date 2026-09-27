@@ -16,13 +16,11 @@ type AppParameters = {
   letters?: Letter[];
   generationDelayMs?: number;
   route?: string;
-  // Page stories opt in: the header belongs to the app's layout route, not to the pages.
   chrome?: boolean;
 };
 
 const preview: Preview = {
   parameters: { layout: 'centered' },
-  // Mirrors main.tsx: the store is hydrated before the first render.
   loaders: [
     async ({ parameters }) => {
       const { letters = [] } = parameters as AppParameters;

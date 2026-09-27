@@ -1,7 +1,5 @@
-/* On a narrow phone the wordmark gives up width so the Home button stays on screen; from 390px up
-   it is 179px, as designed. It is sized from the page width, not from what the counter leaves, so
-   it keeps its size when the dots turn into the goal badge: 179px is the most the counter and Home
-   take. Should they ever take more, the logo still shrinks rather than push them off screen. */
+/* Sized from the page (100cqi less the 179px the counter and Home take), not from flex space,
+   so it keeps its size when the dots turn into the badge. */
 .logo {
   display: block;
   flex: 0 1 auto;

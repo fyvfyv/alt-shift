@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import styles from './LoadingOrb.module.css';
 
-// Matches the CSS transition on `.orb[data-exiting]`.
+// Matches the 250ms transition on .orb in LoadingOrb.module.css.
 const ORB_EXIT_MS = 250;
 
 export function LoadingOrb({ exiting = false }: { exiting?: boolean }) {
@@ -15,8 +15,6 @@ export function LoadingOrb({ exiting = false }: { exiting?: boolean }) {
   );
 }
 
-// True for ORB_EXIT_MS after `loading` turns false, so the orb can fade out before the text or
-// error replaces it. The timer is the source of truth; the transition is cosmetic.
 export function useOrbExit(loading: boolean): boolean {
   const [wasLoading, setWasLoading] = useState(loading);
   const [exiting, setExiting] = useState(false);

@@ -1,4 +1,4 @@
-// Map-backed Storage, so repository tests can make individual methods throw.
+// Web Storage keeps `storage.getItem = fn` as a stored item, so stubbing a method needs this fake.
 export function createFakeStorage(): Storage {
   const items = new Map<string, string>();
   return {

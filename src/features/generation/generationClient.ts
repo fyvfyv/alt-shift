@@ -8,11 +8,9 @@ import { GenerationFailure } from './errors';
 export type GenerationPort = (req: GenerateRequest, signal: AbortSignal) => AsyncIterable<string>;
 
 const DEFAULT_RETRY_AFTER_SECONDS = 30;
-// Longer than any pause the model takes between deltas; a stalled connection surfaces as an error
-// instead of a spinner that never stops.
+// Must outlast the model's longest pause between deltas.
 const IDLE_TIMEOUT_MS = 30_000;
-// The upstream closes right after [DONE]; reading until then lets the browser record the request
-// as completed instead of ERR_ABORTED. One that stays open is cancelled after this.
+// Reading on to the upstream's close after [DONE] avoids ERR_ABORTED; cancel if it lingers.
 const CLOSE_AFTER_DONE_MS = 2_000;
 
 const TIMED_OUT = Symbol('timed out');
@@ -42,14 +40,13 @@ async function openStream(
   }
 
   if (response.status === 429) {
-    // Only the delta-seconds form; an HTTP-date or a missing header falls back to the default.
+    // Delta-seconds only: an HTTP-date or a missing header parses to NaN and takes the default.
     const seconds = Number.parseInt(response.headers.get('Retry-After') ?? '', 10);
     throw new GenerationFailure({
       kind: 'rate-limit',
       retryAfterSeconds: seconds >= 0 ? seconds : DEFAULT_RETRY_AFTER_SECONDS,
     });
   }
-  // A 400 here means the form and the server disagree on validation: a bug, not user input.
   const isEventStream = response.headers.get('Content-Type')?.startsWith('text/event-stream');
   if (!response.ok || !isEventStream || !response.body) {
     throw new GenerationFailure({ kind: 'upstream' });
@@ -65,8 +62,7 @@ function readWithin(reader: Reader, ms: number): Promise<ReadResult> {
   return Promise.race([reader.read(), timeout]).finally(() => clearTimeout(timer));
 }
 
-// Nothing after [DONE] carries text, so nothing the stream does afterwards can change the outcome.
-// One deadline for the whole drain, not per read.
+// Nothing after [DONE] can change the letter, so errors are ignored; one deadline for the drain.
 async function drain(reader: Reader): Promise<void> {
   let timer: ReturnType<typeof setTimeout> | undefined;
   const deadline = new Promise<typeof TIMED_OUT>((resolve) => {
@@ -121,7 +117,6 @@ export const generate: GenerationPort = async function* (req, signal) {
     }
   }
 
-  // Neither [DONE] nor a clean close means the letter is whole: the live API now and then closes
-  // cleanly mid-sentence, with or without [DONE], so the text itself has to say it ended.
+  // The live API sometimes closes cleanly mid-letter, even after [DONE]: the text must look whole.
   if (!looksWhole(text)) throw failure();
 };

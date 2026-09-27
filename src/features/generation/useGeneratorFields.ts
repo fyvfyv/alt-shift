@@ -5,16 +5,12 @@ import { readFields, writeFields } from '../storedFields';
 
 type Job = Pick<GenerateRequest, 'jobTitle' | 'company'>;
 
-// Per tab: the job survives a reload, but two tabs never overwrite each other's applications. A
-// handed-over bio still on screen is kept here too, never in the profile, so a reload right after
-// Try an example shows the whole example again without making its bio the user's.
 const DRAFT_KEY = 'alt-shift.draft';
 
 const EMPTY_JOB: Job = { jobTitle: EMPTY_REQUEST.jobTitle, company: EMPTY_REQUEST.company };
 
 const FIELDS = ['jobTitle', 'company', 'skills', 'details'] as const;
 
-// A hand-over arrives as history state, so anything but a string field of the request is dropped.
 function prefillPatch(prefill: unknown): Partial<GenerateRequest> {
   if (typeof prefill !== 'object' || prefill === null) return {};
   const patch: Partial<GenerateRequest> = {};
@@ -25,7 +21,6 @@ function prefillPatch(prefill: unknown): Partial<GenerateRequest> {
   return patch;
 }
 
-// What arrives on mount: a hand-over replaces the draft; without one the draft comes back whole.
 function arrival(prefill: unknown): { job: Job; fill: Partial<GenerateRequest> } {
   const draft = readFields(() => sessionStorage, DRAFT_KEY, FIELDS);
   const handedOver = prefillPatch(prefill);
@@ -39,14 +34,10 @@ function arrival(prefill: unknown): { job: Job; fill: Partial<GenerateRequest> }
   };
 }
 
-// `prefill` (a job handed over by a link) is read on mount only, so the first render already shows
-// it. The job fields always take it (the link is the user's choice); the profile fields only when
-// still empty, so a saved bio is never replaced by an example, and only on screen until edited.
 export function useGeneratorFields({ prefill }: { prefill?: unknown } = {}) {
   const [arrived] = useState(() => arrival(prefill));
   const [job, setJob] = useState<Job>(arrived.job);
   const { profile, fill, setProfile, dropFill } = useProfile(arrived.fill);
-  // Set once the letter is saved: the draft stays forgotten until the next edit of any field.
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
@@ -64,7 +55,6 @@ export function useGeneratorFields({ prefill }: { prefill?: unknown } = {}) {
     details: profile.details,
   };
 
-  // Each field goes to its own storage, so a job edit never rewrites the profile and vice versa.
   function update({ jobTitle, company, ...profilePatch }: Partial<GenerateRequest>) {
     setSaved(false);
     if (jobTitle !== undefined || company !== undefined) {
@@ -78,14 +68,11 @@ export function useGeneratorFields({ prefill }: { prefill?: unknown } = {}) {
     }
   }
 
-  // The next letter is for another job, so a handed-over bio the user never edited leaves with the
-  // job it came with; a field they edited is theirs and stays.
   function resetJob() {
     setJob(EMPTY_JOB);
     dropFill();
   }
 
-  // Forgets the stored copy only; the next edit of any field saves it again.
   function forgetJob() {
     setSaved(true);
     try {

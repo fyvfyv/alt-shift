@@ -5,7 +5,6 @@ import { NotFoundPage } from '../pages/NotFoundPage/NotFoundPage';
 import { AppLayout } from './AppLayout';
 import { ScrollToTop } from './ScrollToTop';
 
-// The router and providers are mounted by the caller (main.tsx, or a MemoryRouter in tests).
 export function App() {
   return (
     <>

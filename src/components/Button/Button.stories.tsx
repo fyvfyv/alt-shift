@@ -11,7 +11,6 @@ type Story = StoryObj<typeof meta>;
 
 export const Primary: Story = {};
 
-// Tertiary has no box, so Button ignores `size` for it: one row.
 const rows: [ButtonVariant, ButtonSize][] = [
   ['primary', 'xl'],
   ['primary', 'md'],

@@ -9,8 +9,8 @@ export function usePageMeta(title: string) {
     document.title = copy.documentTitle(title);
   }, [title]);
 
-  // After client-side navigation, move focus to the new page's h1 so screen readers announce it,
-  // as a full page load would. The first page of a visit ('default' key) keeps the browser's focus.
+  // Client-side navigation announces nothing, so focus the new h1. 'default' is the key of the
+  // visit's first page, which keeps the browser's own focus.
   useEffect(() => {
     if (key === 'default') return;
     document.querySelector<HTMLElement>('main h1')?.focus({ preventScroll: true });

@@ -1,7 +1,6 @@
 import type { Letter } from '../features/letters/model';
 
-// Fixed ids and dates keep the order stable: letter 0 is the oldest, so pages list it last.
-// The browser tests seed these too, so this file imports nothing from Vitest or the DOM.
+// Playwright imports this too (tests/e2e/helpers.ts), so keep Vitest and the DOM out of it.
 export function lettersOf(count: number, overrides: Partial<Letter> = {}): Letter[] {
   return Array.from({ length: count }, (_, i) => ({
     id: `letter-${i}`,

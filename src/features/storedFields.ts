@@ -1,6 +1,4 @@
-// Storage is a convenience: when it is unavailable or holds junk, the fields read as empty and a
-// write is dropped. `storage` is a getter because touching `localStorage` itself throws when the
-// browser blocks it.
+// `storage` is a getter: reading `localStorage` itself throws when the browser blocks storage.
 
 export function readFields<Name extends string>(
   storage: () => Storage,

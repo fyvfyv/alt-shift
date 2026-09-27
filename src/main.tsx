@@ -15,7 +15,6 @@ import './styles/global.css';
 const root = document.getElementById('root');
 if (!root) throw new Error('#root element missing from index.html');
 
-// Letters are read before the first render, so no page ever flashes an empty list.
 const store = createLetterStore({ repository: new LocalStorageLetterRepository() });
 await store.getState().hydrate();
 

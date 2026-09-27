@@ -4,8 +4,6 @@ import { GenerationFailure } from './errors';
 import { useGenerationPort } from './GenerationProvider';
 import { generationReducer, initialPreviewState } from './generationReducer';
 
-// Deltas are batched into one render per animation frame; a new run, `abort()` or unmounting
-// cancels the one in flight.
 export function useGeneration() {
   const port = useGenerationPort();
   const [state, dispatch] = useReducer(generationReducer, initialPreviewState);
@@ -32,8 +30,6 @@ export function useGeneration() {
     pendingText.current = '';
   }, [cancelFrame]);
 
-  // Resolves with the full letter once the stream completes cleanly; with undefined when it
-  // fails (the state then holds the error) or is aborted.
   const generate = useCallback(
     async (request: GenerateRequest): Promise<string | undefined> => {
       cancelRun();
@@ -51,9 +47,8 @@ export function useGeneration() {
         }
       } catch (e) {
         if (run.signal.aborted) return;
-        // Whatever the last frame hasn't shown yet belongs before the error.
+        // Flush first, or the cut letter loses its last unrendered deltas.
         flush();
-        // The port promises a GenerationFailure; anything else is a bug worth a trace.
         if (!(e instanceof GenerationFailure)) console.error('[generation]', e);
         dispatch({
           type: 'error',

@@ -13,8 +13,6 @@ type Story = StoryObj<typeof meta>;
 
 export const Idle: Story = {};
 
-// The clipboard is stubbed so the outcome does not depend on the browser's permission. Either
-// label holds for two seconds, then the button returns to idle.
 export const Copied: Story = {
   beforeEach: () => {
     const writeText = spyOn(navigator.clipboard, 'writeText').mockResolvedValue(undefined);

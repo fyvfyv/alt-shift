@@ -3,12 +3,8 @@ import type { GenerateRequest } from '../../shared/generation.js';
 
 export type FixtureName = 'short' | 'medium' | 'long';
 
-// The requests the transcripts were recorded with: the recorder sends them, the mock swaps their
-// job title and company for the live request's. `details` lengths (~160 / ~400 / ~1000 chars)
-// land in the mock's short / medium / long buckets.
 export const SAMPLES: Record<FixtureName, GenerateRequest> = {
-  // Try an example's request. The title is cased as the model writes it: asked for a "Product
-  // manager" it writes "Product Manager", and the mock only swaps a name it finds verbatim.
+  // Cased as the model writes it ("Product Manager"): the mock swaps only verbatim matches.
   short: { ...EXAMPLE_REQUEST, jobTitle: 'Product Manager' },
   medium: {
     jobTitle: 'Product Designer',

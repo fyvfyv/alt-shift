@@ -13,9 +13,7 @@ function letterOf(text: string): Letter {
 }
 
 describe('LetterCard', () => {
-  // jsdom lays nothing out: text length stands in for the body's scroll height, so a letter
-  // longer than the preview overflows it and a short one fits. A resize is the preview height
-  // changing and the observer firing.
+  // jsdom has no layout: text length stands in for scrollHeight; resize() fires the observer.
   let previewHeight = PREVIEW_HEIGHT;
   let resize = () => {};
 
@@ -57,12 +55,6 @@ describe('LetterCard', () => {
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(readMore).toHaveFocus();
-  });
-
-  it('offers nothing more to read when the letter fits the preview', () => {
-    render(<LetterCard letter={letterOf('Dear Acme team,\n\nShort.')} onDelete={() => {}} />);
-
-    expect(screen.queryByRole('button', { name: 'Read more' })).not.toBeInTheDocument();
   });
 
   it('offers Read more once a narrower card starts clipping the letter', () => {

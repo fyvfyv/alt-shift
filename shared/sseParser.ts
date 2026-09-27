@@ -1,5 +1,5 @@
-// WHATWG event-stream parser (https://html.spec.whatwg.org/multipage/server-sent-events.html).
-// EventSource cannot POST, so the generation stream is read with fetch and parsed here.
+// WHATWG event-stream parser (html.spec.whatwg.org/multipage/server-sent-events.html),
+// hand-rolled because EventSource cannot POST.
 
 export type SseMessage = { event: string; data: string };
 
@@ -29,11 +29,9 @@ export function createSseParser() {
 
     if (field === 'event') eventType = value;
     else if (field === 'data') dataLines.push(value);
-    // `id`, `retry` and unknown fields have no meaning without EventSource reconnection.
   }
 
   return {
-    // An event never terminated by a blank line is never dispatched, as the spec requires.
     feed(chunk: string): SseMessage[] {
       let text = chunk;
       if (atStreamStart && text !== '') {

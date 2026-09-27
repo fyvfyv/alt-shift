@@ -20,7 +20,6 @@ export function useLetterStore<T>(selector: (state: LetterState) => T): T {
   return useStore(store, selector);
 }
 
-// Derived, not stored: deleting letters below the goal re-opens it.
 export function useGeneratedCount(): number {
   return useLetterStore((state) => state.letters.length);
 }

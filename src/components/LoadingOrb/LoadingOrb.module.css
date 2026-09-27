@@ -1,4 +1,4 @@
-/* Exit on the first token: the page keeps the orb mounted for the length of this transition. */
+/* 250ms must match ORB_EXIT_MS in LoadingOrb.tsx. */
 .orb {
   position: relative;
   flex: none;
@@ -14,7 +14,6 @@
   transform: scale(0.9);
 }
 
-/* Between the two mockup poles: rest (4:10721) and 16px up at 48% (4:10940). */
 .breathe {
   position: absolute;
   inset: 0;
@@ -22,7 +21,7 @@
   will-change: transform, opacity;
 }
 
-/* The blur is static, so it rasterises once; only the wrapper moves. */
+/* Static blur inside the moving layer: rasterised once, not every frame. */
 .glow {
   position: absolute;
   inset: 0;

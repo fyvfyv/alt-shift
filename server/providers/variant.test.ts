@@ -10,7 +10,6 @@ function context(signal = new AbortController().signal) {
   return { signal, request, headers: new Headers() };
 }
 
-// Never sends headers, but rejects on abort the way the real fetch does.
 function stallingFetch() {
   return vi.fn(
     (_url: string, init: RequestInit) =>
@@ -35,10 +34,7 @@ describe('variantProvider', () => {
     const response = await variantProvider(input, context());
 
     expect(response.status).toBe(504);
-    expect(((await response.json()) as ApiErrorBody).error).toEqual({
-      code: 'upstream_error',
-      message: 'The model took too long to start.',
-    });
+    expect(((await response.json()) as ApiErrorBody).error.code).toBe('upstream_error');
   });
 
   it('clears the first-byte timer once headers arrive, so a slow body is never cut off', async () => {

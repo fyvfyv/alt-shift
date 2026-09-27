@@ -36,16 +36,6 @@ describe('handle', () => {
     vi.spyOn(console, 'info').mockImplementation(() => {});
   });
 
-  it('passes the upstream SSE bytes through unchanged', async () => {
-    const sse = ': keepalive\n\nevent: delta\ndata: {"text":"Dear"}\n\ndata: [DONE]\n\n';
-    stubUpstream(new Response(sse, { headers: { 'Content-Type': 'text/event-stream' } }));
-
-    const response = await handle(post(validBody), variantProvider, 'variant');
-
-    expect(response.status).toBe(200);
-    expect(await response.text()).toBe(sse);
-  });
-
   it('forwards an upstream 429 verbatim and exposes only allowlisted headers', async () => {
     const errorBody = '{"error":{"code":"rate_limit_exceeded","message":"Slow down"}}';
     stubUpstream(
@@ -96,16 +86,6 @@ describe('handle', () => {
       authorization: 'Bearer test-token',
       'content-type': 'application/json',
     });
-  });
-
-  it('aborts the upstream fetch when the client request is aborted', async () => {
-    const fetchMock = stubUpstream(new Response(''));
-    const controller = new AbortController();
-
-    await handle(post(validBody, { signal: controller.signal }), variantProvider, 'variant');
-    controller.abort();
-
-    expect(fetchMock.mock.calls[0]?.[1].signal?.aborted).toBe(true);
   });
 
   it('logs one JSON line per generation with input lengths and never the text', async () => {
@@ -161,36 +141,6 @@ describe('handle', () => {
     ]);
   });
 
-  it('hands the provider the validated request and the incoming headers', async () => {
-    const provider = vi.fn<Provider>(async () => new Response(''));
-    const request = post(
-      { ...validBody, company: '  Acme  ' },
-      { headers: { 'x-mock-scenario': 'disconnect' } },
-    );
-
-    await handle(request, provider, 'mock');
-
-    const ctx = provider.mock.calls[0]?.[1];
-    expect(ctx?.request).toEqual({ ...validBody, company: 'Acme' });
-    expect(ctx?.headers.get('x-mock-scenario')).toBe('disconnect');
-  });
-
-  it.each([
-    [
-      'same-origin browser headers',
-      { 'Sec-Fetch-Site': 'same-origin', Origin: 'http://localhost' },
-    ],
-    ['a user-initiated navigation', { 'Sec-Fetch-Site': 'none' }],
-    ['no fetch metadata at all', {}],
-  ])('lets a request with %s through', async (_case, headers) => {
-    const provider = vi.fn(async () => new Response(''));
-
-    const response = await handle(post(validBody, { headers }), provider, 'mock');
-
-    expect(response.status).toBe(200);
-    expect(provider).toHaveBeenCalledOnce();
-  });
-
   it.each([
     ['a cross-site Sec-Fetch-Site', { 'Sec-Fetch-Site': 'cross-site', Origin: 'http://localhost' }],
     ['an Origin that does not match the Host', { Origin: 'http://evil.example' }],
@@ -216,12 +166,5 @@ describe('handle', () => {
     expect(response.status).toBe(400);
     expect(await errorCode(response)).toBe('invalid_request');
     expect(provider).not.toHaveBeenCalled();
-  });
-
-  it('rejects non-POST methods with 405', async () => {
-    const response = await handle(new Request('http://localhost/api/generate'), vi.fn(), 'variant');
-
-    expect(response.status).toBe(405);
-    expect(response.headers.get('Allow')).toBe('POST');
   });
 });

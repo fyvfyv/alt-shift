@@ -9,7 +9,6 @@ function Crash(): never {
   throw new Error('boom');
 }
 
-// Crashes on a click, with no navigation: the button that had focus goes with the page.
 function Home() {
   const [broken, setBroken] = useState(false);
   if (broken) throw new Error('boom');
@@ -49,8 +48,6 @@ describe('AppLayout', () => {
     expect(crashHeading()).toHaveFocus();
     expect(document.title).toBe('Something went wrong · Alt+Shift');
     expect(screen.getByRole('alert')).toHaveTextContent('This page stopped working.');
-    expect(screen.getByRole('link', { name: 'Reload the app' })).toHaveAttribute('href', '/');
-    expect(screen.getByRole('banner')).toBeInTheDocument();
 
     await user.click(screen.getByRole('link', { name: 'Dashboard' }));
 

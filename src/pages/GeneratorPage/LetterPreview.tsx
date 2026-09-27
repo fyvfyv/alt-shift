@@ -19,7 +19,6 @@ import styles from './LetterPreview.module.css';
 import { cutNote } from './previewStatus';
 import { SignatureField } from './SignatureField';
 
-// Seconds into a run before the orb gets a caption, and before it admits the model is slow.
 const CAPTION_AFTER = 2;
 const SLOW_AFTER = 8;
 
@@ -27,22 +26,14 @@ type LetterPreviewProps = {
   ref?: Ref<HTMLElement>;
   state: PreviewState;
   retryCountdown: number;
-  // Blocks every Retry and Try Again in the panel without taking them out of the tab order.
   retryDisabled: boolean;
   onRetry: () => void;
-  // The Try Again beside a cut or kept letter. Off once an edit makes the next run a new letter,
-  // so the panel never offers a retry the form's CTA no longer does; the note beside it stays.
   showCutRetry: boolean;
-  // The saved letter this run regenerates. A cut or a failure leaves it on screen, with its Copy,
-  // under a note about the run.
   savedLetter?: string;
-  // The job the kept letter was written for, when an edit has since changed the one in the form.
   keptTitle?: string;
   storageFailed: boolean;
-  // Signs the completed letter; the footer edits it in place.
   name: string;
   onNameChange: (name: string) => void;
-  // Named in the loading caption.
   company: string;
 };
 
@@ -57,8 +48,7 @@ function errorMessage(error: RetryableError): { title: string; body: string } {
   }
 }
 
-// The seconds tick outside the accessibility tree (the Retry button's label carries them), so a
-// screen reader hears only the end of the wait, once. Nothing is promised while Retry is blocked.
+// aria-hidden: a ticking status would be re-announced each second; Retry's label has the seconds.
 function waitText(countdown: number, blocked: boolean): ReactNode {
   if (countdown > 0) {
     return <span aria-hidden="true">{copy.preview.rateLimit.wait(countdown)}</span>;
@@ -79,7 +69,6 @@ function LoadingCaption({ elapsed, company }: { elapsed: number; company: string
 }
 
 type ContentProps = Omit<LetterPreviewProps, 'ref' | 'company' | 'savedLetter'> & {
-  // The complete letter on screen, if any: the one just finished, or the one a failed run kept.
   kept: string | undefined;
   failed: RetryableError | null;
 };
@@ -102,8 +91,7 @@ function Content({
   }
   if (state.status === 'loading') return null;
 
-  // aria-disabled, not disabled: a countdown or going offline must not drop keyboard focus, so a
-  // blocked button keeps its tab stop and its click is dropped here.
+  // aria-disabled, not disabled, so a blocked button keeps keyboard focus; its click is dropped.
   const retryProps = {
     variant: 'secondary',
     size: 'md',
@@ -141,7 +129,6 @@ function Content({
   const complete = kept !== undefined;
   const letter = kept ?? state.text ?? '';
   const text = complete ? withSignature(letter, name) : letter;
-  // The name only ever goes under a sign-off, so without one there is nothing to offer.
   const signable = endsOnSignOff(letter);
   const failure =
     state.status === 'error' && state.error.kind !== 'stream-cut' ? state.error : null;
@@ -172,7 +159,6 @@ function Content({
   return (
     <>
       <div className={styles.content}>
-        {/* Above a kept letter, where the eye lands: the form may name another job by now. */}
         {keptNote && (
           <div className={styles.kept}>
             {keptNote}
@@ -180,7 +166,6 @@ function Content({
           </div>
         )}
         <LetterBody text={text} spacing="comfortable" />
-        {/* Under a cut letter, where it marks the point the text stops. */}
         {cut && !complete && (
           <>
             <p className={`${styles.cutNote} ${typography.sm}`}>{copy.preview.streamCut}</p>
@@ -210,8 +195,7 @@ export function LetterPreview({ ref, company, savedLetter, ...props }: LetterPre
   const kept = keptLetter(state, savedLetter);
   const failed = failedBeforeText(state, savedLetter);
 
-  // Not a live region: the page's status line says when a run starts, finishes or is cut, and an
-  // error speaks through its own alert, so nothing in here is read twice or mid-stream.
+  // Not a live region: the page's status line announces runs, so the letter isn't read mid-stream.
   return (
     <section
       ref={ref}

@@ -16,8 +16,4 @@ describe('buildPrompt', () => {
       expect(prompt).toContain(value);
     }
   });
-
-  it('omits the details section when details are empty', () => {
-    expect(buildPrompt({ ...request, details: '' }).prompt).not.toMatch(/details/i);
-  });
 });

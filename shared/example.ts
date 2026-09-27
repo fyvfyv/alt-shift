@@ -1,7 +1,6 @@
 import type { GenerateRequest } from './generation.js';
 
-// The mockups' example. Try an example hands it to the form, and the mock's short transcript is
-// recorded from it, so the letter it produces offline is written for this input, not another's.
+// The short mock fixture is recorded from this: re-run `pnpm record:fixture short` after a change.
 export const EXAMPLE_REQUEST: GenerateRequest = {
   jobTitle: 'Product manager',
   company: 'Apple',
