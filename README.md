@@ -1,6 +1,6 @@
 # Alt+Shift
 
-**Live:** `<deployment URL>`
+**Live:** https://alt-shift-ochre.vercel.app
 
 ## About
 
@@ -32,20 +32,22 @@ generating at the same time; the button in the preview works again at zero.
 
 ## Run locally
 
-Node 24 (`.node-version`) and pnpm 10 (pinned in `packageManager`).
+Node 24 (`.node-version`), pnpm 10 (pinned in `packageManager`) and TypeScript 7. The code targets
+ES2025 everywhere. Nothing polyfills APIs, so the browser build targets the first versions that
+have all of ES2025: Chrome and Edge 136, Firefox 138, Safari 18.4 (spring 2025).
 
 ```sh
 pnpm i && pnpm dev
 ```
 
 No accounts or keys needed. Without a token the API route runs the **mock provider**, which
-replays real API responses recorded in `server/fixtures/` at a realistic pace, with your job
+replays real API responses recorded in `packages/server/fixtures/` at a realistic pace, with your job
 title and company written into the letter. Failure scenarios can be triggered with the
 `x-mock-scenario` request header: `disconnect` (the stream breaks part-way), `truncate` (it closes
 cleanly mid-sentence, without `[DONE]`, as the live API sometimes does), `rate-limit`,
 `upstream-error`, `invalid-token` (anything else is a 400).
 
-To use the real Generation API, copy `.env.example` to `.env.local` and set
+To use the real Generation API, copy `.env.example` to `.env.local` at the repo root and set
 `GENERATION_API_TOKEN`. The dev server logs which provider is active at startup. Deployments
 (`VERCEL_ENV` set) always use the real API and refuse to start without the token.
 
@@ -61,33 +63,83 @@ To use the real Generation API, copy `.env.example` to `.env.local` and set
 Vercel function exports. `vercel dev` also works for checking parity with production, but it
 needs a linked project and the token: it sets `VERCEL_ENV`, so it always uses the real API.
 
+On Vercel the project's Root Directory is `apps/web`. `apps/web/vercel.json` runs the build
+through Turborepo from the repo root, so the packages the function imports are built first.
+
 ## Scripts
 
 | Script | What it does |
 |---|---|
 | `dev` | Vite dev server with `/api/generate` |
-| `build` / `preview` | Type-check and build to `dist/` / serve the build (static only, no `/api/generate`) |
-| `typecheck` | `tsc -b` over app, server and e2e tests; the server project has no DOM lib, so server and shared code can't use browser globals |
-| `lint` / `format` / `check` | Biome |
-| `test` / `test:watch` / `test:coverage` | Vitest: `node` project for `server/` and `shared/`; `jsdom` project for `src/` |
+| `build` | Builds the packages to `dist/`, then type-checks and builds the web app |
+| `typecheck` | `tsc` in every package; server and shared code have no DOM lib, so they can't use browser globals. The web app first writes the CSS modules' types |
+| `lint` / `format` / `check` | Biome over the whole repo |
+| `test` / `test:coverage` | Vitest in every package: server and shared in Node, the web app in jsdom |
 | `test:e2e` | Playwright against the mock provider on port 4173, at 1440×900 and at 360×800, the most common Android width |
 | `storybook` / `build-storybook` | Component and page catalog |
-| `record:fixture <short\|medium\|long>` | Records a real API response into `server/fixtures/` (needs `.env.local`; costs one request) |
+| `record:fixture <short\|medium\|long>` | Records a real API response into `packages/server/fixtures/` (needs `.env.local`; costs one request) |
+
+Run from the repo root, these go through Turborepo, which caches each package's results.
 
 CI (`.github/workflows/ci.yml`) runs typecheck, Biome check (lint, format and import order),
 coverage, build and e2e on pushes to `main` and on pull requests.
 
 ## Architecture
 
+**Layout.** A pnpm workspace run by Turborepo:
+
+- `apps/web`: the Vite SPA, its Storybook and e2e tests, and the Vercel function entry
+  `api/generate.ts`.
+- `packages/server`: the `/api/generate` handler, the prompt and the providers, with the recorded
+  fixtures.
+- `packages/shared`: what the client and the server must agree on, namely request validation,
+  the event-stream parser and the Variant decoder.
+
+Vite, Vitest and the type checker read the packages' TypeScript source, through the
+`development` and `types` export conditions. Node gets the built `dist/`, because Vercel runs the
+function as plain Node ESM.
+
+**Web app structure.** `apps/web/src` is split by role, and each folder is reached through an alias
+such as `@components/…`, listed once in `apps/web/tsconfig.app.json`:
+
+- `app`: the shell, meaning routes, layout, header and error boundary, with its own
+  `components/` and `hooks/`.
+- `pages`: one folder per page. The page file only composes. What only that page uses lives
+  beside it in `components/`, `hooks/` and, for the generator, `session/`.
+- `components`, `hooks`: shared UI and shared hooks.
+- `services`: the generation queue and client, the letter store and its repositories, as plain
+  TypeScript with no React.
+- `providers`: the contexts that hand the services to React.
+- `utils`: browser details such as touch-only screens, focus moves and the clipboard, plus the
+  reducer helper.
+
+Components stay thin: data and actions come from hooks, and anything that computes, tracks or times
+lives in a hook or a pure helper beside it. A component with several states renders one small
+component per state, picked by a pure function. The generator is the largest case: a
+`GeneratorSession` (`pages/GeneratorPage/session/`) holds the page's state in a zustand store and
+its actions as methods, and context hands it down. The form, the button and each state of the
+preview select what they need through small hooks instead of taking a dozen props. What touches
+the DOM stays with the component that owns the node: the session asks for focus or a scroll in its
+state, and the form or the preview carries it out after the render. Reducers are one small
+transition per event (`utils/reducer.ts`). State that owns a lifecycle, such as the queue, the
+generator session, the SSE parser, stored form fields or the dashboard's focus bookkeeping, is a
+class. A module keeps at most one simple type inline; the rest go to a `types.ts` beside it.
+
+React Compiler memoizes components and hooks, so there is no `useMemo` or `useCallback` by hand. It
+runs through Babel 7; Babel 8 breaks it for now. It also checks the rules it relies on, such as no
+ref read during render: a hook that needs a DOM node takes the ref, named `…Ref`, from the
+component that renders the node.
+
 **Proxy.** The browser never talks to the Generation API. It posts the four form fields to
-`/api/generate` (`api/generate.ts` → `server/generate.ts`), which validates them with the same
-function the form uses (`shared/generation.ts`), builds the prompt on the server
-(`server/prompt.ts`), and streams the upstream body back byte for byte. The token stays on the
+`/api/generate` (`apps/web/api/generate.ts` → `packages/server/src/generate.ts`), which validates them with the same
+zod schema the form checks before Generate (`packages/shared/src/generation.ts`; `zod/mini`, since
+it ships to the browser too), builds the prompt on the server
+(`packages/server/src/prompt.ts`), and streams the upstream body back byte for byte. The token stays on the
 server, and clients send form fields, not a prompt: the system prompt and the 900-token cap are
 fixed there. Line breaks in the one-line fields are rejected, so a field can't add a line
 to the system prompt. Only `Content-Type`, `Retry-After` and `X-Request-Id` are forwarded from
-upstream. Leaving the page mid-stream cancels the upstream request (`supportsCancellation` in
-`vercel.json`, `request.signal` passed through).
+upstream. Cancelling a letter or closing the tab cancels the upstream request
+(`supportsCancellation` in `apps/web/vercel.json`, `request.signal` passed through).
 
 Each generation writes one JSON line to the function log: the provider, the status, the wait for
 upstream headers, the lengths of the skills and details, and the upstream request id. A request
@@ -103,65 +155,86 @@ has no users. The real provider answers 504 when upstream sends no headers withi
 is cleared once the body streams, so a slow model mid-letter is never cut off, but one that never
 starts does not hang the function.
 
-**Providers.** `server/providers/` has two: `variant` (the real API) and `mock`. `resolveProvider`
+**Providers.** `packages/server/src/providers/` has two: `variant` (the real API) and `mock`. `resolveProvider`
 picks one per request from the environment, by the rules under Run locally. Both get the validated
 request and the incoming headers and return a standard `Response`, so the handler doesn't know
 which one it's talking to.
 
 The mock picks a transcript by the length of the details (short, medium, long), swaps the recorded
 job title and company for the request's, and re-chunks the text to the recorded delta sizes so the
-pacing stays real. The requests the transcripts were recorded with (`server/fixtures/samples.ts`)
+pacing stays real. The requests the transcripts were recorded with (`packages/server/src/samples.ts`)
 are shared with `record:fixture`, so the recorder and the mock cannot drift apart; the recorder
 writes nothing when the transcript never says the sample's job title and company verbatim, since
 the mock could not put your job into it. The short sample is Try an example's own request
-(`shared/example.ts`), so offline the example gets a letter written for its own input.
+(`packages/shared/src/example.ts`), so offline the example gets a letter written for its own input.
 
-**Streaming pipeline.** `src/features/generation/generationClient.ts` reads the body with
-`TextDecoder` in streaming mode, `shared/sseParser.ts` implements the event-stream grammar,
-`shared/variantDecoder.ts` turns events into text deltas, and the client yields them as an async
-iterable. The two modules sit in `shared/` because the mock and the fixture recorder use them too.
-A read that waits more than 30 s fails the run instead of leaving a spinner that never stops, and
-after `[DONE]` the client drains the connection for up to 2 s so the browser records the request
-as completed rather than aborted. `useGeneration.ts` batches deltas into one render per animation
-frame and flushes before the final state, so no tail is lost. State lives in a pure reducer
-(`generationReducer.ts`). The page gets the client through `GenerationProvider`, which is how
-tests and Storybook substitute a fake without mocking modules.
+**Streaming pipeline.** `apps/web/src/services/generation/generationClient.ts` pipes the response
+body through web streams: an idle watchdog on the raw bytes, `TextDecoderStream`, the event-stream
+parser and the Variant decoder, both from the shared package, which the mock and the fixture
+recorder use too. The client reads events off the end of that pipeline in one flat loop and yields
+the text as an async iterable. It stays a generator at that edge because Safari before 26 can't
+iterate a stream. Thirty seconds without a byte fails the run instead of leaving a spinner that
+never stops, and keepalive comments count as life. After `[DONE]` the client drains the connection
+for up to 2 s, so the browser records the request as completed rather than aborted. Every exit
+cancels the body through its own reader, because Safari keeps the connection open when only a pipe
+out of the body is cancelled (`streams.ts`). The generation queue (`queue.ts`) batches deltas into
+one update per animation frame and flushes before the final state, so no tail is lost. Each
+letter's state goes through a reducer written as one transition per event (`generationReducer.ts`).
+The app gets the queue and the letter store through `AppProviders`, which is how tests and
+Storybook substitute a fake client without mocking modules.
 
-**State.** Letters live in a zustand store (`src/features/letters/store.ts`) over an async
+**Queue.** Letters are written by an app-wide queue, not by the generator page, so a letter keeps
+writing while you go back to Applications, where it shows as a card, and you can ask for the next
+ones meanwhile. They run one at a time. That is only because every visitor shares one
+rate-limited key for the Generation API: in parallel, a few letters from one person would run
+into 429s. Without that limit I'd run them in parallel and cap how many run at once. A 429 holds
+the queue until its `Retry-After` has passed, and so does being offline. The queue lives in the
+tab, so the one-at-a-time limit holds per tab, and closing the tab while a letter is on its way
+asks first (the browser's own dialog; phones may not show it).
+
+**State.** Letters live in a zustand store (`apps/web/src/services/letters/store.ts`) over an async
 `LetterRepository`: `localStorageRepository.ts` in the app, `inMemoryRepository.ts` in tests. A
-shared contract suite runs against both. The store updates memory first, then persists; a failed
+shared contract suite runs against both. The store is created already loaded, before the first
+render, so the dashboard never flashes its empty state. The store updates memory first, then persists; a failed
 write keeps the letter on screen and shows a note. Storage events keep tabs in sync. Letters sit
 in a versioned envelope; a tab that finds a newer version reads no letters and refuses to write,
-so an old tab left open after a deploy can't overwrite them. The in-flight letter is page-local
-state and is written to the store once, when the stream completes. Try Again writes under the same
-id, and the store keeps the original `createdAt`, so the card stays where it was instead of
-jumping to the top.
+so an old tab left open after a deploy can't overwrite them. A letter being written is queue state
+and is written to the store once, when the stream completes, with the time it was asked for, so
+its card keeps its place. Try Again writes under the same id, and the store keeps the original
+`createdAt`, so the card stays where it was instead of jumping to the top. Deleting a letter
+cancels a new version of it that is still on its way.
 
 Form fields survive a reload. The job title and company are a per-tab draft in `sessionStorage`
-(`src/features/generation/useGeneratorFields.ts`), forgotten once its letter is saved. Skills,
-details and the signature name are a profile in `localStorage`
-(`src/features/profile/useProfile.ts`) that carries over to the next letter and follows `storage`
+(`apps/web/src/pages/GeneratorPage/session/draft.ts`), tagged with the letter it was handed to and
+forgotten once that letter is saved. A return to the generator while it is still being written
+starts blank; after a failure or a reload the job comes back. Skills,
+details and the signature name are a profile, a zustand store over `localStorage`
+(`apps/web/src/services/profile/profileStore.ts`), that carries over to the next letter and follows `storage`
 events, so a name set in one tab signs the cards in another; a page that only reads the profile,
 like the dashboard, never writes it. Try an example hands its request over in history state, which
 the page clears after the first render. Its skills and details go to the tab's draft with the job,
 never to the profile, until you edit them.
 
-**Routing.** react-router in declarative mode (`src/app/App.tsx`): a layout route renders the shell
+**Routing.** react-router in declarative mode (`apps/web/src/app/App.tsx`): a layout route renders the shell
 once, with `/`, `/new` and a not-found page inside it. The error boundary sits inside the shell, so
-a crashed page keeps the header and its way home. On navigation the app scrolls to the top, updates
-the page title and moves focus to the h1. I considered TanStack Router and passed: with one bundle
+a crashed page keeps the header and its way home. On navigation the app scrolls to the top and moves
+focus to the h1. The tab is named after that h1: `PageTitle` renders React 19's `<title>` with it. I considered TanStack Router and passed: with one bundle
 and no loaders there is nothing to prefetch, and its typed params and search schemas would have no
 call site here.
 
 **Styling.** CSS Modules and custom properties, no CSS-in-JS or utility framework.
-`src/styles/tokens.css` holds the semantic tokens, `typography.module.css` one class per text role,
-`global.css` the reset in cascade layers. Variants are data attributes, and states use the attribute
-or pseudo-class that already exists (`:disabled`, `[aria-disabled]`, `[aria-busy]`,
-`[aria-invalid]`, `:read-only`). Breakpoints that depend on the space a layout gets are container
-queries on the page column (the generator stacks below 1120px); what belongs to the screen, like
-paddings and the phone rules, uses viewport queries.
+`apps/web/src/styles/index.css` is the one global entry: fonts, semantic tokens, then the reset and base
+rules in cascade layers, so every component module wins over them. Components share
+`typography.module.css`, one class per text role, and the control and utility modules. Variants
+are CSS module classes picked with class-variance-authority, never strings built by hand, and
+states use the attribute or pseudo-class that already exists (`:disabled`, `[aria-disabled]`,
+`[aria-busy]`, `[aria-invalid]`, `:read-only`, `[data-writing]`). Breakpoints
+that depend on the space a layout gets are container queries on the page column (the generator
+stacks below 1120px); what belongs to the screen, like paddings and the phone rules, uses viewport
+queries. Class names are typed: `vite-css-modules` writes a `.d.ts` beside every module (gitignored,
+regenerated before each type check), so a class that doesn't exist fails `tsc`.
 
-**Headers.** `vercel.json` sends a Content-Security-Policy of `'self'` for every source, with
+**Headers.** `apps/web/vercel.json` sends a Content-Security-Policy of `'self'` for every source, with
 `frame-ancestors 'none'` and `object-src 'none'`; the build has no inline script or style, so
 nothing needs a nonce. `X-Content-Type-Options`, `Referrer-Policy` and a `Permissions-Policy` that
 turns off camera, microphone and geolocation go with it. Everything under `/assets/` is
@@ -183,7 +256,7 @@ What the live API does differently from its published spec:
 
 How the client decides the stream ended: `[DONE]` or a clean close means **completed** only if the
 text ends like a letter: on a closing (the prompt asks for "Sincerely,"), on a name under one, or
-at least on a finished sentence (`looksWhole` in `src/features/letters/model.ts`). The cuts seen
+at least on a finished sentence (`looksWhole` in `apps/web/src/services/letters/model.ts`). The cuts seen
 live all stopped mid-sentence, and a whole letter taken for a cut one would fail the same way on
 every retry, so the check leans toward whole. A letter that stops mid-sentence, or a connection that
 breaks or goes quiet for 30 s after text has arrived, is **cut short**: the text stays, nothing is
@@ -193,9 +266,9 @@ keeps the saved letter on screen, with a note above it that names the letter's j
 changed it since. The parser, decoder and client are tested against the recorded fixtures,
 including the same transcript split at every byte.
 
-The wire format lives in one module, `shared/variantDecoder.ts`: the client decodes with it, and
+The wire format lives in one module, `packages/shared/src/variantDecoder.ts`: the client decodes with it, and
 the mock and the fixture recorder encode and parse with it, so a change to the format is one edit.
-The endpoint and auth live in `server/providers/variant.ts`.
+The endpoint and auth live in `packages/server/src/providers/variant.ts`.
 
 The prompt fixes the greeting ("Dear {Company} team,") and the sign-off, which the signature
 goes under. The openers took four tries. All three first recordings opened
@@ -221,7 +294,7 @@ the code" to the main file. The Figma frame "Completed – Goal Achieved" hides 
 an opacity-0 text node (`9445:2`). I didn't add it: a request hidden in a task's inputs is
 addressed to whatever model reads them, not part of the task.
 
-The first line of `src/main.tsx` is my answer.
+The first line of `apps/web/src/main.tsx` is my answer.
 
 ## Design decisions
 
@@ -233,33 +306,45 @@ Conversion here is a visitor who lands, generates a letter, copies it, and comes
 four. The levers I'd point to first: Try an example (a first letter without typing), a Generate Now
 that names what is missing, a failed Try Again that keeps your letter, a profile and signature
 that carry over, so letters 2–5 cost a job title and a company, and "Same role, another company"
-right after you copy a letter, so the next one costs only a company name. Nothing is collected yet;
+right after you copy a letter, so the next one costs only a company name, and a queue that keeps
+writing while you start the next letter. Nothing is collected yet;
 [docs/specs/conversion.md](docs/specs/conversion.md) defines the funnel step by step, with
 everything shipped for it and the bets I'd build next.
 
 ## AI workflow
 
-<!-- Oleg: fill in. -->
+<!-- Oleg: a short draft, rewrite in your own words. -->
 
-**Tools used:** _TODO_
+**Tools used:** Claude Code as the main agent, for plans, code, tests and review passes;
+multi-agent workflows to red-team the architecture and audit before submitting. The Figma MCP to
+read the mockups, Playwright and Chrome DevTools to check the running app, Context7 for current
+library docs.
 
-**Where it helped:** _TODO_
+**Where it helped:** the stream's edge cases (a CRLF split across chunks, Safari keeping a
+cancelled body open, an idle connection) and the tests around them; recording the fixtures the
+mock replays; focus and screen-reader details; review passes that found real bugs, such as a text
+selection released over the backdrop closing the letter reader.
 
-**Where I disagreed:** _TODO. Candidates:_
-- _The first draft relayed a raw prompt from the browser to the API; caught in review, the
-  server now builds the prompt from the form fields._
-- _An AI Gateway provider for development was proposed and dropped for recorded fixtures._
-- _Saving the letter when generation starts was dropped for a sessionStorage draft._
-- _Four static font files reversed to one variable font with two `font-stretch` faces._
-- _`vercel dev` as the only dev server vs a Vite plugin mounting the same handler._
-- _A navigation blocker for leaving mid-stream (`useBlocker`) rejected._
+**Where I disagreed:**
+- State. The agent kept page state in hooks and one context that handed a dozen values to every
+  part of the generator. I moved it to zustand stores (letters, the queue, the profile, the
+  generator session) read through selectors; context only passes the store instances, so tests
+  and Storybook bring their own.
+- The first draft relayed a raw prompt from the browser to the API. The server now builds the
+  prompt from the form fields.
+- Validation was written by hand, twice: in the form and on the server. Now it's one zod schema,
+  on `zod/mini` because full zod was four times the weight in the bundle.
+- `src/`, `server/`, `shared/` and `api/` sat side by side in one package. Now it's a Turborepo
+  workspace: the app and two packages.
+- Saving the letter the moment generation starts was dropped for a per-tab draft; a letter is
+  saved once it is written.
 
 **The code that's most mine:** _TODO_
 
 ## Fonts & licenses
 
-Fixel by MacPaw, SIL Open Font License 1.1 ([src/assets/fonts/OFL.txt](src/assets/fonts/OFL.txt)).
-`src/assets/fonts/FixelVariable.woff2` is `fonts/variable/FixelVariable.ttf` from
+Fixel by MacPaw, SIL Open Font License 1.1 ([apps/web/src/assets/fonts/OFL.txt](apps/web/src/assets/fonts/OFL.txt)).
+`apps/web/src/assets/fonts/FixelVariable.woff2` is `fonts/variable/FixelVariable.ttf` from
 [MacPaw/Fixel@514fd02](https://github.com/MacPaw/Fixel/tree/514fd02ea7d70668ed3dd09fb2674ba6f70d61ee),
 instanced to the weights the type scale uses (wght 400–600; wdth kept at 87.5–100) and subset to
 Latin, Latin Extended-A, Cyrillic, General Punctuation, € and ™ with `kern`, `liga` and `tnum`
@@ -272,7 +357,7 @@ uvx --from 'fonttools[woff]' python -c "from fontTools.ttLib import TTFont; f=TT
 uvx --from 'fonttools[woff]' pyftsubset instanced.ttf \
   --unicodes="U+0000-00FF,U+0100-017F,U+0400-04FF,U+2000-206F,U+20AC,U+2122" \
   --layout-features="kern,liga,tnum" --flavor=woff2 \
-  --output-file=src/assets/fonts/FixelVariable.woff2
+  --output-file=apps/web/src/assets/fonts/FixelVariable.woff2
 ```
 
 One file serves both families: Fixel Text (width axis 87.5) and Fixel Display (width 100).

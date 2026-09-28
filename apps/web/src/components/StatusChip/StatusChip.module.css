@@ -1,0 +1,44 @@
+.chip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: max-content;
+  padding: var(--space-1) var(--space-3);
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-xs);
+  animation: fade-in 240ms ease-out;
+}
+
+.chip::before {
+  width: 6px;
+  height: 6px;
+  content: "";
+  background: var(--color-border);
+  border-radius: var(--radius-full);
+}
+
+.live::before {
+  background: var(--color-brand);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .live::before {
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.35;
+  }
+}

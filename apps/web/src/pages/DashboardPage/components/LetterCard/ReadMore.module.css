@@ -1,0 +1,22 @@
+.more {
+  position: relative;
+}
+
+.more::before {
+  position: absolute;
+  top: -32px;
+  inset-inline: 0;
+  height: 40px;
+  pointer-events: none;
+  content: "";
+  background: var(--gradient-card-fade);
+}
+
+.toggle {
+  position: absolute;
+  top: -20px;
+  inset-inline-end: 0;
+  display: flex;
+  padding-inline-start: var(--space-8);
+  background: linear-gradient(90deg, transparent, var(--color-surface-subtle) var(--space-8));
+}

@@ -28,7 +28,7 @@ letter, storage failures, crashes. No number goes into these docs until it is a 
 
 In funnel order; the rules behind each are in [design-decisions.md](design-decisions.md).
 
-- **Link previews**: a description and text-only Open Graph tags in `index.html`. *Land.*
+- **Link previews**: a description and text-only Open Graph tags in `apps/web/index.html`. *Land.*
 - **An empty dashboard that pitches the product**, with Try an example as its one action and a
   note on where the text goes. *Land → open.*
 - **Try an example**: the mockups' own request, so a first letter needs no typing; its bio is
@@ -45,6 +45,9 @@ In funnel order; the rules behind each are in [design-decisions.md](design-decis
   and a company. *Letters 2–5.*
 - **Same role, another company**, offered once a letter is copied: one click clears Company and
   puts the caret there, so the next letter costs only a company name. *Copy → letters 2–5.*
+- **A queue that keeps writing**: a letter keeps writing while you go back to Applications, where
+  it shows as a card that turns into a letter with Copy, and the next ones wait their turn, so
+  five letters never cost five waits in a row. *Letters 2–5.*
 - **Banner copy that counts** down to the goal, and Read more, which opens a card's whole letter
   with its Copy. *Letters 2–5.*
 - **The job in the tab title**, so the right tab is findable. *Letters 2–5.*

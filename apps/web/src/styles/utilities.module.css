@@ -1,0 +1,36 @@
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* A light band sweeping over a panel or card while its letter is written. The attribute keeps it
+   above the element's own `background`, whichever module loads last. */
+@media (prefers-reduced-motion: no-preference) {
+  .sheen[data-writing] {
+    background-image: linear-gradient(
+      100deg,
+      transparent 40%,
+      color-mix(in srgb, var(--color-surface) 60%, transparent) 50%,
+      transparent 60%
+    );
+    background-size: 300% 100%;
+    animation: sheen 2.4s linear infinite;
+  }
+}
+
+@keyframes sheen {
+  from {
+    background-position: 100% 0;
+  }
+
+  to {
+    background-position: 0 0;
+  }
+}

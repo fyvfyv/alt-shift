@@ -41,6 +41,12 @@ What the file does not have, and what that meant for me:
 | Preview | placeholder | placeholder | placeholder | orb | text | text + Copy |
 | Goal banner | — | — | — | — | — | yes; "You hit your goal" at 5 |
 
+A letter asked for while another is being written is **queued**: the CTA reads "Queued", inert and
+without a spinner, since nothing is sent yet; fields are read-only; the preview says "Queued" with
+what it waits for ("Starts after your letter for {Company}.", "Starts in {n}s." during a 429 wait,
+"Starts when you're back online.") and a Cancel that gives the form back. A letter already on
+screen stays there, with its Copy and the banner, under "Queued. {…}" and Cancel.
+
 - **Banner on the generator appears only after a completed letter.** No pre-generation frame
   shows it, `4:11014` does. At 5/5 the dashboard drops it (`4:12164`); the generator keeps it as
   "You hit your goal" with Create New, because the page still needs a way to start the next
@@ -97,10 +103,10 @@ the screen are viewport queries.
 
 ## Tokens
 
-Two layers. The palette exists only as literals inside `src/styles/tokens.css`; components use
+Two layers. The palette exists only as literals inside `apps/web/src/styles/tokens.css`; components use
 semantic names (`--color-text-tertiary`, `--color-border-focus`, `--ring-error`,
 `--radius-lg`, `--space-6`). Spacing names are the value divided by 4. Typography is one class
-per role in `src/styles/typography.module.css` (display lg/md, lg, lg strong, md, md strong, sm,
+per role in `apps/web/src/styles/typography.module.css` (display lg/md, lg, lg strong, md, md strong, sm,
 sm medium), written as longhands with rem sizes.
 
 Fonts: Fixel Display for headings and Fixel Text for everything else. They are one variable
@@ -177,7 +183,11 @@ reader never reads the letter as it streams. One status line outside it says "Ge
 letter…" when a run starts (streaming says the same, so it is not repeated), "Your letter is ready.
 Copy it, or use Try Again for another version." when it completes, and "The letter was cut short."
 when it is cut. Every
-other error speaks through its own alert, which holds fixed text only. Status lines that can change
+other error speaks through its own alert, which holds fixed text only. A queued letter says "Your
+letter is queued." The dashboard has one status line of its own, empty at rest, for what happens
+while it is open: "{Title} is ready.", "{Title}: the letter was cut short.", "{Title} couldn't be
+written.", or "Couldn't write a new version of {Title}. Your previous letter is kept."; the cards
+themselves carry no alerts, so arriving on the page announces nothing. Status lines that can change
 (the offline note and the hint under the CTA, a field's error, the storage note) stay mounted, empty
 and off screen until they have something to say, because a status is announced when its text
 changes, not when it is inserted already holding it.
@@ -187,7 +197,7 @@ pattern and I didn't add one. Each maps to what the live API returns:
 
 | Cause (live API) | Title | Body | Panel action |
 |---|---|---|---|
-| 429 `rate_limit_exceeded` + `Retry-After` | Too many requests | The generation service is at its limit right now. You can try again in {n}s. | "Retry in {n}s", inert, counts down to "Retry" |
+| 429 `rate_limit_exceeded` + `Retry-After` | Too many requests | The generation service is at its limit right now. You can try again in {n}s. | "Retry in {n}s", inert, counts down to "Retry"; queued letters wait until then, and every view counts to the same moment |
 | 401 `invalid_token`, 400 `invalid_request`, 403 `forbidden`, 5xx `upstream_error` (including the proxy's own 504 when the model sends nothing for 20 s), a non-stream reply, a stream that ends or goes quiet for 30 s before any text | Generation failed | Something went wrong on our side. Your inputs are safe. | Retry |
 | The request never reached the server, or the browser is offline | You appear to be offline | Check your connection and try again. | Retry, inert until the browser is back online |
 | Connection drops mid-letter, goes quiet for 30 s after text arrived, or the stream ends (with or without `[DONE]`) mid-sentence | received text stays | "The letter was cut short." in error red under it | Try Again under the note; the form's CTA becomes Try Again too. After an edit the panel's button goes and the note stays |
@@ -207,7 +217,8 @@ invalid, the browser is offline or a countdown runs.
 
 **Offline.** While the browser reports no connection, every generate button is inert and a status
 under the CTA says why ("You appear to be offline. Generating will work again once you're back."),
-unless the preview already shows the offline error. Everything comes back on the `online` event.
+unless the preview already shows the offline error. Queued letters wait instead of failing one
+after another. Everything comes back on the `online` event.
 
 **Interactive states.** All from the existing palette: primary hover uses the logomark green,
 secondary hover and active use the two light grays, text fields get a darker gray border on hover
@@ -223,7 +234,9 @@ desktop window still has a keyboard.
 **Feedback.** Copy swaps its label to "Copied" for 2s, or to "Couldn't copy" when the clipboard
 refuses. Delete is immediate with no confirmation
 (none is designed), and focus moves to the next card's Delete, or to the page heading after the
-last one. When the browser refuses to save (full or blocked storage), a one-line status says the
+last one; Cancel on a letter on its way does the same. A card that has focus when its letter is
+saved hands it to the new card's Copy, and Try Again on a failed card keeps it on the card's
+Cancel. When the browser refuses to save (full or blocked storage), a one-line status says the
 latest changes will be lost when the tab closes; the letters stay on screen.
 
 **Slow starts.** Two seconds into a run the orb gets a caption: a small "Generating" eyebrow over
@@ -241,12 +254,25 @@ mockup's "Apple"; job title, skills and details stay, and the next run is a new 
 then the saved letter stays on screen tagged "Saved · {Job title}, {Company}", and keeps its Copy.
 The same tag shows whenever the form's job no longer matches the letter on screen.
 
+**Letters on their way.** Letters are written by a queue, one at a time, and keep writing when you
+leave the generator. On the dashboard each one not saved yet is a card in the list, by the time it
+was asked for: a "Queued" chip on its top edge with the job and what it waits for; then
+"Writing…" with a pulsing dot, the light band sweeping over the card and the text growing, its
+newest lines in view under a fade; Cancel in the footer. When the letter is saved the card
+becomes a normal letter card, in the same place. A letter that failed stays as a card with the
+reason ("The letter was cut short." in error red over the partial text, or "{Title}. {Body}"), and
+Delete and Try Again, which writes it again in the same card. A new version of a saved letter
+doesn't take its card away: the letter keeps its Copy and Delete under a "New version queued" or
+"Writing a new version…" chip. The chip is the preview's writing chip, shared. Only saved letters
+count toward the goal. The generator's empty preview says when a letter is still being written
+elsewhere, with a link to Applications.
+
 **Cards.** The footer keeps Figma's two actions, Delete and Copy. A letter the 240px card clips
 gets a "Read more" over the end of its last, faded line, so it takes no row of its own; letters
 that fit show neither. Clipping is measured again whenever the card or its text changes size (a
 resize, the webfont swap, a signature added in another tab). Read more opens the whole letter in a
-dialog over the page, at most 640px wide, with Close and Copy; Escape or a click outside closes it
-and focus returns to Read more. A card grown in place would jump to a row of its own from the right
+dialog over the page, at most 640px wide, with Close and Copy; the page behind it stays put.
+Escape or a click outside closes it and focus returns to Read more. A card grown in place would jump to a row of its own from the right
 column, or leave a hole beside its neighbor, and run the letter in lines 1000px long. Only a card
 narrower than Delete and Copy together (a 320px phone) wraps the footer; the preview gives up a
 line and the card stays 240px.
@@ -284,15 +310,23 @@ because in-memory state may be what broke. Navigating away gives the next page a
   replaces it (same card, same count, same place in the list: the original `createdAt` is kept).
   Editing any field after completion turns the CTA back into Generate Now, and the next run is a
   new letter. A failed Try Again keeps the same id, so the next success still replaces the letter.
+  Moving on from a letter that was never written (Generate Now after an edit, or Create New) drops
+  it; leaving through Home keeps it as a failed card.
 - **Create New on the generator** (the banner's button) resets the page in place: empty job title
   and company, empty preview, focus in Job title. What you are good at and your details stay,
   because the next letter is for another job, not another person; only an example's bio the user
   never edited goes with its job. Navigating to the same URL would do nothing visible.
-- **Leaving mid-stream** cancels the request and saves nothing; a half letter is not a letter. No
-  confirmation dialog: nothing is lost that one click can't regenerate, and the form is kept.
+- **Leaving mid-stream** no longer cancels anything: the letter keeps writing and is saved. Only
+  Cancel stops it, or closing the tab, which asks first while a letter is on its way (the
+  browser's own dialog, desktop only). A half letter is still not a letter: a cancelled one saves
+  nothing.
+- **Letters are written one at a time**, in the order asked for, because every visitor shares one
+  rate-limited key. Without that limit they would run in parallel with a cap on how many at once.
 - **The form survives a reload.** The job (title, company) is per tab, with an example's
-  unedited bio beside it; its stored copy is forgotten once the letter is saved and written again
-  on the next edit of any field. Skills,
+  unedited bio beside it. Once handed to the queue it is tagged with its letter: a return to the
+  generator while that letter is on its way or saved starts blank, and after a failure or a reload
+  the job comes back. It is forgotten once the letter is saved and written again on the next edit
+  of any field. Skills,
   details and the signature name are a profile shared by every tab and kept in step across them;
   a page that only reads it never writes it.
 - **During errors** the CTA stays Try Again, until a field is edited, while a letter is on screen

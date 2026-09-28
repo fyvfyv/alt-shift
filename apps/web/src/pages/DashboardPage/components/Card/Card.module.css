@@ -1,0 +1,47 @@
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 240px;
+  padding: var(--space-6);
+  overflow: hidden;
+  background: var(--color-surface-subtle);
+  border-radius: var(--radius-lg);
+}
+
+/* The chip sits half above the card's edge; the body still clips the letter. */
+.withChip {
+  overflow: visible;
+}
+
+.chip {
+  position: absolute;
+  top: 0;
+  left: var(--space-6);
+  transform: translateY(-50%);
+}
+
+.body {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* A letter being written shows its newest lines; the first ones fade out above. */
+.scrolled {
+  mask-image: linear-gradient(transparent, #000 var(--space-8));
+}
+
+/* A cut letter is always longer than its card: fade it out like a clipped one. */
+.cut {
+  mask-image: linear-gradient(#000 calc(100% - var(--space-8)), transparent);
+}
+
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  align-items: center;
+  justify-content: space-between;
+  padding-top: var(--space-4);
+}

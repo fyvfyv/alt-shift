@@ -1,0 +1,26 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+    "lib": ["ES2025", "DOM", "DOM.Iterable"],
+    "types": ["vite/client", "vite-plugin-svgr/client", "@testing-library/jest-dom/vitest"],
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "paths": {
+      "@app/*": ["./src/app/*"],
+      "@assets/*": ["./src/assets/*"],
+      "@components/*": ["./src/components/*"],
+      "@copy": ["./src/copy.ts"],
+      "@hooks/*": ["./src/hooks/*"],
+      "@pages/*": ["./src/pages/*"],
+      "@providers/*": ["./src/providers/*"],
+      "@services/*": ["./src/services/*"],
+      "@stories/*": ["./.storybook/*"],
+      "@styles/*": ["./src/styles/*"],
+      "@test/*": ["./src/test/*"],
+      "@utils/*": ["./src/utils/*"]
+    }
+  },
+  "include": ["src", ".storybook"]
+}

@@ -1,8 +1,19 @@
 {
+  // Base options every package extends. It compiles nothing itself.
   "files": [],
-  "references": [
-    { "path": "./tsconfig.app.json" },
-    { "path": "./tsconfig.server.json" },
-    { "path": "./tsconfig.e2e.json" }
-  ]
+  "compilerOptions": {
+    "target": "es2025",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "skipLibCheck": true,
+
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true
+  }
 }

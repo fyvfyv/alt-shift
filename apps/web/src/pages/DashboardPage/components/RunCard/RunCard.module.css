@@ -1,0 +1,17 @@
+.status {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.title {
+  color: var(--color-text-primary);
+}
+
+.note {
+  color: var(--color-text-tertiary);
+}
+
+.cutNote {
+  padding-bottom: var(--space-2);
+  color: var(--color-text-error);
+}

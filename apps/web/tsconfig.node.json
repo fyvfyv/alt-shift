@@ -1,0 +1,12 @@
+{
+  // The Vite config, its dev plugin and the Vercel function: Node, no DOM.
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
+    "lib": ["ES2025"],
+    "types": ["node"],
+    "allowImportingTsExtensions": true,
+    "noEmit": true
+  },
+  "include": ["vite.config.ts", "dev", "api"]
+}

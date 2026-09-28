@@ -1,0 +1,66 @@
+/* margin: auto restores the dialog centering that the global reset's margin: 0 removes. The
+   dialog is only a frame: the sheet fills it and scrolls, so every click that reaches the dialog
+   itself is on the backdrop, its scrollbar included. */
+.reader {
+  width: min(640px, 100% - 2 * var(--space-4));
+  max-width: none;
+  max-height: calc(100% - 2 * var(--space-8));
+  margin: auto;
+  padding: 0;
+  overflow: hidden;
+  color: var(--color-text-primary);
+  background: var(--color-surface);
+  border: 0;
+  border-radius: var(--radius-lg);
+}
+
+/* Only while open: a closed dialog must keep the browser's display: none. */
+.reader[open] {
+  display: flex;
+}
+
+.reader::backdrop {
+  background: var(--color-backdrop);
+}
+
+.sheet {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-6);
+  min-height: 0;
+  padding: var(--space-8) var(--space-8) 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.title {
+  overflow-wrap: anywhere;
+}
+
+.footer {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  align-items: center;
+  justify-content: space-between;
+  padding-block: var(--space-4) var(--space-8);
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+@media (width < 768px) {
+  .reader {
+    max-height: calc(100% - 2 * var(--space-4));
+  }
+
+  .sheet {
+    padding: var(--space-6) var(--space-6) 0;
+  }
+
+  .footer {
+    padding-bottom: var(--space-6);
+  }
+}

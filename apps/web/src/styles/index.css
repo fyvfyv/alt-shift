@@ -1,0 +1,7 @@
+/* Components' CSS modules stay unlayered, so they always win over reset and base. */
+@layer reset, base;
+
+@import "./fonts.css";
+@import "./tokens.css";
+@import "./reset.css" layer(reset);
+@import "./base.css" layer(base);

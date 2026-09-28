@@ -29,13 +29,50 @@
     "enabled": true,
     "actions": {
       "source": {
-        "organizeImports": "on"
+        "organizeImports": {
+          "level": "on",
+          "options": {
+            "groups": [
+              ":NODE:",
+              [
+                ":PACKAGE:",
+                "!@app/**",
+                "!@assets/**",
+                "!@components/**",
+                "!@copy",
+                "!@hooks/**",
+                "!@pages/**",
+                "!@providers/**",
+                "!@services/**",
+                "!@styles/**",
+                "!@test/**",
+                "!@stories/**",
+                "!@utils/**"
+              ],
+              [
+                "@app/**",
+                "@assets/**",
+                "@components/**",
+                "@copy",
+                "@hooks/**",
+                "@pages/**",
+                "@providers/**",
+                "@services/**",
+                "@stories/**",
+                "@styles/**",
+                "@test/**",
+                "@utils/**"
+              ],
+              ":PATH:"
+            ]
+          }
+        }
       }
     }
   },
   "overrides": [
     {
-      "includes": ["src/assets/**/*.svg"],
+      "includes": ["apps/web/src/assets/**/*.svg"],
       "linter": {
         "rules": {
           "a11y": {

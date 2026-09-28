@@ -1,0 +1,34 @@
+/* The gutter is kept even when nothing scrolls, so locking the page moves nothing sideways. */
+html {
+  scrollbar-gutter: stable;
+}
+
+/* A modal dialog leaves the page behind it scrollable; the letter reader scrolls on its own. */
+html:has(dialog:modal) {
+  overflow: hidden;
+}
+
+body {
+  min-height: 100dvh;
+  font-family: var(--font-text);
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.5rem;
+  color: var(--color-text-primary);
+  background: var(--color-surface);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* biome-ignore-start lint/complexity/noImportantStyles: from inside a layer only !important outranks unlayered component animations */
+@media (prefers-reduced-motion: reduce) {
+  *:not([data-motion="essential"]),
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+/* biome-ignore-end lint/complexity/noImportantStyles: see above */

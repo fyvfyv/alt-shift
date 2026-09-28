@@ -1,0 +1,11 @@
+{
+  // Plain ESM for Node: the Vercel function imports the built files, not the TypeScript source.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "rootDir": "src",
+    "outDir": "dist"
+  },
+  "include": ["src"],
+  "exclude": ["src/**/*.test.ts"]
+}
