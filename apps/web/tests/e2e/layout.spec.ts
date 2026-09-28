@@ -1,14 +1,15 @@
 import { expect, type Page, test } from '@playwright/test';
 import { lettersOf, seedLetters } from './helpers';
 
-// The header too: a spill into the page gutter does not widen the page itself.
+// The header too: a spill into the page gutter does not widen the page itself. Only a positive
+// difference scrolls; a reserved scrollbar gutter (classic scrollbars, as on Linux) makes it negative.
 async function expectNoSidewaysScroll(page: Page) {
   await page.evaluate(() => document.fonts.ready);
   const overflow = await page.evaluate(() => {
     const root = document.documentElement;
     const header = document.querySelector('header');
     return {
-      page: root.scrollWidth - root.clientWidth,
+      page: Math.max(0, root.scrollWidth - root.clientWidth),
       header: header ? header.scrollWidth - header.clientWidth : Number.POSITIVE_INFINITY,
     };
   });
