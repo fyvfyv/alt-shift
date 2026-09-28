@@ -9,8 +9,10 @@ export function focusSubmit(form: HTMLFormElement | null): void {
 }
 
 // On a phone the preview sits under the form; beside it, nothing needs to move.
+export function sitsBelow(element: HTMLElement, anchor: HTMLElement): boolean {
+  return element.offsetTop > anchor.offsetTop;
+}
+
 export function scrollIntoViewIfBelow(element: HTMLElement | null, anchor: HTMLElement | null) {
-  if (element && anchor && element.offsetTop > anchor.offsetTop) {
-    element.scrollIntoView({ block: 'start' });
-  }
+  if (element && anchor && sitsBelow(element, anchor)) element.scrollIntoView({ block: 'start' });
 }

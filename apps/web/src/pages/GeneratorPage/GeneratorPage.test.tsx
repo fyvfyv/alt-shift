@@ -242,10 +242,9 @@ describe('GeneratorPage', () => {
       await user.click(generateButton());
 
       act(() => vi.advanceTimersByTime(1_000));
-      expect(screen.queryByText('Generating')).not.toBeInTheDocument();
+      expect(screen.queryByText('Writing your letter for Apple…')).not.toBeInTheDocument();
 
       act(() => vi.advanceTimersByTime(1_000));
-      expect(screen.getByText('Generating')).toBeInTheDocument();
       expect(screen.getByText('Writing your letter for Apple…')).toBeInTheDocument();
 
       act(() => vi.advanceTimersByTime(6_000));

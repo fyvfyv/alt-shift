@@ -3,6 +3,7 @@ import { type RefObject, useRef } from 'react';
 import { useOrbExit } from '@components/LoadingOrb/useOrbExit';
 import { copy } from '@copy';
 import utilities from '@styles/utilities.module.css';
+import { useFollowLetter } from '../../hooks/useFollowLetter';
 import { useLetterOnScreen } from '../../hooks/useLetterOnScreen';
 import { useRevealOnRun } from '../../hooks/useRevealOnRun';
 import { EmptyView } from './EmptyView';
@@ -38,6 +39,7 @@ export function LetterPreview({ formRef }: LetterPreviewProps) {
   const view = previewViewOf(preview, savedLetter, showOrb);
   const writing = preview.status === 'streaming' && !showOrb;
   useRevealOnRun(sectionRef, formRef);
+  useFollowLetter(sectionRef, formRef);
   const views = {
     loading: <LoadingView exiting={orbExiting} />,
     queued: <QueuedView />,

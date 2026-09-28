@@ -22,7 +22,6 @@ export function LoadingView({ exiting }: { exiting: boolean }) {
       </div>
       {elapsed >= CAPTION_AFTER && (
         <div className={styles.caption}>
-          <p className={cx(styles.eyebrow, typography.smMedium)}>{copy.preview.loading.eyebrow}</p>
           <p className={cx(styles.placeholder, typography.lg)}>
             <ShimmerText>
               {elapsed < SLOW_AFTER

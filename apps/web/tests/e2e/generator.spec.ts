@@ -52,6 +52,33 @@ test('on a phone Generate Now brings the preview under the form into view', {
   await expect(panel).toBeInViewport({ ratio: 0.5 });
 });
 
+test('on a phone the page follows the letter as it streams and ends on its Copy', {
+  tag: '@phone',
+}, async ({ page }) => {
+  await page.goto('/new');
+  await fillGeneratorForm(page, LONG_DETAILS);
+  await page.getByRole('button', { name: 'Generate Now' }).click();
+
+  const copy = page.getByRole('button', { name: 'Copy to clipboard' });
+  await expect(copy).toBeVisible();
+  await expect(copy).toBeInViewport();
+});
+
+test('on a phone scrolling up to reread stops the page from following the letter', {
+  tag: '@phone',
+}, async ({ page }) => {
+  await page.goto('/new');
+  await fillGeneratorForm(page, LONG_DETAILS);
+  await page.getByRole('button', { name: 'Generate Now' }).click();
+  const panel = previewPanel(page);
+  await expect.poll(async () => (await panel.innerText()).length).toBeGreaterThan(0);
+
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+  await expect(page.getByRole('button', { name: 'Copy to clipboard' })).toBeAttached();
+
+  expect(await page.evaluate(() => window.scrollY)).toBe(0);
+});
+
 test('a dropped stream keeps the partial letter and saves nothing', async ({ page }) => {
   await routeMockScenario(page, 'disconnect');
   await page.goto('/new');

@@ -74,7 +74,6 @@ export const copy = {
       body: 'Check your connection and try again.',
     },
     loading: {
-      eyebrow: 'Generating',
       writing: (company: string) => `Writing your letter for ${company}…`,
       almost: 'Almost there…',
     },
